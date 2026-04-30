@@ -165,7 +165,7 @@ export function ComparisonClient({ rfqs, responses }: Props) {
                     <Scatter
                       data={scatterData}
                       fill="#3b82f6"
-                      shape={(props: Record<string, unknown>) => {
+                      shape={(props: any) => {
                         const { cx, cy, payload } = props as { cx: number; cy: number; payload: typeof scatterData[0] }
                         const isWinner = payload.email === best?.email
                         return (
