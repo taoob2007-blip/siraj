@@ -1,5 +1,5 @@
-import { RFQCreateForm } from '@/components/RFQCreateForm'
-import { FileText, Sparkles, ArrowRight } from 'lucide-react'
+import { RFQNewClient } from '@/components/RFQNewClient'
+import { Sparkles, ArrowRight } from 'lucide-react'
 
 export default function RFQCreatePage() {
   return (
@@ -37,7 +37,7 @@ export default function RFQCreatePage() {
 
       {/* Form */}
       <div className="mx-auto max-w-3xl px-6 py-10">
-        <RFQCreateForm />
+        <RFQNewClient />
       </div>
     </div>
   )
