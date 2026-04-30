@@ -300,7 +300,7 @@ export function SupplierCharts({ suppliers }: Props) {
                     dataKey="value"
                     position="top"
                     style={{ fill: '#9ca3af', fontSize: 10 }}
-                    formatter={(v: string | number | undefined) => typeof v === 'number' ? `$${v.toLocaleString('en-US')}` : ''}
+                    formatter={(v: any) => typeof v === 'number' ? `$${v.toLocaleString('en-US')}` : ''}
                   />
                 </Bar>
               </BarChart>
@@ -330,7 +330,7 @@ export function SupplierCharts({ suppliers }: Props) {
                     dataKey="value"
                     position="top"
                     style={{ fill: '#9ca3af', fontSize: 10 }}
-                    formatter={(v: string | number | undefined) => typeof v === 'number' ? `${v}d` : ''}
+                    formatter={(v: any) => typeof v === 'number' ? `${v}d` : ''}
                   />
                 </Bar>
               </BarChart>
@@ -368,7 +368,7 @@ export function SupplierCharts({ suppliers }: Props) {
                   dataKey="score"
                   position="right"
                   style={{ fill: '#9ca3af', fontSize: 11, fontWeight: 600 }}
-                  formatter={(v: string | number | undefined) => typeof v === 'number' ? `${v}` : ''}
+                  formatter={(v: any) => typeof v === 'number' ? `${v}` : ''}
                 />
               </Bar>
             </BarChart>
