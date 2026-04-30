@@ -368,7 +368,7 @@ export function AIDecisionPanel({
   const isAccepted = accepted === decision.best_supplier
 
   async function handleAccept() {
-    if (!rfqId || accepting || isAccepted) return
+    if (!rfqId || !decision || accepting || isAccepted) return
     setAccepting(true)
     setAcceptError(null)
     try {
