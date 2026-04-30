@@ -1,0 +1,266 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+:root {
+  --bg-base:    #080c14;
+  --bg-surface: #0d1220;
+  --bg-card:    #111827;
+  --border:     rgba(255,255,255,0.06);
+  --border-md:  rgba(255,255,255,0.10);
+  --blue-glow:  rgba(59,130,246,0.18);
+  --violet-glow:rgba(139,92,246,0.18);
+  --green-glow: rgba(34,197,94,0.15);
+}
+
+body {
+  background-color: var(--bg-base);
+  color: #f8fafc;
+  color-scheme: dark;
+}
+
+html {
+  scroll-behavior: smooth;
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+  text-rendering: optimizeLegibility;
+}
+
+/* ── Scrollbar ──────────────────────────────────────────── */
+::-webkit-scrollbar        { width: 4px; height: 4px; }
+::-webkit-scrollbar-track  { background: transparent; }
+::-webkit-scrollbar-thumb  { background: rgba(255,255,255,0.1); border-radius: 99px; }
+::-webkit-scrollbar-thumb:hover { background: rgba(255,255,255,0.2); }
+
+/* ── Glow keyframe ──────────────────────────────────────── */
+@keyframes glow-pulse {
+  0%, 100% { opacity: 0.6; }
+  50%       { opacity: 1;   }
+}
+
+@keyframes float {
+  0%, 100% { transform: translateY(0); }
+  50%       { transform: translateY(-6px); }
+}
+
+@keyframes shimmer {
+  0%   { background-position: -200% center; }
+  100% { background-position:  200% center; }
+}
+
+/* ── Utilities ──────────────────────────────────────────── */
+.glow-blue   { box-shadow: 0 0 32px var(--blue-glow); }
+.glow-violet { box-shadow: 0 0 32px var(--violet-glow); }
+.glow-green  { box-shadow: 0 0 32px var(--green-glow); }
+
+.glass {
+  background: rgba(255,255,255,0.03);
+  backdrop-filter: blur(12px);
+  border: 1px solid var(--border);
+}
+
+.gradient-text {
+  background: linear-gradient(135deg, #60a5fa 0%, #a78bfa 50%, #34d399 100%);
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  background-clip: text;
+}
+
+.shimmer-text {
+  background: linear-gradient(90deg, #60a5fa, #a78bfa, #34d399, #60a5fa);
+  background-size: 200% auto;
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  background-clip: text;
+  animation: shimmer 4s linear infinite;
+}
+
+.card-hover {
+  transition: transform 150ms ease, box-shadow 150ms ease, border-color 150ms ease;
+}
+.card-hover:hover {
+  transform: translateY(-1px);
+  box-shadow: 0 8px 32px rgba(0,0,0,0.4);
+}
+
+.float { animation: float 4s ease-in-out infinite; }
+
+/* ── Dashboard premium additions ───────────────────────── */
+@keyframes count-up {
+  from { opacity: 0; transform: translateY(6px); }
+  to   { opacity: 1; transform: translateY(0); }
+}
+
+@keyframes live-pulse {
+  0%, 100% { opacity: 1; transform: scale(1); }
+  50%       { opacity: 0.4; transform: scale(0.85); }
+}
+
+@keyframes border-glow {
+  0%, 100% { opacity: 0.5; }
+  50%       { opacity: 1; }
+}
+
+@keyframes slide-up {
+  from { opacity: 0; transform: translateY(10px); }
+  to   { opacity: 1; transform: translateY(0); }
+}
+
+.animate-count-up   { animation: count-up 0.5s ease both; }
+.animate-slide-up   { animation: slide-up 0.4s ease both; }
+.animate-live-pulse { animation: live-pulse 2s ease-in-out infinite; }
+
+.kpi-card {
+  transition: transform 200ms ease, box-shadow 200ms ease, border-color 200ms ease;
+  background: linear-gradient(135deg, #111827 0%, #0f172a 100%);
+}
+.kpi-card:hover {
+  transform: translateY(-3px) scale(1.01);
+  box-shadow: 0 12px 40px rgba(0,0,0,0.5);
+}
+
+.feature-card {
+  transition: transform 150ms ease, background 150ms ease, border-color 150ms ease;
+}
+.feature-card:hover {
+  transform: translateY(-2px);
+  background: rgba(255,255,255,0.04);
+  border-color: rgba(255,255,255,0.10);
+}
+
+.btn-primary {
+  transition: transform 180ms ease, box-shadow 180ms ease, background 180ms ease;
+}
+.btn-primary:hover {
+  transform: scale(1.03);
+  box-shadow: 0 0 32px rgba(59,130,246,0.55), 0 4px 16px rgba(59,130,246,0.25);
+}
+.btn-primary:active { transform: scale(0.97); }
+
+.btn-ghost {
+  transition: transform 150ms ease, background 150ms ease;
+}
+.btn-ghost:hover  { transform: scale(1.02); }
+.btn-ghost:active { transform: scale(0.97); }
+
+/* ── KPI card — coloured glow on hover via CSS variable ─── */
+.kpi-card:hover { border-color: var(--kpi-glow, rgba(255,255,255,0.12)); }
+
+/* ── Hero shimmer sweep ─────────────────────────────────── */
+@keyframes sweep {
+  0%   { transform: translateX(-100%) skewX(-15deg); opacity: 0; }
+  30%  { opacity: 1; }
+  100% { transform: translateX(220%) skewX(-15deg); opacity: 0; }
+}
+.shimmer-sweep {
+  position: absolute;
+  inset: 0;
+  overflow: hidden;
+  pointer-events: none;
+  border-radius: inherit;
+}
+.shimmer-sweep::after {
+  content: '';
+  position: absolute;
+  top: 0; bottom: 0;
+  width: 40%;
+  background: linear-gradient(90deg, transparent, rgba(255,255,255,0.045), transparent);
+  animation: sweep 3.5s ease-in-out 0.6s both;
+}
+
+/* ── Badge pulse (slow, calm) ───────────────────────────── */
+@keyframes badge-breathe {
+  0%, 100% { box-shadow: 0 0 0 0 rgba(59,130,246,0); }
+  50%       { box-shadow: 0 0 0 4px rgba(59,130,246,0.15); }
+}
+.badge-pulse { animation: badge-breathe 3s ease-in-out infinite; }
+
+/* ── Section fade-in (pure CSS fallback) ────────────────── */
+@keyframes fade-in {
+  from { opacity: 0; }
+  to   { opacity: 1; }
+}
+.animate-fade-in { animation: fade-in 0.6s ease both; }
+
+/* ── Soft glow ring on cards ────────────────────────────── */
+.ring-glow {
+  transition: box-shadow 250ms ease;
+}
+.ring-glow:hover {
+  box-shadow: 0 0 0 1px rgba(99,102,241,0.25), 0 16px 48px rgba(0,0,0,0.55);
+}
+
+/* ══════════════════════════════════════════════════════════
+   HERO BANNER — premium motion layer
+   ══════════════════════════════════════════════════════════ */
+
+/* Animated gradient background */
+@keyframes hero-bg-shift {
+  0%   { background-position: 0% 50%; }
+  50%  { background-position: 100% 50%; }
+  100% { background-position: 0% 50%; }
+}
+
+.hero-bg-drift {
+  background: linear-gradient(
+    135deg,
+    #0c1828 0%,
+    #0e1527 30%,
+    #100e22 60%,
+    #0d1630 80%,
+    #0c1828 100%
+  );
+  background-size: 300% 300%;
+  animation: hero-bg-shift 13s ease-in-out infinite;
+}
+
+/* Orb drift animations */
+@keyframes orb-drift {
+  0%, 100% { transform: translate(0, 0) scale(1); }
+  33%       { transform: translate(18px, -14px) scale(1.06); }
+  66%       { transform: translate(-12px, 10px) scale(0.96); }
+}
+
+@keyframes orb-drift-reverse {
+  0%, 100% { transform: translate(0, 0) scale(1); }
+  33%       { transform: translate(-16px, 12px) scale(1.04); }
+  66%       { transform: translate(14px, -10px) scale(0.97); }
+}
+
+@keyframes orb-drift-slow {
+  0%, 100% { transform: translate(0, 0) scale(1); }
+  50%       { transform: translate(10px, 8px) scale(1.08); }
+}
+
+.hero-orb-drift         { animation: orb-drift         12s ease-in-out infinite; }
+.hero-orb-drift-reverse { animation: orb-drift-reverse 15s ease-in-out infinite; }
+.hero-orb-drift-slow    { animation: orb-drift-slow    10s ease-in-out infinite; }
+
+/* Brain orb — pulse glow every ~4s */
+@keyframes brain-glow-pulse {
+  0%, 100% {
+    box-shadow: 0 0 28px rgba(59,130,246,0.18), 0 0 0 0 rgba(59,130,246,0);
+  }
+  50% {
+    box-shadow: 0 0 52px rgba(59,130,246,0.38), 0 0 70px rgba(139,92,246,0.22),
+                0 0 0 8px rgba(59,130,246,0.06);
+  }
+}
+
+.brain-pulse-glow {
+  animation: brain-glow-pulse 4s ease-in-out infinite;
+}
+
+/* Brain icon — micro rotation (barely perceptible, just alive) */
+@keyframes brain-micro-rotate {
+  0%   { transform: rotate(-2deg) scale(1);    }
+  25%  { transform: rotate(2deg)  scale(1.04); }
+  50%  { transform: rotate(-1deg) scale(1);    }
+  75%  { transform: rotate(1.5deg) scale(1.02); }
+  100% { transform: rotate(-2deg) scale(1);    }
+}
+
+.brain-icon-anim {
+  animation: brain-micro-rotate 8s ease-in-out infinite;
+  transform-origin: center;
+}

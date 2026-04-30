@@ -1,0 +1,10 @@
+{
+  "permissions": {
+    "allow": [
+      "Bash(node -e \"const { Slot } = require\\('c:/Users/HP/Desktop/Siraj/node_modules/radix-ui'\\); console.log\\('Slot keys:', Object.keys\\(Slot || {}\\)\\)\")",
+      "Bash(npx tsc *)",
+      "Bash(npx next *)",
+      "Bash(npm install *)"
+    ]
+  }
+}

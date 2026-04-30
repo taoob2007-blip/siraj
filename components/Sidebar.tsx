@@ -1,0 +1,110 @@
+'use client'
+
+import Link from 'next/link'
+import { usePathname } from 'next/navigation'
+import {
+  LayoutDashboard, FileText, Users, BarChart2,
+  GitCompare, FileSignature, MessageSquare, PieChart,
+  Bell, Settings, Sparkles, ChevronDown, Crown, Layers,
+} from 'lucide-react'
+import { LogoutButton } from '@/components/LogoutButton'
+
+const NAV = [
+  { href: '/',              label: 'Dashboard',    icon: LayoutDashboard },
+  { href: '/rfqs',          label: 'RFQs',         icon: FileText },
+  { href: '/suppliers',     label: 'Suppliers',    icon: Users },
+  { href: '/categories',    label: 'Categories',   icon: Layers },
+  { href: '/analytics',     label: 'Analytics',    icon: BarChart2 },
+  { href: '/comparisons',   label: 'Comparisons',  icon: GitCompare },
+  { href: '/contracts',     label: 'Contracts',    icon: FileSignature },
+  { href: '/messages',      label: 'Messages',     icon: MessageSquare },
+  { href: '/reports',       label: 'Reports',      icon: PieChart,      soon: true },
+  { href: '/notifications', label: 'Notifications',icon: Bell,          soon: true },
+  { href: '/settings',      label: 'Settings',     icon: Settings,      soon: true },
+]
+
+export function Sidebar() {
+  const pathname = usePathname()
+
+  return (
+    <aside className="w-56 shrink-0 flex flex-col min-h-screen sticky top-0 h-screen bg-[#0a0f1a] border-r border-white/[0.06] z-30">
+
+      {/* Logo */}
+      <div className="px-5 py-5 border-b border-white/[0.06]">
+        <div className="flex items-center gap-2.5">
+          <div className="h-8 w-8 rounded-xl bg-gradient-to-br from-blue-500 to-violet-600 flex items-center justify-center shadow-lg shadow-blue-500/30">
+            <Sparkles className="h-4 w-4 text-white" />
+          </div>
+          <span className="text-lg font-bold tracking-tight text-white">SIRAJ</span>
+        </div>
+      </div>
+
+      {/* Nav */}
+      <nav className="flex-1 px-3 py-4 space-y-0.5 overflow-y-auto">
+        {NAV.map(({ href, label, icon: Icon, soon, badge }) => {
+          const active = href === '/' ? pathname === '/' : pathname.startsWith(href)
+          if (soon) {
+            return (
+              <div
+                key={href}
+                className="flex items-center gap-3 px-3 py-2 rounded-lg text-gray-700 cursor-not-allowed select-none"
+              >
+                <Icon className="h-4 w-4 shrink-0" />
+                <span className="text-sm flex-1">{label}</span>
+                <span className="text-[10px] bg-gray-800 text-gray-600 px-1.5 py-0.5 rounded font-medium">Soon</span>
+              </div>
+            )
+          }
+          return (
+            <Link
+              key={href}
+              href={href}
+              className={[
+                'flex items-center gap-3 px-3 py-2 rounded-lg transition-all duration-150 group',
+                active
+                  ? 'bg-blue-500/10 text-blue-400 border border-blue-500/20 shadow-sm shadow-blue-500/10'
+                  : 'text-gray-500 hover:text-gray-200 hover:bg-white/[0.04]',
+              ].join(' ')}
+            >
+              <Icon className={`h-4 w-4 shrink-0 ${active ? 'text-blue-400' : 'text-gray-600 group-hover:text-gray-300'} transition-colors`} />
+              <span className="text-sm flex-1">{label}</span>
+              {badge && (
+                <span className="text-[10px] bg-blue-600 text-white px-1.5 py-0.5 rounded-full font-bold min-w-[18px] text-center leading-4">
+                  {badge}
+                </span>
+              )}
+            </Link>
+          )
+        })}
+      </nav>
+
+      {/* Upgrade */}
+      <div className="mx-3 mb-3 p-3.5 rounded-xl bg-gradient-to-br from-violet-950/80 to-blue-950/60 border border-violet-500/20">
+        <div className="flex items-center gap-1.5 mb-1">
+          <Crown className="h-3.5 w-3.5 text-violet-400" />
+          <span className="text-xs font-semibold text-violet-300">Upgrade to Pro</span>
+        </div>
+        <p className="text-[11px] text-gray-500 mb-2.5 leading-relaxed">
+          Unlock advanced analytics, AI insights &amp; more.
+        </p>
+        <button className="w-full text-xs bg-violet-600 hover:bg-violet-500 active:scale-95 text-white py-1.5 rounded-lg transition-all font-semibold">
+          Upgrade Now
+        </button>
+      </div>
+
+      {/* User + logout */}
+      <div className="px-3 py-3 border-t border-white/[0.06] space-y-1">
+        <div className="flex items-center gap-2.5 px-2 py-2">
+          <div className="h-7 w-7 rounded-full bg-gradient-to-br from-blue-500 to-violet-600 flex items-center justify-center text-xs font-bold text-white shrink-0">
+            A
+          </div>
+          <div className="flex-1 min-w-0">
+            <p className="text-xs font-medium text-gray-200 truncate">My Account</p>
+            <p className="text-[11px] text-gray-600 truncate">Procurement Manager</p>
+          </div>
+        </div>
+        <LogoutButton />
+      </div>
+    </aside>
+  )
+}
