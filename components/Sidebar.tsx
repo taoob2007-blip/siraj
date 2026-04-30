@@ -1,5 +1,6 @@
 'use client'
 
+import type { ElementType } from 'react'
 import Link from 'next/link'
 import { usePathname } from 'next/navigation'
 import {
@@ -9,7 +10,7 @@ import {
 } from 'lucide-react'
 import { LogoutButton } from '@/components/LogoutButton'
 
-const NAV = [
+const NAV: { href: string; label: string; icon: ElementType; soon?: boolean; badge?: string | number }[] = [
   { href: '/',              label: 'Dashboard',    icon: LayoutDashboard },
   { href: '/rfqs',          label: 'RFQs',         icon: FileText },
   { href: '/suppliers',     label: 'Suppliers',    icon: Users },
