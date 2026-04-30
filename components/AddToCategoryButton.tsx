@@ -68,7 +68,7 @@ export function AddToCategoryButton({ email, supplierName }: Props) {
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ supplier_email: email, supplier_name: supplierName }),
       })
-      setAdded((prev) => new Set([...prev, catId]))
+      setAdded((prev) => new Set(Array.from(prev).concat(catId)))
       // Update count in local list
       setCategories((prev) =>
         prev.map((c) => c.id === catId ? { ...c, supplier_count: c.supplier_count + 1 } : c)
