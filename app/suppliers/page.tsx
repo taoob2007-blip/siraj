@@ -35,7 +35,7 @@ async function getSuppliers(): Promise<SupplierSummary[]> {
     }
 
     const suppliers: SupplierSummary[] = []
-    for (const [email, { prices, deliveries, rfq_ids }] of map) {
+    for (const [email, { prices, deliveries, rfq_ids }] of Array.from(map.entries())) {
       const avg_price    = prices.length    ? Math.round(prices.reduce((a, b) => a + b, 0) / prices.length)       : null
       const avg_delivery = deliveries.length ? Math.round(deliveries.reduce((a, b) => a + b, 0) / deliveries.length) : null
       // Simple score: response volume (40) + price competitiveness (30) + delivery speed (30)
