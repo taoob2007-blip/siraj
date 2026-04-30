@@ -19,7 +19,7 @@ export default async function SupplierDetailPage({ params }: Props) {
 
   if (error || !responses) notFound()
 
-  const rfqIds = [...new Set(responses.map((r) => r.rfq_id as string))]
+  const rfqIds = Array.from(new Set(responses.map((r) => r.rfq_id as string)))
   const { data: rfqs } = await supabase
     .from('rfqs')
     .select('id, title, status')
