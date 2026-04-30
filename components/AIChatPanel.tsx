@@ -100,7 +100,7 @@ function FormattedAIMessage({ content }: { content: string }) {
       const barColor = sc >= 80 ? 'bg-emerald-500' : sc >= 60 ? 'bg-blue-500' : sc >= 40 ? 'bg-amber-500' : 'bg-red-500'
       const cardBorder = isFirst ? 'border-amber-500/30 bg-amber-500/6' : 'border-white/[0.07] bg-white/[0.02]'
       // Peek at the next line — it's the reason text
-      const reasonLine = (i + 1 < lines.length && lines[i + 1].trim() && !lines[i + 1].trim().match(/^\d+\)/) && !lines[i + 1].trim().match(/^[🏆📊⚖️⚠️🎯🔑✉️📋]/u))
+      const reasonLine = (i + 1 < lines.length && lines[i + 1].trim() && !lines[i + 1].trim().match(/^\d+/) && !lines[i + 1].trim().match(/^[🏆📊⚖️⚠️🎯🔑✉️📋]/u))
         ? lines[i + 1].trim()
         : null
       elements.push(
