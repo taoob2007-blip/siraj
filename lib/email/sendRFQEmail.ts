@@ -1,4 +1,5 @@
 import { Resend } from 'resend'
+import { BASE_URL } from '@/lib/constants'
 
 const resend = new Resend(process.env.RESEND_API_KEY)
 
@@ -19,8 +20,7 @@ export async function sendRFQEmail({
   token,
   inviteId,
 }: SendRFQEmailParams): Promise<{ success: boolean; error?: string }> {
-  const baseUrl = process.env.NEXT_PUBLIC_BASE_URL || 'http://localhost:3000'
-  const formUrl = `${baseUrl}/form/${rfqId}?token=${token}&invite=${inviteId}`
+  const formUrl = `${BASE_URL}/form/${rfqId}?token=${token}&invite=${inviteId}`
   const greeting = supplierName ? `Hello ${supplierName},` : 'Hello,'
 
   const ENABLE_EMAILS = process.env.ENABLE_EMAILS === 'true'

@@ -70,8 +70,7 @@ export default async function RFQDetailPage({
     return <div>Invalid ID</div>
   }
 
-  const baseUrl = 'http://localhost:3000'
-  const fetchUrl = `${baseUrl}/api/rfqs/${rfqId}`
+  const fetchUrl = `${BASE_URL}/api/rfqs/${rfqId}`
 
   console.log('FETCH URL:', fetchUrl)
 
