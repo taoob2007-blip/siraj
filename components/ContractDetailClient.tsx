@@ -4,9 +4,10 @@ import { useState, useCallback } from 'react'
 import {
   CheckCircle2, XCircle, Clock, DollarSign, Truck,
   Calendar, Mail, FileText, Printer, AlertTriangle, Loader2,
-  ExternalLink,
+  ExternalLink, PenTool,
 } from 'lucide-react'
 import Link from 'next/link'
+import { SignatureModal } from '@/components/SignatureModal'
 
 // ── Types ──────────────────────────────────────────────────────────────────────
 
@@ -19,6 +20,8 @@ interface Contract {
   status: 'pending' | 'signed' | 'cancelled'
   notes: string | null
   created_at: string
+  buyer_signature?: string | null
+  signed_at?: string | null
 }
 
 interface RFQ {
@@ -43,42 +46,73 @@ export function ContractDetailClient({ contract: initial, rfq }: Props) {
   const [contract, setContract] = useState(initial)
   const [updating, setUpdating] = useState(false)
   const [error, setError]       = useState<string | null>(null)
+  const [showSigModal, setShowSigModal] = useState(false)
 
   const cfg        = STATUS[contract.status]
   const StatusIcon = cfg.icon
 
-  const updateStatus = useCallback(async (status: 'signed' | 'cancelled') => {
+  const signContract = useCallback(async (signature: string) => {
     setUpdating(true)
     setError(null)
     try {
       const res = await fetch(`/api/contracts/${contract.id}`, {
         method:  'PATCH',
         headers: { 'Content-Type': 'application/json' },
-        body:    JSON.stringify({ status }),
+        body:    JSON.stringify({ status: 'signed', signature }),
       })
       if (!res.ok) {
         const err = await res.json()
         throw new Error(err.error || `Error ${res.status}`)
       }
-      setContract((prev) => ({ ...prev, status }))
+      const updated = await res.json()
+      setContract((prev) => ({
+        ...prev,
+        status: 'signed',
+        buyer_signature: updated.buyer_signature ?? signature,
+        signed_at: updated.signed_at ?? new Date().toISOString(),
+      }))
+      setShowSigModal(false)
     } catch (e) {
-      setError(e instanceof Error ? e.message : 'Failed to update')
+      setError(e instanceof Error ? e.message : 'Failed to sign')
     } finally {
       setUpdating(false)
     }
   }, [contract.id])
 
-  function handlePrint() {
-    window.print()
-  }
+  const cancelContract = useCallback(async () => {
+    setUpdating(true)
+    setError(null)
+    try {
+      const res = await fetch(`/api/contracts/${contract.id}`, {
+        method:  'PATCH',
+        headers: { 'Content-Type': 'application/json' },
+        body:    JSON.stringify({ status: 'cancelled' }),
+      })
+      if (!res.ok) {
+        const err = await res.json()
+        throw new Error(err.error || `Error ${res.status}`)
+      }
+      setContract((prev) => ({ ...prev, status: 'cancelled' }))
+    } catch (e) {
+      setError(e instanceof Error ? e.message : 'Failed to cancel')
+    } finally {
+      setUpdating(false)
+    }
+  }, [contract.id])
 
   const createdDate = new Date(contract.created_at).toLocaleDateString('en-US', {
     year: 'numeric', month: 'long', day: 'numeric',
   })
 
+  const signedDate = contract.signed_at
+    ? new Date(contract.signed_at).toLocaleDateString('en-US', {
+        year: 'numeric', month: 'long', day: 'numeric',
+      })
+    : null
+
   return (
     <>
-      {/* ── Print styles injected via a style tag ────────────────────────────── */}
+      {/* Print styles */}
       <style>{`
         @media print {
           body * { visibility: hidden !important; }
@@ -89,32 +123,47 @@ export function ContractDetailClient({ contract: initial, rfq }: Props) {
         }
       `}</style>
 
-      {/* ── Error banner ─────────────────────────────────────────────────────── */}
+      {/* Signature modal */}
+      {showSigModal && (
+        <SignatureModal
+          contractRef={contract.id.split('-')[0].toUpperCase()}
+          onConfirm={signContract}
+          onClose={() => !updating && setShowSigModal(false)}
+          loading={updating}
+        />
+      )}
+
+      {/* Error banner */}
       {error && (
         <div className="flex items-center gap-2 rounded-xl border border-red-500/25 bg-red-500/8 px-4 py-3 text-sm text-red-300">
           <AlertTriangle className="h-4 w-4 shrink-0" />{error}
         </div>
       )}
 
-      {/* ── Status + Actions bar ─────────────────────────────────────────────── */}
+      {/* Status + Actions bar */}
       <div className="flex flex-wrap items-center justify-between gap-3 no-print">
-        <span className={`inline-flex items-center gap-1.5 text-sm font-semibold px-3 py-1.5 rounded-full border ${cfg.cls}`}>
-          <StatusIcon className="h-3.5 w-3.5" />{cfg.label}
-        </span>
+        <div className="flex items-center gap-3">
+          <span className={`inline-flex items-center gap-1.5 text-sm font-semibold px-3 py-1.5 rounded-full border ${cfg.cls}`}>
+            <StatusIcon className="h-3.5 w-3.5" />{cfg.label}
+          </span>
+          {signedDate && (
+            <span className="text-xs text-gray-600">Signed {signedDate}</span>
+          )}
+        </div>
 
         <div className="flex items-center gap-2">
           {contract.status === 'pending' && (
             <>
               <button
-                onClick={() => updateStatus('signed')}
+                onClick={() => setShowSigModal(true)}
                 disabled={updating}
-                className="inline-flex items-center gap-1.5 text-sm px-4 py-2 rounded-xl bg-emerald-600 hover:bg-emerald-500 text-white font-semibold transition-all disabled:opacity-50 shadow-lg shadow-emerald-900/30"
+                className="inline-flex items-center gap-1.5 text-sm px-4 py-2 rounded-xl bg-emerald-600 hover:bg-emerald-500 text-white font-semibold transition-all disabled:opacity-50 shadow-lg shadow-emerald-900/30 active:scale-[0.98]"
               >
-                {updating ? <Loader2 className="h-3.5 w-3.5 animate-spin" /> : <CheckCircle2 className="h-3.5 w-3.5" />}
+                {updating ? <Loader2 className="h-3.5 w-3.5 animate-spin" /> : <PenTool className="h-3.5 w-3.5" />}
                 Sign Contract
               </button>
               <button
-                onClick={() => updateStatus('cancelled')}
+                onClick={cancelContract}
                 disabled={updating}
                 className="inline-flex items-center gap-1.5 text-sm px-4 py-2 rounded-xl border border-red-500/30 bg-red-500/8 hover:bg-red-500/15 text-red-300 font-medium transition-all disabled:opacity-50"
               >
@@ -123,7 +172,7 @@ export function ContractDetailClient({ contract: initial, rfq }: Props) {
             </>
           )}
           <button
-            onClick={handlePrint}
+            onClick={() => window.print()}
             className="inline-flex items-center gap-1.5 text-sm px-4 py-2 rounded-xl border border-white/[0.10] bg-white/[0.04] hover:bg-white/[0.08] text-gray-300 font-medium transition-all"
           >
             <Printer className="h-3.5 w-3.5" />Download PDF
@@ -131,9 +180,7 @@ export function ContractDetailClient({ contract: initial, rfq }: Props) {
         </div>
       </div>
 
-      {/* ══════════════════════════════════════════════════════════════════════
-          CONTRACT DOCUMENT (printable)
-          ══════════════════════════════════════════════════════════════════ */}
+      {/* Contract document (printable) */}
       <div
         id="contract-printable"
         className="rounded-2xl border border-white/[0.07] bg-[#111827] overflow-hidden"
@@ -159,7 +206,6 @@ export function ContractDetailClient({ contract: initial, rfq }: Props) {
         {/* Fields grid */}
         <div className="p-8 grid grid-cols-1 sm:grid-cols-2 gap-6">
 
-          {/* RFQ */}
           <div className="sm:col-span-2">
             <Field
               icon={FileText}
@@ -170,28 +216,20 @@ export function ContractDetailClient({ contract: initial, rfq }: Props) {
             />
           </div>
 
-          {/* Supplier */}
-          <Field icon={Mail} label="Supplier" value={contract.supplier_email} />
-
-          {/* Date */}
-          <Field icon={Calendar} label="Contract Date" value={createdDate} />
-
-          {/* Price */}
+          <Field icon={Mail}     label="Supplier"          value={contract.supplier_email} />
+          <Field icon={Calendar} label="Contract Date"     value={createdDate} />
           <Field
             icon={DollarSign}
             label="Agreed Price"
             value={contract.price != null ? `$${Number(contract.price).toLocaleString('en-US')}` : '—'}
             highlight={contract.price != null}
           />
-
-          {/* Delivery */}
           <Field
             icon={Truck}
             label="Delivery Timeline"
             value={contract.delivery_days != null ? `${contract.delivery_days} days` : '—'}
             highlight={contract.delivery_days != null}
           />
-
         </div>
 
         {/* Terms section */}
@@ -217,7 +255,13 @@ export function ContractDetailClient({ contract: initial, rfq }: Props) {
 
         {/* Signature section */}
         <div className="px-8 pb-8 grid grid-cols-1 sm:grid-cols-2 gap-6">
-          <SignatureBlock label="Buyer Signature" />
+          <SignatureBlock
+            label="Buyer Signature"
+            signatureDataUrl={contract.buyer_signature ?? null}
+            signedAt={signedDate}
+            pending={contract.status === 'pending'}
+            onSign={() => setShowSigModal(true)}
+          />
           <SignatureBlock label="Supplier Signature" />
         </div>
 
@@ -228,7 +272,7 @@ export function ContractDetailClient({ contract: initial, rfq }: Props) {
         </div>
       </div>
 
-      {/* ── View RFQ link ─────────────────────────────────────────────────────── */}
+      {/* View RFQ link */}
       <div className="flex justify-end no-print">
         <Link
           href={`/rfqs/${rfq.id}`}
@@ -277,13 +321,56 @@ function Field({
 
 // ── Signature block ────────────────────────────────────────────────────────────
 
-function SignatureBlock({ label }: { label: string }) {
+function SignatureBlock({
+  label,
+  signatureDataUrl,
+  signedAt,
+  pending,
+  onSign,
+}: {
+  label: string
+  signatureDataUrl?: string | null
+  signedAt?: string | null
+  pending?: boolean
+  onSign?: () => void
+}) {
   return (
     <div className="rounded-xl border border-white/[0.06] bg-white/[0.02] p-5">
-      <p className="text-[11px] font-semibold text-gray-600 uppercase tracking-widest mb-8">{label}</p>
-      <div className="border-t border-white/[0.08] pt-3">
-        <p className="text-[11px] text-gray-700">Signature · Date</p>
-      </div>
+      <p className="text-[11px] font-semibold text-gray-600 uppercase tracking-widest mb-3">{label}</p>
+
+      {signatureDataUrl ? (
+        /* Captured signature */
+        <div className="space-y-2">
+          <div className="rounded-lg bg-white p-2 border border-white/[0.08]">
+            {/* eslint-disable-next-line @next/next/no-img-element */}
+            <img
+              src={signatureDataUrl}
+              alt="Signature"
+              className="h-16 w-full object-contain"
+            />
+          </div>
+          {signedAt && (
+            <div className="flex items-center gap-1.5">
+              <CheckCircle2 className="h-3 w-3 text-emerald-400 shrink-0" />
+              <p className="text-[11px] text-emerald-400/70">Signed {signedAt}</p>
+            </div>
+          )}
+        </div>
+      ) : pending && onSign ? (
+        /* Pending — clickable prompt */
+        <button
+          onClick={onSign}
+          className="w-full rounded-lg border border-dashed border-white/[0.10] bg-white/[0.01] hover:bg-white/[0.04] hover:border-emerald-500/30 transition-all py-6 flex flex-col items-center gap-2 group"
+        >
+          <PenTool className="h-5 w-5 text-gray-700 group-hover:text-emerald-400 transition-colors" />
+          <span className="text-[11px] text-gray-700 group-hover:text-emerald-400 transition-colors">Click to sign</span>
+        </button>
+      ) : (
+        /* Blank / supplier block */
+        <div className="pt-10 border-t border-white/[0.08]">
+          <p className="text-[11px] text-gray-700">Signature · Date</p>
+        </div>
+      )}
     </div>
   )
 }

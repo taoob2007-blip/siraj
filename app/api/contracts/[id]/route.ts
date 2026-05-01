@@ -3,10 +3,15 @@ import { getServerSupabaseClient } from '@/lib/supabase/server'
 
 export async function PATCH(req: NextRequest, { params }: { params: { id: string } }) {
   try {
-    const body = (await req.json()) as { status?: string }
+    const body = (await req.json()) as { status?: string; signature?: string }
     const allowed = ['pending', 'signed', 'cancelled']
     if (!body.status || !allowed.includes(body.status)) {
       return NextResponse.json({ error: 'Invalid status' }, { status: 400 })
+    }
+
+    // Signature is required when signing
+    if (body.status === 'signed' && !body.signature) {
+      return NextResponse.json({ error: 'Signature is required to sign a contract' }, { status: 400 })
     }
 
     const supabase = await getServerSupabaseClient()
@@ -19,7 +24,7 @@ export async function PATCH(req: NextRequest, { params }: { params: { id: string
     // RLS enforces ownership but we also check explicitly for a clear 404 vs 500
     const { data: existing } = await supabase
       .from('contracts')
-      .select('id')
+      .select('id, status')
       .eq('id', params.id)
       .eq('user_id', user.id)
       .maybeSingle()
@@ -28,9 +33,19 @@ export async function PATCH(req: NextRequest, { params }: { params: { id: string
       return NextResponse.json({ error: 'Contract not found' }, { status: 404 })
     }
 
+    if (existing.status === 'signed' && body.status === 'signed') {
+      return NextResponse.json({ error: 'Contract already signed' }, { status: 400 })
+    }
+
+    const updatePayload: Record<string, string> = { status: body.status }
+    if (body.status === 'signed' && body.signature) {
+      updatePayload.buyer_signature = body.signature
+      updatePayload.signed_at = new Date().toISOString()
+    }
+
     const { data, error } = await supabase
       .from('contracts')
-      .update({ status: body.status })
+      .update(updatePayload)
       .eq('id', params.id)
       .eq('user_id', user.id)
       .select()

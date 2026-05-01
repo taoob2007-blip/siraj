@@ -3,9 +3,10 @@
 import { useState } from 'react'
 import {
   FileSignature, Plus, CheckCircle2, Clock, XCircle,
-  AlertTriangle, Copy, Check, DollarSign, Truck, Loader2,
+  AlertTriangle, Copy, Check, DollarSign, Truck, Loader2, PenTool,
 } from 'lucide-react'
 import Link from 'next/link'
+import { SignatureModal } from '@/components/SignatureModal'
 
 // ── Types ──────────────────────────────────────────────────────────────────────
 
@@ -19,6 +20,8 @@ interface Contract {
   status: 'pending' | 'signed' | 'cancelled'
   created_at: string
   notes?: string | null
+  buyer_signature?: string | null
+  signed_at?: string | null
 }
 
 interface RFQ { id: string; title: string }
@@ -63,25 +66,52 @@ export function ContractsClient({ contracts, rfqs, tableExists }: Props) {
   const [updating, setUpdating]   = useState<string | null>(null)
   const [updateErr, setUpdateErr] = useState<string | null>(null)
   const [copied, setCopied]       = useState(false)
+  const [signingId, setSigningId] = useState<string | null>(null)
 
   const rfqMap = Object.fromEntries(rfqs.map((r) => [r.id, r.title]))
 
-  async function updateStatus(id: string, status: 'signed' | 'cancelled') {
+  async function signContract(id: string, signature: string) {
     setUpdating(id)
     setUpdateErr(null)
     try {
       const res = await fetch(`/api/contracts/${id}`, {
         method: 'PATCH',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ status }),
+        body: JSON.stringify({ status: 'signed', signature }),
       })
       if (!res.ok) {
         const err = await res.json()
         throw new Error(err.error || `Server error ${res.status}`)
       }
-      setLocal((prev) => prev.map((c) => c.id === id ? { ...c, status } : c))
+      const updated = await res.json()
+      setLocal((prev) => prev.map((c) => c.id === id
+        ? { ...c, status: 'signed', buyer_signature: updated.buyer_signature ?? signature, signed_at: updated.signed_at ?? new Date().toISOString() }
+        : c
+      ))
+      setSigningId(null)
     } catch (e) {
-      setUpdateErr(e instanceof Error ? e.message : 'Failed to update')
+      setUpdateErr(e instanceof Error ? e.message : 'Failed to sign')
+    } finally {
+      setUpdating(null)
+    }
+  }
+
+  async function cancelContract(id: string) {
+    setUpdating(id)
+    setUpdateErr(null)
+    try {
+      const res = await fetch(`/api/contracts/${id}`, {
+        method: 'PATCH',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ status: 'cancelled' }),
+      })
+      if (!res.ok) {
+        const err = await res.json()
+        throw new Error(err.error || `Server error ${res.status}`)
+      }
+      setLocal((prev) => prev.map((c) => c.id === id ? { ...c, status: 'cancelled' } : c))
+    } catch (e) {
+      setUpdateErr(e instanceof Error ? e.message : 'Failed to cancel')
     } finally {
       setUpdating(null)
     }
@@ -235,18 +265,18 @@ export function ContractsClient({ contracts, rfqs, tableExists }: Props) {
                     {c.status === 'pending' && (
                       <div className="flex items-center gap-2 shrink-0">
                         <button
-                          onClick={() => updateStatus(c.id, 'signed')}
+                          onClick={() => setSigningId(c.id)}
                           disabled={isUpdating}
                           className="inline-flex items-center gap-1.5 text-xs px-3 py-1.5 rounded-lg bg-emerald-600/20 hover:bg-emerald-600/30 border border-emerald-500/30 text-emerald-300 font-medium transition-all disabled:opacity-50"
                         >
                           {isUpdating
                             ? <Loader2 className="h-3 w-3 animate-spin" />
-                            : <CheckCircle2 className="h-3 w-3" />
+                            : <PenTool className="h-3 w-3" />
                           }
                           Sign
                         </button>
                         <button
-                          onClick={() => updateStatus(c.id, 'cancelled')}
+                          onClick={() => cancelContract(c.id)}
                           disabled={isUpdating}
                           className="inline-flex items-center gap-1.5 text-xs px-3 py-1.5 rounded-lg bg-red-600/10 hover:bg-red-600/20 border border-red-500/25 text-red-400 font-medium transition-all disabled:opacity-50"
                         >
@@ -254,12 +284,28 @@ export function ContractsClient({ contracts, rfqs, tableExists }: Props) {
                         </button>
                       </div>
                     )}
+                    {/* Signed label with date */}
+                    {c.status === 'signed' && c.signed_at && (
+                      <span className="text-[11px] text-emerald-400/60 shrink-0">
+                        Signed {new Date(c.signed_at).toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' })}
+                      </span>
+                    )}
                   </div>
                 )
               })}
             </div>
           )}
         </>
+      )}
+
+      {/* Signature modal */}
+      {signingId && (
+        <SignatureModal
+          contractRef={signingId.split('-')[0].toUpperCase()}
+          onConfirm={(sig) => signContract(signingId, sig)}
+          onClose={() => !updating && setSigningId(null)}
+          loading={updating === signingId}
+        />
       )}
     </div>
   )

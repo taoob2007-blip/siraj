@@ -18,6 +18,8 @@ interface ContractRow {
   status: 'pending' | 'signed' | 'cancelled'
   notes: string | null
   created_at: string
+  buyer_signature: string | null
+  signed_at: string | null
 }
 
 interface RFQRow {

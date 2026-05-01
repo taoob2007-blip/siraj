@@ -5,7 +5,8 @@
       "Bash(npx tsc *)",
       "Bash(npx next *)",
       "Bash(npm install *)",
-      "Bash(grep -rn \"^\\\\s*const.*=.*\\\\[0\\\\]$\\\\|\\\\.reduce.*null.*,\\\\|\\\\.map.*?\\(\\\\s*_\\\\s*,\\\\s*i\\\\s*\\)\\\\|\\\\.split\\\\|\\\\.entries\\\\|for.*of.*Map\" /c/Users/HP/Desktop/Siraj/components --include=\"*.tsx\")"
+      "Bash(grep -rn \"^\\\\s*const.*=.*\\\\[0\\\\]$\\\\|\\\\.reduce.*null.*,\\\\|\\\\.map.*?\\(\\\\s*_\\\\s*,\\\\s*i\\\\s*\\)\\\\|\\\\.split\\\\|\\\\.entries\\\\|for.*of.*Map\" /c/Users/HP/Desktop/Siraj/components --include=\"*.tsx\")",
+      "Bash(npm list *)"
     ]
   }
 }
