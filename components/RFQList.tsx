@@ -46,45 +46,50 @@ function computePriorityScore(
   rfq: RFQ,
   allRfqs: RFQ[],
 ): ScoredRFQ['score_breakdown'] & { total: number } {
-  const maxResponses = Math.max(...allRfqs.map((r) => r.response_count), 1)
-  const maxInvites   = Math.max(...allRfqs.map((r) => r.invite_count), 1)
-  const ageDays      = Math.floor((Date.now() - new Date(rfq.created_at).getTime()) / 86_400_000)
+  const maxResponses = Math.max(1, ...(Array.isArray(allRfqs) ? allRfqs.map((r) => r?.response_count ?? 0) : [0]))
+  const maxInvites   = Math.max(1, ...(Array.isArray(allRfqs) ? allRfqs.map((r) => r?.invite_count ?? 0) : [0]))
+  const safeCreatedAt = rfq?.created_at ? new Date(rfq.created_at) : new Date()
+  const ageDays      = Math.floor((Date.now() - safeCreatedAt.getTime()) / 86_400_000)
 
   // 1. Response count (30%) — relative to best-performing RFQ
-  const responseCountScore = Math.round((rfq.response_count / maxResponses) * 100)
+  const responseCountScore = Math.round(((rfq?.response_count ?? 0) / maxResponses) * 100)
 
   // 2. Response speed (25%) — responses per day, penalise if age >14 with 0 responses
-  const rPerDay = ageDays > 0 ? rfq.response_count / ageDays : rfq.response_count
+  const responseCount = rfq?.response_count ?? 0
+  const rPerDay = ageDays > 0 ? responseCount / ageDays : responseCount
   const maxRPerDay = Math.max(
-    ...allRfqs.map((r) => {
-      const d = Math.floor((Date.now() - new Date(r.created_at).getTime()) / 86_400_000)
-      return d > 0 ? r.response_count / d : r.response_count
-    }),
     0.01,
+    ...(Array.isArray(allRfqs) ? allRfqs.map((r) => {
+      const safeDate = r?.created_at ? new Date(r.created_at) : new Date()
+      const d = Math.floor((Date.now() - safeDate.getTime()) / 86_400_000)
+      const rc = r?.response_count ?? 0
+      return d > 0 ? rc / d : rc
+    }) : [0]),
   )
   let responseSpeedScore = Math.round((rPerDay / maxRPerDay) * 100)
-  if (ageDays > 14 && rfq.response_count === 0) responseSpeedScore = Math.max(responseSpeedScore - 30, 0)
+  if (ageDays > 14 && (rfq?.response_count ?? 0) === 0) responseSpeedScore = Math.max(responseSpeedScore - 30, 0)
 
   // 3. Price competitiveness (25%) — proxy: invite diversity (more invites = more competition)
-  const inviteScore = Math.round((rfq.invite_count / maxInvites) * 100)
-  const responseRatio = rfq.invite_count > 0 ? rfq.response_count / rfq.invite_count : 0
+  const inviteCount = rfq?.invite_count ?? 0
+  const inviteScore = Math.round((inviteCount / maxInvites) * 100)
+  const responseRatio = inviteCount > 0 ? responseCount / inviteCount : 0
   const priceCompetitivenessScore = Math.min(Math.round(inviteScore * 0.6 + responseRatio * 40), 100)
 
   // 4. Supplier quality (20%) — engagement health: penalise if 0 responses from many invites
   let supplierQualityScore = 50
-  if (rfq.invite_count === 0) supplierQualityScore = 20
-  else if (rfq.response_count === 0) supplierQualityScore = 10
+  if (inviteCount === 0) supplierQualityScore = 20
+  else if (responseCount === 0) supplierQualityScore = 10
   else {
-    const engagementRate = rfq.response_count / rfq.invite_count
+    const engagementRate = responseCount / inviteCount
     supplierQualityScore = Math.min(Math.round(engagementRate * 100 + 30), 100)
   }
-  if (rfq.status !== 'active') supplierQualityScore = Math.round(supplierQualityScore * 0.5)
+  if ((rfq?.status ?? '') !== 'active') supplierQualityScore = Math.round(supplierQualityScore * 0.5)
 
   const total = Math.round(
-    responseCountScore       * 0.30 +
-    responseSpeedScore       * 0.25 +
+    responseCountScore        * 0.30 +
+    responseSpeedScore        * 0.25 +
     priceCompetitivenessScore * 0.25 +
-    supplierQualityScore     * 0.20,
+    supplierQualityScore      * 0.20,
   )
 
   return {
@@ -109,23 +114,28 @@ function scoreRFQs(rfqs: RFQ[]): ScoredRFQ[] {
 // ── Helpers ───────────────────────────────────────────────────────────────────
 
 function responseRate(rfq: RFQ) {
-  return rfq.invite_count > 0 ? Math.round((rfq.response_count / rfq.invite_count) * 100) : 0
+  const invites   = rfq?.invite_count ?? 0
+  const responses = rfq?.response_count ?? 0
+  return invites > 0 ? Math.round((responses / invites) * 100) : 0
 }
 
 function daysSince(dateStr: string) {
-  return Math.floor((Date.now() - new Date(dateStr).getTime()) / 86_400_000)
+  const safeDate = dateStr ? new Date(dateStr) : new Date()
+  return Math.floor((Date.now() - safeDate.getTime()) / 86_400_000)
 }
 
 function aiInsight(rfq: ScoredRFQ): string {
-  const r = responseRate(rfq)
-  const age = daysSince(rfq.created_at)
-  if (rfq.response_count === 0 && rfq.invite_count === 0) return 'No suppliers invited yet — start by sending invites.'
-  if (rfq.response_count === 0 && rfq.invite_count > 0) return `${rfq.invite_count} suppliers invited but no quotes yet — follow up soon.`
-  if (r >= 80) return `${rfq.response_count} responses — strong competition, ideal for negotiation.`
+  const r   = responseRate(rfq)
+  const age = daysSince(rfq?.created_at ?? '')
+  const responses = rfq?.response_count ?? 0
+  const invites   = rfq?.invite_count ?? 0
+  if (responses === 0 && invites === 0) return 'No suppliers invited yet — start by sending invites.'
+  if (responses === 0 && invites > 0) return `${invites} suppliers invited but no quotes yet — follow up soon.`
+  if (r >= 80) return `${responses} responses — strong competition, ideal for negotiation.`
   if (r >= 50) return 'Solid response rate — enough quotes for a reliable AI comparison.'
   if (r >= 25) return 'Moderate engagement — consider sending reminder invitations.'
-  if (rfq.response_count >= 2) return 'Low response rate — widen your supplier pool for better coverage.'
-  if (rfq.response_count === 1) return 'Only 1 quote received — invite more suppliers to enable AI ranking.'
+  if (responses >= 2) return 'Low response rate — widen your supplier pool for better coverage.'
+  if (responses === 1) return 'Only 1 quote received — invite more suppliers to enable AI ranking.'
   if (age > 7) return 'Inactive for 7+ days — consider nudging suppliers or refreshing the RFQ.'
   return 'Awaiting responses — AI analysis activates once quotes arrive.'
 }
@@ -231,24 +241,24 @@ function ActionBtn({ children, onClick, loading, disabled, cls }: {
 // ── AI Decision Guidance Panel ────────────────────────────────────────────────
 
 function DecisionGuidancePanel({ rfqs }: { rfqs: ScoredRFQ[] }) {
-  if (rfqs.length === 0) return null
+  if (!Array.isArray(rfqs) || rfqs.length === 0) return null
 
-  const active  = rfqs.filter((r) => r.status === 'active')
+  const active  = rfqs.filter((r) => r?.status === 'active')
   const best    = active[0] ?? rfqs[0]
-  const weak    = rfqs.filter((r) => r.priority_score < 40 && r.status === 'active')
+  const weak    = rfqs.filter((r) => (r?.priority_score ?? 0) < 40 && r?.status === 'active')
   const needsAttention = rfqs.filter(
-    (r) => r.status === 'active' && r.invite_count > 0 && r.response_count === 0 && daysSince(r.created_at) > 3
+    (r) => r?.status === 'active' && (r?.invite_count ?? 0) > 0 && (r?.response_count ?? 0) === 0 && daysSince(r?.created_at ?? '') > 3
   )
 
   const bestRate = responseRate(best)
 
   const whyBest: string[] = []
-  if (best.score_breakdown.price_competitiveness >= 70) whyBest.push('High supplier competition drives cost advantage')
-  if (best.score_breakdown.response_speed >= 70)         whyBest.push('Fast response velocity — suppliers are engaged')
-  if (best.score_breakdown.supplier_quality >= 70)       whyBest.push('Strong engagement rate from invited suppliers')
-  if (best.response_count >= 2)                          whyBest.push(`${best.response_count} quotes received — ready for AI comparison`)
-  if (bestRate >= 50)                                    whyBest.push(`${bestRate}% response rate — above average`)
-  if (whyBest.length === 0)                              whyBest.push('Highest priority score among all active RFQs')
+  if ((best?.score_breakdown?.price_competitiveness ?? 0) >= 70) whyBest.push('High supplier competition drives cost advantage')
+  if ((best?.score_breakdown?.response_speed ?? 0) >= 70)         whyBest.push('Fast response velocity — suppliers are engaged')
+  if ((best?.score_breakdown?.supplier_quality ?? 0) >= 70)       whyBest.push('Strong engagement rate from invited suppliers')
+  if ((best?.response_count ?? 0) >= 2)                           whyBest.push(`${best?.response_count ?? 0} quotes received — ready for AI comparison`)
+  if (bestRate >= 50)                                              whyBest.push(`${bestRate}% response rate — above average`)
+  if (whyBest.length === 0)                                        whyBest.push('Highest priority score among all active RFQs')
 
   return (
     <div className="relative overflow-hidden rounded-2xl border border-blue-500/20 bg-gradient-to-br from-[#0d1a2e] via-[#0f1629] to-[#0d1220] p-6">
@@ -282,18 +292,18 @@ function DecisionGuidancePanel({ rfqs }: { rfqs: ScoredRFQ[] }) {
             </p>
             <div className="rounded-xl border border-emerald-500/20 bg-emerald-500/5 p-3.5 space-y-2">
               <div className="flex items-start justify-between gap-2">
-                <p className="text-sm font-semibold text-white leading-snug line-clamp-2">{best.title}</p>
-                <span className={`text-sm font-bold shrink-0 ${scoreColor(best.priority_score).text}`}>
-                  {best.priority_score}
+                <p className="text-sm font-semibold text-white leading-snug line-clamp-2">{best?.title ?? '—'}</p>
+                <span className={`text-sm font-bold shrink-0 ${scoreColor(best?.priority_score ?? 0).text}`}>
+                  {best?.priority_score ?? 0}
                 </span>
               </div>
               <div className="flex items-center gap-2 text-xs text-gray-500">
                 <Users className="h-3 w-3" />
-                <span>{best.invite_count} invited</span>
+                <span>{best?.invite_count ?? 0} invited</span>
                 <MessageSquare className="h-3 w-3 ml-1" />
-                <span>{best.response_count} quoted</span>
+                <span>{best?.response_count ?? 0} quoted</span>
               </div>
-              <Link href={`/rfqs/${best.id}`}>
+              <Link href={`/rfqs/${best?.id ?? ''}`}>
                 <button className="w-full mt-1 py-1.5 rounded-lg bg-emerald-600/20 hover:bg-emerald-600/30 border border-emerald-500/30 text-emerald-300 text-xs font-semibold transition-all flex items-center justify-center gap-1.5">
                   <Eye className="h-3 w-3" />
                   Open RFQ
@@ -331,24 +341,30 @@ function DecisionGuidancePanel({ rfqs }: { rfqs: ScoredRFQ[] }) {
               </p>
             ) : (
               <ul className="space-y-2">
-                {needsAttention.slice(0, 2).map((r) => (
-                  <li key={r.id} className="flex items-start gap-2">
-                    <AlertCircle className="h-3 w-3 text-orange-400 mt-0.5 shrink-0" />
-                    <span className="text-xs text-gray-500">
-                      <span className="text-gray-300 font-medium">{r.title.slice(0, 28)}{r.title.length > 28 ? '…' : ''}</span>
-                      {' '}— no responses in {daysSince(r.created_at)}d
-                    </span>
-                  </li>
-                ))}
-                {weak.filter((r) => !needsAttention.find((n) => n.id === r.id)).slice(0, 2).map((r) => (
-                  <li key={r.id} className="flex items-start gap-2">
-                    <Zap className="h-3 w-3 text-yellow-500 mt-0.5 shrink-0" />
-                    <span className="text-xs text-gray-500">
-                      <span className="text-gray-300 font-medium">{r.title.slice(0, 28)}{r.title.length > 28 ? '…' : ''}</span>
-                      {' '}— score {r.priority_score}/100
-                    </span>
-                  </li>
-                ))}
+                {needsAttention.slice(0, 2).map((r) => {
+                  const title = r?.title ?? ''
+                  return (
+                    <li key={r?.id ?? Math.random()} className="flex items-start gap-2">
+                      <AlertCircle className="h-3 w-3 text-orange-400 mt-0.5 shrink-0" />
+                      <span className="text-xs text-gray-500">
+                        <span className="text-gray-300 font-medium">{title.slice(0, 28)}{title.length > 28 ? '…' : ''}</span>
+                        {' '}— no responses in {daysSince(r?.created_at ?? '')}d
+                      </span>
+                    </li>
+                  )
+                })}
+                {weak.filter((r) => !needsAttention.find((n) => n?.id === r?.id)).slice(0, 2).map((r) => {
+                  const title = r?.title ?? ''
+                  return (
+                    <li key={r?.id ?? Math.random()} className="flex items-start gap-2">
+                      <Zap className="h-3 w-3 text-yellow-500 mt-0.5 shrink-0" />
+                      <span className="text-xs text-gray-500">
+                        <span className="text-gray-300 font-medium">{title.slice(0, 28)}{title.length > 28 ? '…' : ''}</span>
+                        {' '}— score {r?.priority_score ?? 0}/100
+                      </span>
+                    </li>
+                  )
+                })}
               </ul>
             )}
           </div>
@@ -366,13 +382,14 @@ function RFQCard({ rfq, pending, onUpdateStatus, onDelete }: {
   onUpdateStatus: (id: string, status: string) => void
   onDelete: (id: string) => void
 }) {
-  const status     = rfq.status ?? 'active'
+  const status     = rfq?.status ?? 'active'
   const cfg        = STATUS_CFG[status] ?? STATUS_CFG.active
   const insight    = aiInsight(rfq)
   const rate       = responseRate(rfq)
   const busy       = !!pending
-  const isTop      = rfq.rank === 1 && rfq.status === 'active' && rfq.response_count > 0
-  const { text: scoreText } = scoreColor(rfq.priority_score)
+  const isTop      = (rfq?.rank ?? 0) === 1 && (rfq?.status ?? '') === 'active' && (rfq?.response_count ?? 0) > 0
+  const { text: scoreText } = scoreColor(rfq?.priority_score ?? 0)
+  const safeDate   = rfq?.created_at ? new Date(rfq.created_at).toISOString().split('T')[0] : '—'
 
   return (
     <div
@@ -392,12 +409,12 @@ function RFQCard({ rfq, pending, onUpdateStatus, onDelete }: {
       {/* Rank badge */}
       <div className="absolute -top-3 left-4 z-10 flex items-center gap-2">
         <span className={`inline-flex items-center justify-center h-6 w-6 rounded-full text-[10px] font-bold border ${
-          rfq.rank === 1 ? 'bg-amber-500 border-amber-400 text-black shadow-lg shadow-amber-500/30'
-          : rfq.rank === 2 ? 'bg-gray-400 border-gray-300 text-black'
-          : rfq.rank === 3 ? 'bg-orange-700 border-orange-600 text-white'
+          (rfq?.rank ?? 0) === 1 ? 'bg-amber-500 border-amber-400 text-black shadow-lg shadow-amber-500/30'
+          : (rfq?.rank ?? 0) === 2 ? 'bg-gray-400 border-gray-300 text-black'
+          : (rfq?.rank ?? 0) === 3 ? 'bg-orange-700 border-orange-600 text-white'
           : 'bg-[#1a2233] border-white/[0.10] text-gray-500'
         }`}>
-          #{rfq.rank}
+          #{rfq?.rank ?? 0}
         </span>
         {isTop && (
           <span className="inline-flex items-center gap-1 bg-gradient-to-r from-blue-600 to-violet-600 text-white text-[10px] font-bold px-2.5 py-1 rounded-full shadow-lg shadow-blue-500/25">
@@ -413,15 +430,15 @@ function RFQCard({ rfq, pending, onUpdateStatus, onDelete }: {
         <div className="flex items-start justify-between gap-3">
           <div className="flex-1 min-w-0">
             <div className="flex items-center gap-2">
-              <h2 className="text-sm font-semibold text-white leading-snug truncate">{rfq.title}</h2>
-              {rfq._optimistic && (
+              <h2 className="text-sm font-semibold text-white leading-snug truncate">{rfq?.title ?? '—'}</h2>
+              {rfq?._optimistic && (
                 <span className="inline-flex items-center gap-1 text-[10px] text-blue-400 bg-blue-500/10 border border-blue-500/20 px-1.5 py-0.5 rounded-full shrink-0">
                   <Loader2 className="h-2.5 w-2.5 animate-spin" />
                   Syncing
                 </span>
               )}
             </div>
-            {rfq.description && (
+            {rfq?.description && (
               <p className="text-xs text-gray-600 mt-0.5 truncate">{rfq.description}</p>
             )}
           </div>
@@ -432,21 +449,21 @@ function RFQCard({ rfq, pending, onUpdateStatus, onDelete }: {
         </div>
 
         {/* Priority Score */}
-        <PriorityScoreBadge score={rfq.priority_score} />
+        <PriorityScoreBadge score={rfq?.priority_score ?? 0} />
 
         {/* Metrics */}
         <div className="flex items-center gap-4 text-xs text-gray-500">
           <span className="flex items-center gap-1.5">
             <Users className="h-3.5 w-3.5 text-gray-600" />
-            <span className="font-semibold text-gray-300">{rfq.invite_count}</span>
+            <span className="font-semibold text-gray-300">{rfq?.invite_count ?? 0}</span>
             <span className="text-gray-700">suppliers</span>
           </span>
           <span className="flex items-center gap-1.5">
             <MessageSquare className="h-3.5 w-3.5 text-gray-600" />
-            <span className="font-semibold text-gray-300">{rfq.response_count}</span>
+            <span className="font-semibold text-gray-300">{rfq?.response_count ?? 0}</span>
             <span className="text-gray-700">quotes</span>
           </span>
-          {rfq.invite_count > 0 && (
+          {(rfq?.invite_count ?? 0) > 0 && (
             <span className="flex items-center gap-1.5">
               <BarChart3 className="h-3.5 w-3.5 text-gray-600" />
               <span className={`font-semibold ${rate >= 50 ? 'text-emerald-400' : rate > 0 ? 'text-blue-400' : 'text-orange-400'}`}>
@@ -456,17 +473,17 @@ function RFQCard({ rfq, pending, onUpdateStatus, onDelete }: {
           )}
           <span className="ml-auto flex items-center gap-1 text-gray-700">
             <Clock className="h-3 w-3" />
-            {new Date(rfq.created_at).toISOString().split('T')[0]}
+            {safeDate}
           </span>
         </div>
 
         {/* Score breakdown */}
         <div className="grid grid-cols-4 gap-1.5">
           {([
-            { label: 'Responses', value: rfq.score_breakdown.response_count },
-            { label: 'Speed',     value: rfq.score_breakdown.response_speed },
-            { label: 'Competition', value: rfq.score_breakdown.price_competitiveness },
-            { label: 'Quality',   value: rfq.score_breakdown.supplier_quality },
+            { label: 'Responses', value: rfq?.score_breakdown?.response_count ?? 0 },
+            { label: 'Speed',     value: rfq?.score_breakdown?.response_speed ?? 0 },
+            { label: 'Competition', value: rfq?.score_breakdown?.price_competitiveness ?? 0 },
+            { label: 'Quality',   value: rfq?.score_breakdown?.supplier_quality ?? 0 },
           ] as const).map(({ label, value }) => {
             const { text, bar } = scoreColor(value)
             return (
@@ -495,20 +512,20 @@ function RFQCard({ rfq, pending, onUpdateStatus, onDelete }: {
         </div>
 
         {/* Progress */}
-        <SmartProgressBar value={rate} invites={rfq.invite_count} />
+        <SmartProgressBar value={rate} invites={rfq?.invite_count ?? 0} />
       </div>
 
       {/* Actions */}
       <div className="flex items-center justify-between px-5 py-3 border-t border-white/[0.05] bg-white/[0.015] rounded-b-2xl gap-2">
         <div className="flex items-center gap-2">
-          <Link href={`/rfqs/${rfq.id}`}>
+          <Link href={`/rfqs/${rfq?.id ?? ''}`}>
             <button className="inline-flex items-center gap-1.5 text-xs px-3 py-1.5 rounded-lg bg-blue-600 hover:bg-blue-500 active:scale-95 text-white font-semibold transition-all">
               <Eye className="h-3.5 w-3.5" />
               View Details
             </button>
           </Link>
-          {rfq.response_count >= 2 && (
-            <Link href={`/rfqs/${rfq.id}`}>
+          {(rfq?.response_count ?? 0) >= 2 && (
+            <Link href={`/rfqs/${rfq?.id ?? ''}`}>
               <button className="inline-flex items-center gap-1.5 text-xs px-3 py-1.5 rounded-lg border border-violet-500/30 bg-violet-500/10 hover:bg-violet-500/20 text-violet-300 font-medium transition-all">
                 <Sparkles className="h-3.5 w-3.5" />
                 AI Analysis
@@ -518,22 +535,22 @@ function RFQCard({ rfq, pending, onUpdateStatus, onDelete }: {
         </div>
         <div className="flex items-center gap-1">
           {status === 'paused' ? (
-            <ActionBtn onClick={() => onUpdateStatus(rfq.id, 'active')} loading={busy && pending === 'active'} disabled={busy} cls="text-blue-400 hover:bg-blue-500/10">
+            <ActionBtn onClick={() => onUpdateStatus(rfq?.id ?? '', 'active')} loading={busy && pending === 'active'} disabled={busy} cls="text-blue-400 hover:bg-blue-500/10">
               {!(busy && pending === 'active') && <Play className="h-3 w-3" />}Resume
             </ActionBtn>
           ) : status !== 'cancelled' ? (
-            <ActionBtn onClick={() => onUpdateStatus(rfq.id, 'paused')} loading={busy && pending === 'paused'} disabled={busy} cls="text-yellow-500 hover:bg-yellow-500/10">
+            <ActionBtn onClick={() => onUpdateStatus(rfq?.id ?? '', 'paused')} loading={busy && pending === 'paused'} disabled={busy} cls="text-yellow-500 hover:bg-yellow-500/10">
               {!(busy && pending === 'paused') && <Pause className="h-3 w-3" />}Pause
             </ActionBtn>
           ) : null}
           {status !== 'cancelled' && (
-            <ActionBtn onClick={() => onUpdateStatus(rfq.id, 'cancelled')} loading={busy && pending === 'cancelled'} disabled={busy} cls="text-red-500 hover:bg-red-500/10">
+            <ActionBtn onClick={() => onUpdateStatus(rfq?.id ?? '', 'cancelled')} loading={busy && pending === 'cancelled'} disabled={busy} cls="text-red-500 hover:bg-red-500/10">
               {!(busy && pending === 'cancelled') && <XCircle className="h-3 w-3" />}Cancel
             </ActionBtn>
           )}
           <button
             disabled={busy}
-            onClick={() => onDelete(rfq.id)}
+            onClick={() => onDelete(rfq?.id ?? '')}
             className="p-1.5 rounded-lg text-gray-700 hover:text-red-400 hover:bg-red-500/10 transition-colors disabled:opacity-40"
           >
             {busy && pending === 'delete'
@@ -549,9 +566,9 @@ function RFQCard({ rfq, pending, onUpdateStatus, onDelete }: {
 // ── Insights strip ────────────────────────────────────────────────────────────
 
 function InsightsStrip({ rfqs, onFilter }: { rfqs: RFQ[]; onFilter: (s: string) => void }) {
-  const noResp  = rfqs.filter((r) => r.status === 'active' && r.invite_count > 0 && r.response_count === 0)
+  const noResp  = rfqs.filter((r) => r?.status === 'active' && (r?.invite_count ?? 0) > 0 && (r?.response_count ?? 0) === 0)
   const highEng = rfqs.filter((r) => responseRate(r) >= 50)
-  const stale   = rfqs.filter((r) => r.status === 'active' && daysSince(r.created_at) > 7 && r.response_count === 0)
+  const stale   = rfqs.filter((r) => r?.status === 'active' && daysSince(r?.created_at ?? '') > 7 && (r?.response_count ?? 0) === 0)
 
   const chips = [
     noResp.length > 0  && { icon: AlertCircle, color: 'text-orange-400 bg-orange-500/8 border-orange-500/20', label: `${noResp.length} active with no responses`, action: () => onFilter('active') },
@@ -576,15 +593,17 @@ function InsightsStrip({ rfqs, onFilter }: { rfqs: RFQ[]; onFilter: (s: string) 
 
 export function RFQList({ initialRfqs }: { initialRfqs: RFQ[] }) {
   const router = useRouter()
-  const [rfqs, setRfqs]             = useState<RFQ[]>(initialRfqs)
+  const safeInitial = Array.isArray(initialRfqs) ? initialRfqs : []
+  const [rfqs, setRfqs]             = useState<RFQ[]>(safeInitial)
   const [pending, setPending]       = useState<Record<string, string>>({})
   const [search, setSearch]         = useState('')
   const [statusFilter, setStatusFilter] = useState('all')
   const [sortBy, setSortBy]         = useState<'score' | 'newest' | 'responses' | 'engagement'>('score')
 
-  const totalResponses = rfqs.reduce((s, r) => s + r.response_count, 0)
-  const totalInvites   = rfqs.reduce((s, r) => s + r.invite_count, 0)
-  const activeCount    = rfqs.filter((r) => r.status === 'active').length
+  // All hooks must be called before any conditional return
+  const totalResponses = rfqs.reduce((s, r) => s + (r?.response_count ?? 0), 0)
+  const totalInvites   = rfqs.reduce((s, r) => s + (r?.invite_count ?? 0), 0)
+  const activeCount    = rfqs.filter((r) => r?.status === 'active').length
   const avgRate        = totalInvites > 0 ? Math.round((totalResponses / totalInvites) * 100) : 0
 
   // Score ALL rfqs (needed for ranking + guidance panel)
@@ -593,16 +612,24 @@ export function RFQList({ initialRfqs }: { initialRfqs: RFQ[] }) {
   const filtered = useMemo(() => {
     const q = search.toLowerCase()
     let list = allScored.filter((r) => {
-      const matchSearch = !q || r.title.toLowerCase().includes(q) || (r.description ?? '').toLowerCase().includes(q)
-      const matchStatus = statusFilter === 'all' || r.status === statusFilter
+      const matchSearch = !q || (r?.title ?? '').toLowerCase().includes(q) || (r?.description ?? '').toLowerCase().includes(q)
+      const matchStatus = statusFilter === 'all' || r?.status === statusFilter
       return matchSearch && matchStatus
     })
-    if (sortBy === 'score')      list = [...list].sort((a, b) => b.priority_score - a.priority_score)
-    if (sortBy === 'responses')  list = [...list].sort((a, b) => b.response_count - a.response_count)
+    if (sortBy === 'score')      list = [...list].sort((a, b) => (b?.priority_score ?? 0) - (a?.priority_score ?? 0))
+    if (sortBy === 'responses')  list = [...list].sort((a, b) => (b?.response_count ?? 0) - (a?.response_count ?? 0))
     if (sortBy === 'engagement') list = [...list].sort((a, b) => responseRate(b) - responseRate(a))
-    if (sortBy === 'newest')     list = [...list].sort((a, b) => new Date(b.created_at).getTime() - new Date(a.created_at).getTime())
+    if (sortBy === 'newest')     list = [...list].sort((a, b) => {
+      const aTime = a?.created_at ? new Date(a.created_at).getTime() : 0
+      const bTime = b?.created_at ? new Date(b.created_at).getTime() : 0
+      return bTime - aTime
+    })
     return list
   }, [allScored, search, statusFilter, sortBy])
+
+  if (!Array.isArray(initialRfqs)) {
+    return <div className="text-white p-10">Invalid data</div>
+  }
 
   async function updateStatus(id: string, status: string) {
     setPending((p) => ({ ...p, [id]: status }))
@@ -612,7 +639,7 @@ export function RFQList({ initialRfqs }: { initialRfqs: RFQ[] }) {
         body: JSON.stringify({ status }),
       })
       if (!res.ok) throw new Error()
-      setRfqs((prev) => prev.map((r) => (r.id === id ? { ...r, status } : r)))
+      setRfqs((prev) => prev.map((r) => (r?.id === id ? { ...r, status } : r)))
     } catch { /* silent */ } finally {
       setPending((p) => { const n = { ...p }; delete n[id]; return n })
     }
@@ -724,8 +751,8 @@ export function RFQList({ initialRfqs }: { initialRfqs: RFQ[] }) {
         </div>
       ) : (
         <div className="grid grid-cols-1 lg:grid-cols-2 gap-4">
-          {filtered.map((rfq) => (
-            <RFQCard key={rfq.id} rfq={rfq} pending={pending[rfq.id]} onUpdateStatus={updateStatus} onDelete={deleteRFQ} />
+          {(Array.isArray(filtered) ? filtered : []).map((rfq) => (
+            <RFQCard key={rfq?.id ?? Math.random()} rfq={rfq} pending={pending[rfq?.id ?? '']} onUpdateStatus={updateStatus} onDelete={deleteRFQ} />
           ))}
         </div>
       )}
