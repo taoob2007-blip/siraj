@@ -161,11 +161,20 @@ export async function PATCH(req: NextRequest, { params }: RouteParams) {
           .maybeSingle()
 
         // Only insert if no contract exists for this RFQ yet
-        const { data: existing } = await supabase
+        const { data: existing, error: existingError } = await supabase
           .from('contracts')
           .select('id')
           .eq('rfq_id', params.id)
           .maybeSingle()
+
+        if (existingError) {
+          // Most likely cause: contracts table doesn't exist yet
+          console.error('[CONTRACT] check error (table may be missing):', existingError)
+          return NextResponse.json(
+            { error: `Contracts table error: ${existingError.message}. Run the migration SQL from the Contracts page.` },
+            { status: 500 },
+          )
+        }
 
         if (existing) {
           contractId = existing.id
@@ -186,10 +195,13 @@ export async function PATCH(req: NextRequest, { params }: RouteParams) {
 
           if (contractError) {
             console.error('[CONTRACT] insert error:', contractError)
-          } else {
-            console.log('[CONTRACT] created:', { id: newContract?.id, rfq_id: params.id, user_id: user.id, supplier: body.selected_supplier })
+            return NextResponse.json(
+              { error: `Contract creation failed: ${contractError.message}` },
+              { status: 500 },
+            )
           }
 
+          console.log('[CONTRACT] created:', { id: newContract?.id, rfq_id: params.id, user_id: user.id, supplier: body.selected_supplier })
           contractId = newContract?.id ?? null
         }
 
@@ -219,8 +231,11 @@ export async function PATCH(req: NextRequest, { params }: RouteParams) {
           if (failed.length > 0) console.warn(`[EMAIL] ${failed.length} notification(s) failed for RFQ ${params.id}`)
         })
       } catch (contractErr) {
-        // Contract creation is best-effort — don't fail the whole accept flow
-        console.error('Contract auto-create error:', contractErr)
+        console.error('[CONTRACT] unexpected error:', contractErr)
+        return NextResponse.json(
+          { error: `Unexpected contract error: ${contractErr instanceof Error ? contractErr.message : String(contractErr)}` },
+          { status: 500 },
+        )
       }
     }
 
