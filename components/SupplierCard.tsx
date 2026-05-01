@@ -390,12 +390,12 @@ export function SupplierCard({
   const insights     = deriveInsights(supplier, minPrice, maxPrice, minDelivery, maxDelivery)
   const rawFields    = Object.entries(supplier.answers ?? {}).filter(([k]) => !HIDDEN_KEYS.has(k.toLowerCase()))
 
-  // Schema-driven display fields — label + answer value pairs
-  const HIDDEN_LABELS = new Set(['price', 'delivery days', 'delivery'])
+  // Schema-driven display fields — answers are keyed by field.id in the DB
+  const HIDDEN_IDS = new Set(['price', 'delivery_days', 'delivery'])
   const schemaFields = formSchema
     ? formSchema
-        .filter((f) => !HIDDEN_LABELS.has(f.label.toLowerCase()))
-        .map((f) => ({ label: f.label, value: supplier.answers?.[f.label] ?? '', type: f.type }))
+        .filter((f) => !HIDDEN_IDS.has(f.id.toLowerCase()))
+        .map((f) => ({ label: f.label, value: supplier.answers?.[f.id] ?? '', type: f.type }))
     : null
 
   // Use schema fields when available, fall back to raw key-value pairs
@@ -409,7 +409,7 @@ export function SupplierCard({
     <div className={[
       'relative flex flex-col rounded-2xl border transition-all duration-300 overflow-hidden',
       isAIChoice
-        ? 'border-amber-500/40 bg-[#111008] shadow-[0_0_40px_-8px_rgba(245,158,11,0.15)]'
+        ? 'border-yellow-500/40 bg-gradient-to-br from-yellow-500/10 to-transparent shadow-lg shadow-yellow-500/10'
         : 'border-white/[0.07] bg-[#0d0f14] hover:border-white/[0.12] hover:shadow-xl hover:shadow-black/40',
     ].join(' ')}>
 
@@ -436,7 +436,7 @@ export function SupplierCard({
               <Mail className={`h-3.5 w-3.5 ${isAIChoice ? 'text-amber-400/80' : 'text-gray-500'}`} />
             </div>
             <div className="min-w-0">
-              <p className="text-sm font-medium text-white/90 truncate leading-tight">{emailUser}</p>
+              <p className={`text-sm font-semibold truncate leading-tight ${isAIChoice ? 'text-blue-400' : 'text-white/90'}`}>{emailUser}</p>
               <p className="text-[11px] text-gray-600 truncate">@{emailDomain}</p>
             </div>
           </div>
@@ -490,11 +490,11 @@ export function SupplierCard({
             <span className={`text-xs ${isAIChoice ? 'text-amber-500/60' : 'text-gray-600'}`}>Delivery</span>
           </div>
           <div className="flex items-baseline gap-1">
-            <span className={`text-base font-medium tabular-nums ${isAIChoice ? 'text-amber-200/80' : 'text-white/70'}`}>
+            <span className={`text-base font-semibold tabular-nums ${isAIChoice ? 'text-emerald-400' : 'text-white/90'}`}>
               {supplier.delivery_days !== null ? supplier.delivery_days : '—'}
             </span>
             {supplier.delivery_days !== null && (
-              <span className="text-[10px] text-gray-600">days</span>
+              <span className={`text-[10px] ${isAIChoice ? 'text-emerald-400/60' : 'text-gray-600'}`}>days</span>
             )}
           </div>
         </div>
@@ -587,7 +587,7 @@ export function SupplierCard({
                     >
                       <span className="text-[10px] text-white/40 uppercase tracking-widest">{field.label}</span>
                       <span className="text-sm text-white font-medium">
-                        {isEmpty ? <span className="text-gray-700 font-normal italic">Not provided</span> : String(field.value)}
+                        {isEmpty ? <span className="text-white/40 font-normal italic">No response</span> : String(field.value)}
                       </span>
                     </div>
                   )
