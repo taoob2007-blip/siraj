@@ -61,6 +61,7 @@ export function SupplierSelector({
           value={tempName}
           onChange={(e) => setTempName(e.target.value)}
           disabled={isLoading}
+          className="bg-[#0d1220] border-white/[0.08] text-white placeholder:text-gray-600 focus-visible:border-blue-500/50 focus-visible:ring-1 focus-visible:ring-blue-500/20 hover:border-white/20 transition-all disabled:opacity-50"
         />
       </div>
 
@@ -74,6 +75,7 @@ export function SupplierSelector({
           onChange={(e) => setTempEmail(e.target.value)}
           onKeyPress={handleKeyPress}
           disabled={isLoading}
+          className="bg-[#0d1220] border-white/[0.08] text-white placeholder:text-gray-600 focus-visible:border-blue-500/50 focus-visible:ring-1 focus-visible:ring-blue-500/20 hover:border-white/20 transition-all disabled:opacity-50"
         />
       </div>
 
