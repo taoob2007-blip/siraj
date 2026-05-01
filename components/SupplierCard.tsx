@@ -416,7 +416,7 @@ export function SupplierCard({
       const destination = responseData.contractId
         ? `/contracts/${responseData.contractId}`
         : '/contracts'
-      setTimeout(() => router.push(destination), 1800)
+      setTimeout(() => { router.refresh(); router.push(destination) }, 1800)
     } catch (e) {
       setAcceptError(e instanceof Error ? e.message : 'Failed to accept')
     } finally {

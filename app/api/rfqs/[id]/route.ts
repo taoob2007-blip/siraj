@@ -169,8 +169,9 @@ export async function PATCH(req: NextRequest, { params }: RouteParams) {
 
         if (existing) {
           contractId = existing.id
+          console.log('[CONTRACT] already exists:', existing.id)
         } else {
-          const { data: newContract } = await supabase
+          const { data: newContract, error: contractError } = await supabase
             .from('contracts')
             .insert({
               rfq_id:         params.id,
@@ -182,6 +183,12 @@ export async function PATCH(req: NextRequest, { params }: RouteParams) {
             })
             .select('id')
             .single()
+
+          if (contractError) {
+            console.error('[CONTRACT] insert error:', contractError)
+          } else {
+            console.log('[CONTRACT] created:', { id: newContract?.id, rfq_id: params.id, user_id: user.id, supplier: body.selected_supplier })
+          }
 
           contractId = newContract?.id ?? null
         }
