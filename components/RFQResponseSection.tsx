@@ -515,6 +515,9 @@ export function RFQResponseSection({
               minDelivery={minDelivery}
               maxDelivery={deliveries.length ? Math.max(...deliveries) : null}
               formSchema={fields.length > 0 ? fields : undefined}
+              rfqId={rfqId}
+              acceptedSupplier={acceptedSupplier}
+              onAccepted={onAccepted}
             />
           ))}
         </div>

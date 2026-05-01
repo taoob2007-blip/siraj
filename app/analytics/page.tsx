@@ -2,27 +2,34 @@ export const dynamic = 'force-dynamic'
 
 import { getServerSupabaseClient } from '@/lib/supabase/server'
 import { AnalyticsCharts } from '@/components/AnalyticsCharts'
-import { Activity, Users, MessageSquare, TrendingUp, BarChart3 } from 'lucide-react'
+import { Activity, MessageSquare, TrendingUp, BarChart3, FileSignature, CheckCircle2 } from 'lucide-react'
 
 async function getAnalyticsData() {
   try {
     const supabase = await getServerSupabaseClient()
-    const [{ data: rfqs }, { data: responses }, { data: invites }] = await Promise.all([
+    const [
+      { data: rfqs },
+      { data: responses },
+      { data: invites },
+      { data: contracts },
+    ] = await Promise.all([
       supabase.from('rfqs').select('id, status, created_at'),
       supabase.from('responses').select('id, price, delivery_days, created_at, rfq_id'),
       supabase.from('rfq_invites').select('id'),
+      supabase.from('contracts').select('id, status, price').order('created_at', { ascending: false }),
     ])
 
-    const totalRFQs      = rfqs?.length ?? 0
-    const activeRFQs     = rfqs?.filter((r) => r.status === 'active').length ?? 0
-    const totalResponses = responses?.length ?? 0
-    const totalInvites   = invites?.length ?? 0
-    const responseRate   = totalInvites > 0 ? Math.round((totalResponses / totalInvites) * 100) : 0
+    const totalRFQs       = rfqs?.length ?? 0
+    const activeRFQs      = rfqs?.filter((r) => r.status === 'active').length ?? 0
+    const totalResponses  = responses?.length ?? 0
+    const totalInvites    = invites?.length ?? 0
+    const responseRate    = totalInvites > 0 ? Math.round((totalResponses / totalInvites) * 100) : 0
 
-    // Unique suppliers
-    const uniqueSuppliers = 0 // counted from responses in client
+    const totalContracts  = contracts?.length ?? 0
+    const signedContracts = contracts?.filter((c) => c.status === 'signed').length ?? 0
+    const conversionRate  = totalRFQs > 0 ? Math.round((signedContracts / totalRFQs) * 100) : 0
 
-    // Responses over time (last 30 days grouped by date)
+    // Responses over time (last 30 days)
     const now = Date.now()
     const responsesOverTime: { date: string; count: number }[] = []
     for (let i = 29; i >= 0; i--) {
@@ -44,6 +51,7 @@ async function getAnalyticsData() {
 
     return {
       totalRFQs, activeRFQs, totalResponses, totalInvites, responseRate,
+      totalContracts, signedContracts, conversionRate,
       responsesOverTime, priceDistribution, deliveryDistribution,
       avgPrice: prices.length ? Math.round(prices.reduce((a, b) => a + b, 0) / prices.length) : null,
       avgDelivery: deliveries.length ? Math.round(deliveries.reduce((a, b) => a + b, 0) / deliveries.length) : null,
@@ -74,10 +82,12 @@ export default async function AnalyticsPage() {
   const data = await getAnalyticsData()
 
   const kpis = [
-    { label: 'Total RFQs',       value: data?.totalRFQs ?? 0,      sub: `${data?.activeRFQs ?? 0} active`,       icon: Activity,      cls: 'bg-blue-500/10 border-blue-500/20 text-blue-400' },
-    { label: 'Total Responses',  value: data?.totalResponses ?? 0,  sub: `from ${data?.totalInvites ?? 0} invited`, icon: MessageSquare, cls: 'bg-violet-500/10 border-violet-500/20 text-violet-400' },
-    { label: 'Response Rate',    value: `${data?.responseRate ?? 0}%`, sub: 'average across RFQs',                  icon: TrendingUp,    cls: 'bg-emerald-500/10 border-emerald-500/20 text-emerald-400' },
+    { label: 'Total RFQs',       value: data?.totalRFQs ?? 0,        sub: `${data?.activeRFQs ?? 0} active`,         icon: Activity,       cls: 'bg-blue-500/10 border-blue-500/20 text-blue-400' },
+    { label: 'Total Responses',  value: data?.totalResponses ?? 0,    sub: `from ${data?.totalInvites ?? 0} invited`, icon: MessageSquare,  cls: 'bg-violet-500/10 border-violet-500/20 text-violet-400' },
+    { label: 'Response Rate',    value: `${data?.responseRate ?? 0}%`, sub: 'invitations responded',                  icon: TrendingUp,     cls: 'bg-emerald-500/10 border-emerald-500/20 text-emerald-400' },
     { label: 'Avg Price',        value: data?.avgPrice ? `$${data.avgPrice.toLocaleString('en-US')}` : '—', sub: 'across all quotes', icon: BarChart3, cls: 'bg-orange-500/10 border-orange-500/20 text-orange-400' },
+    { label: 'Contracts',        value: data?.totalContracts ?? 0,    sub: `${data?.signedContracts ?? 0} signed`,    icon: FileSignature,  cls: 'bg-teal-500/10 border-teal-500/20 text-teal-400' },
+    { label: 'Conversion Rate',  value: `${data?.conversionRate ?? 0}%`, sub: 'RFQs → signed contracts',             icon: CheckCircle2,   cls: 'bg-amber-500/10 border-amber-500/20 text-amber-400' },
   ]
 
   return (
@@ -88,7 +98,7 @@ export default async function AnalyticsPage() {
       </div>
 
       {/* KPIs */}
-      <div className="grid grid-cols-2 lg:grid-cols-4 gap-4">
+      <div className="grid grid-cols-2 lg:grid-cols-3 gap-4">
         {kpis.map(({ label, value, sub, icon: Icon, cls }) => (
           <div key={label} className="relative overflow-hidden rounded-2xl border border-white/[0.07] bg-[#111827] p-5">
             <div className={`absolute -top-6 -right-6 h-16 w-16 rounded-full blur-2xl opacity-20 ${cls}`} />

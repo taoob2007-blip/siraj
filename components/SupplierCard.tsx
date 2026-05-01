@@ -1,11 +1,13 @@
 'use client'
 
 import { useState, useCallback, useRef } from 'react'
+import { useRouter } from 'next/navigation'
+import { Toast } from '@/components/Toast'
 import {
   Mail, DollarSign, Clock, ChevronDown, ChevronUp,
   MessageSquare, Copy, Check, Loader2, X, Trophy,
   Sparkles, Briefcase, FileText, Star, Package,
-  TrendingDown, Zap, AlertTriangle, ShieldCheck, Info,
+  TrendingDown, Zap, AlertTriangle, ShieldCheck, Info, CheckCircle2,
 } from 'lucide-react'
 import type { SupplierScore } from '@/app/api/ai/score/route'
 import type { RFQField } from '@/lib/types'
@@ -42,6 +44,9 @@ export interface SupplierCardProps {
   minDelivery?: number | null
   maxDelivery?: number | null
   formSchema?: RFQField[]
+  rfqId?: string
+  acceptedSupplier?: string | null
+  onAccepted?: (email: string) => void
 }
 
 // ── Insight types ──────────────────────────────────────────────────────────────
@@ -377,11 +382,42 @@ export function SupplierCard({
   supplier, tags, score, isAIChoice, aiRank,
   rfqTitle, rfqDescription, competitors, aiScore,
   minPrice = null, maxPrice = null, minDelivery = null, maxDelivery = null,
-  formSchema,
+  formSchema, rfqId, acceptedSupplier, onAccepted,
 }: SupplierCardProps) {
+  const router                                     = useRouter()
   const [detailsOpen, setDetailsOpen]     = useState(false)
   const [negotiateOpen, setNegotiateOpen] = useState(false)
+  const [accepting, setAccepting]         = useState(false)
+  const [acceptError, setAcceptError]     = useState<string | null>(null)
+  const [toast, setToast]                 = useState<string | null>(null)
   const { message, loading, error, copied, generate, copy, reset } = useNegotiate()
+
+  const isThisAccepted = acceptedSupplier === supplier.supplier_email
+  const anyAccepted    = !!acceptedSupplier
+
+  async function handleAccept() {
+    if (!rfqId || accepting || isThisAccepted) return
+    setAccepting(true)
+    setAcceptError(null)
+    try {
+      const res = await fetch(`/api/rfqs/${rfqId}`, {
+        method: 'PATCH',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ selected_supplier: supplier.supplier_email }),
+      })
+      if (!res.ok) {
+        const err = await res.json()
+        throw new Error(err.error || `Server error ${res.status}`)
+      }
+      onAccepted?.(supplier.supplier_email)
+      setToast('Contract created successfully! Redirecting…')
+      setTimeout(() => router.push('/contracts'), 1800)
+    } catch (e) {
+      setAcceptError(e instanceof Error ? e.message : 'Failed to accept')
+    } finally {
+      setAccepting(false)
+    }
+  }
 
   const [emailUser, emailDomain] = supplier.supplier_email.split('@')
   const displayScore = aiScore ? Math.round(Number(aiScore.score) || 0) : score
@@ -406,15 +442,26 @@ export function SupplierCard({
   }
 
   return (
+    <>
     <div className={[
       'relative flex flex-col rounded-2xl border transition-all duration-300 overflow-hidden',
-      isAIChoice
-        ? 'border-yellow-500/40 bg-gradient-to-br from-yellow-500/10 to-transparent shadow-lg shadow-yellow-500/10'
-        : 'border-white/[0.07] bg-[#0d0f14] hover:border-white/[0.12] hover:shadow-xl hover:shadow-black/40',
+      isThisAccepted
+        ? 'border-emerald-500/40 bg-gradient-to-br from-emerald-500/10 to-transparent shadow-lg shadow-emerald-500/10'
+        : isAIChoice
+          ? 'border-yellow-500/40 bg-gradient-to-br from-yellow-500/10 to-transparent shadow-lg shadow-yellow-500/10'
+          : 'border-white/[0.07] bg-[#0d0f14] hover:border-white/[0.12] hover:shadow-xl hover:shadow-black/40',
     ].join(' ')}>
 
+      {/* Selected Supplier crown */}
+      {isThisAccepted && (
+        <div className="flex items-center gap-1.5 justify-center py-2 bg-emerald-500/10 border-b border-emerald-500/20">
+          <CheckCircle2 className="h-3 w-3 text-emerald-400" />
+          <span className="text-[11px] font-semibold text-emerald-400 tracking-wide uppercase">Selected Supplier</span>
+        </div>
+      )}
+
       {/* AI Choice crown */}
-      {isAIChoice && (
+      {isAIChoice && !isThisAccepted && (
         <div className="flex items-center gap-1.5 justify-center py-2 bg-amber-500/10 border-b border-amber-500/20">
           <Trophy className="h-3 w-3 text-amber-400" />
           <span className="text-[11px] font-semibold text-amber-400 tracking-wide uppercase">AI Recommended</span>
@@ -633,6 +680,37 @@ export function SupplierCard({
       </div>
 
       {/* ══════════════════════════════════════════════════════════════════════
+          ACCEPT
+          ══════════════════════════════════════════════════════════════════ */}
+      {rfqId && !anyAccepted && (
+        <div className="px-5 pb-3">
+          <button
+            onClick={handleAccept}
+            disabled={accepting}
+            className="w-full rounded-xl bg-emerald-600 hover:bg-emerald-500 disabled:opacity-50 text-white text-sm font-semibold py-2.5 transition-all duration-200 active:scale-[0.98] flex items-center justify-center gap-2"
+          >
+            {accepting
+              ? <><Loader2 className="h-3.5 w-3.5 animate-spin" />Saving…</>
+              : <><CheckCircle2 className="h-3.5 w-3.5" />Accept Offer</>
+            }
+          </button>
+          {acceptError && (
+            <p className="mt-1.5 text-xs text-red-400 flex items-center gap-1">
+              <AlertTriangle className="h-3 w-3" />{acceptError}
+            </p>
+          )}
+        </div>
+      )}
+
+      {rfqId && isThisAccepted && (
+        <div className="px-5 pb-3">
+          <div className="w-full rounded-xl border border-emerald-500/30 bg-emerald-500/10 text-emerald-400 text-sm font-semibold py-2.5 flex items-center justify-center gap-2">
+            <CheckCircle2 className="h-3.5 w-3.5" />Accepted
+          </div>
+        </div>
+      )}
+
+      {/* ══════════════════════════════════════════════════════════════════════
           NEGOTIATE
           ══════════════════════════════════════════════════════════════════ */}
       <div className="px-5 pb-5">
@@ -664,6 +742,17 @@ export function SupplierCard({
         />
       </div>
     </div>
+
+    {/* Toast notification */}
+    {toast && (
+      <Toast
+        message={toast}
+        type="success"
+        duration={2000}
+        onClose={() => setToast(null)}
+      />
+    )}
+    </>
   )
 }
 

@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { createClient } from '@supabase/supabase-js'
 import { getServerSupabaseClient } from '@/lib/supabase/server'
+import { sendWinnerEmail, sendLoserEmail } from '@/lib/email/sendAcceptEmail'
 
 interface RouteParams {
   params: { id: string }
@@ -97,7 +98,12 @@ export async function PATCH(req: NextRequest, { params }: RouteParams) {
       return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
     }
 
-    const body = (await req.json()) as { status?: string; selected_supplier?: string }
+    const body = (await req.json()) as {
+      status?: string
+      selected_supplier?: string
+      price?: number | null
+      delivery_days?: number | null
+    }
     const update: Record<string, string> = {}
 
     if (body.status !== undefined) {
@@ -110,6 +116,7 @@ export async function PATCH(req: NextRequest, { params }: RouteParams) {
 
     if (body.selected_supplier !== undefined) {
       update.selected_supplier = body.selected_supplier
+      update.status = 'closed'
     }
 
     if (Object.keys(update).length === 0) {
@@ -126,6 +133,66 @@ export async function PATCH(req: NextRequest, { params }: RouteParams) {
 
     if (error) {
       return NextResponse.json({ error: error.message }, { status: 500 })
+    }
+
+    // Auto-create contract when a supplier is accepted (idempotent)
+    if (body.selected_supplier !== undefined) {
+      try {
+        // Look up the supplier's response to get price + delivery
+        const { data: supplierResponse } = await supabase
+          .from('responses')
+          .select('price, delivery_days')
+          .eq('rfq_id', params.id)
+          .eq('supplier_email', body.selected_supplier)
+          .maybeSingle()
+
+        // Only insert if no contract exists for this RFQ yet
+        const { data: existing } = await supabase
+          .from('contracts')
+          .select('id')
+          .eq('rfq_id', params.id)
+          .maybeSingle()
+
+        if (!existing) {
+          await supabase.from('contracts').insert({
+            rfq_id:         params.id,
+            user_id:        user.id,
+            supplier_email: body.selected_supplier,
+            price:          supplierResponse?.price          ?? body.price          ?? null,
+            delivery_days:  supplierResponse?.delivery_days  ?? body.delivery_days  ?? null,
+            status:         'pending',
+          })
+        }
+
+        // Fetch all invited supplier emails to notify everyone
+        const { data: invites } = await supabase
+          .from('rfq_invites')
+          .select('supplier_email')
+          .eq('rfq_id', params.id)
+
+        const rfqTitle = (data as { title?: string }).title ?? 'Request for Quotation'
+
+        // Fire notification emails in the background — never block the response
+        void Promise.allSettled([
+          sendWinnerEmail({
+            supplierEmail: body.selected_supplier,
+            rfqTitle,
+            price:         supplierResponse?.price         ?? null,
+            deliveryDays:  supplierResponse?.delivery_days ?? null,
+          }),
+          ...((invites ?? [])
+            .filter((inv) => inv.supplier_email !== body.selected_supplier)
+            .map((inv) =>
+              sendLoserEmail({ supplierEmail: inv.supplier_email, rfqTitle })
+            )),
+        ]).then((results) => {
+          const failed = results.filter((r) => r.status === 'rejected' || (r.status === 'fulfilled' && !r.value.success))
+          if (failed.length > 0) console.warn(`[EMAIL] ${failed.length} notification(s) failed for RFQ ${params.id}`)
+        })
+      } catch (contractErr) {
+        // Contract creation is best-effort — don't fail the whole accept flow
+        console.error('Contract auto-create error:', contractErr)
+      }
     }
 
     return NextResponse.json(data)

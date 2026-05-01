@@ -5,6 +5,7 @@ import {
   Brain, Zap, Shield, TrendingUp,
   FileText, Users, BarChart3, Trophy, CheckCircle,
   Sparkles, Clock, MessageSquare, Activity, Plus, ArrowRight,
+  FileSignature,
 } from 'lucide-react'
 import {
   StaggerIn, CountUp, LiveDot, AnimatedBar,
@@ -18,25 +19,35 @@ async function getKPIs() {
   try {
     const supabase = await getServerSupabaseClient()
     const { data: { user } } = await supabase.auth.getUser()
-    if (!user) return { total: 0, active: 0, resCount: 0, avgRate: 0 }
+    if (!user) return { total: 0, active: 0, resCount: 0, avgRate: 0, contracts: 0, activeDeals: 0 }
 
-    const [rfqsResult, responsesResult, invitesResult] = await Promise.all([
-      supabase.from('rfqs').select('status').eq('user_id', user.id),
-      supabase.from('responses').select('id', { count: 'exact', head: true })
-        .in('rfq_id', (await supabase.from('rfqs').select('id').eq('user_id', user.id)).data?.map((r) => r.id) ?? []),
-      supabase.from('rfq_invites').select('id', { count: 'exact', head: true })
-        .in('rfq_id', (await supabase.from('rfqs').select('id').eq('user_id', user.id)).data?.map((r) => r.id) ?? []),
+    // Fetch user's RFQ IDs once, reuse for subsequent queries
+    const { data: userRfqs } = await supabase.from('rfqs').select('id, status').eq('user_id', user.id)
+    const rfqIds = (userRfqs ?? []).map((r) => r.id)
+
+    const [responsesResult, invitesResult, contractsResult] = await Promise.all([
+      rfqIds.length > 0
+        ? supabase.from('responses').select('id', { count: 'exact', head: true }).in('rfq_id', rfqIds)
+        : Promise.resolve({ count: 0 }),
+      rfqIds.length > 0
+        ? supabase.from('rfq_invites').select('id', { count: 'exact', head: true }).in('rfq_id', rfqIds)
+        : Promise.resolve({ count: 0 }),
+      supabase.from('contracts').select('status').eq('user_id', user.id),
     ])
 
-    const rfqs     = rfqsResult.data ?? []
-    const total    = rfqs.length
-    const active   = rfqs.filter((r) => r.status === 'active').length
-    const resCount = responsesResult.count ?? 0
-    const invCount = invitesResult.count ?? 0
-    const avgRate  = invCount > 0 ? Math.round((resCount / invCount) * 100) : 0
-    return { total, active, resCount, avgRate }
+    const rfqs       = userRfqs ?? []
+    const total      = rfqs.length
+    const active     = rfqs.filter((r) => r.status === 'active').length
+    const resCount   = (responsesResult as { count: number | null }).count ?? 0
+    const invCount   = (invitesResult   as { count: number | null }).count ?? 0
+    const avgRate    = invCount > 0 ? Math.round((resCount / invCount) * 100) : 0
+    const allContracts = contractsResult.data ?? []
+    const contracts    = allContracts.length
+    const activeDeals  = allContracts.filter((c) => c.status === 'pending').length
+
+    return { total, active, resCount, avgRate, contracts, activeDeals }
   } catch {
-    return { total: 0, active: 0, resCount: 0, avgRate: 0 }
+    return { total: 0, active: 0, resCount: 0, avgRate: 0, contracts: 0, activeDeals: 0 }
   }
 }
 
@@ -160,7 +171,7 @@ function FeatureCard({
 // ── Page ─────────────────────────────────────────────────────────────────────
 
 export default async function Home() {
-  const { total, active, resCount, avgRate } = await getKPIs()
+  const { total, active, resCount, avgRate, contracts, activeDeals } = await getKPIs()
 
   return (
     <div className="space-y-10 animate-fade-in">
@@ -171,7 +182,7 @@ export default async function Home() {
       </StaggerIn>
 
       {/* ════ KPI CARDS ════ */}
-      <div className="grid grid-cols-2 lg:grid-cols-4 gap-4">
+      <div className="grid grid-cols-2 lg:grid-cols-3 gap-4">
         <KPICard
           label="Total RFQs" value={total} sub={`${active} currently active`}
           icon={FileText} iconCls="bg-blue-500/10 border-blue-500/20 text-blue-400"
@@ -202,6 +213,23 @@ export default async function Home() {
           barColor="bg-gradient-to-r from-orange-600 to-amber-400" barValue={avgRate}
           trend={avgRate >= 50 ? { up: true, label: 'Strong engagement' } : undefined}
           index={4}
+        />
+        <KPICard
+          label="Total Contracts" value={contracts} sub={`${activeDeals} pending signature`}
+          icon={FileSignature} iconCls="bg-teal-500/10 border-teal-500/20 text-teal-400"
+          glowCls="bg-teal-500" borderHover="hover:border-teal-500/20"
+          barColor="bg-gradient-to-r from-teal-600 to-teal-400" barValue={Math.min(contracts * 15, 100)}
+          trend={contracts > 0 ? { up: true, label: 'Deals closed' } : undefined}
+          index={5}
+        />
+        <KPICard
+          label="Active Deals" value={activeDeals} sub="awaiting signature"
+          icon={Users} iconCls="bg-indigo-500/10 border-indigo-500/20 text-indigo-400"
+          glowCls="bg-indigo-500" borderHover="hover:border-indigo-500/20"
+          barColor="bg-gradient-to-r from-indigo-600 to-indigo-400"
+          barValue={contracts > 0 ? Math.round((activeDeals / contracts) * 100) : 0}
+          trend={activeDeals > 0 ? { up: true, label: 'In progress' } : undefined}
+          index={6}
         />
       </div>
 
@@ -280,10 +308,11 @@ export default async function Home() {
 
             <div className="space-y-0">
               {([
-                { label: 'RFQs Created',    value: total,    colorCls: 'bg-gradient-to-r from-blue-600 to-blue-400' },
-                { label: 'Active Now',      value: active,   colorCls: 'bg-gradient-to-r from-emerald-600 to-emerald-400' },
-                { label: 'Quotes Received', value: resCount, colorCls: 'bg-gradient-to-r from-violet-600 to-violet-400' },
-              ] as const).map(({ label, value, colorCls }, i) => (
+                { label: 'RFQs Created',    value: total,     colorCls: 'bg-gradient-to-r from-blue-600 to-blue-400' },
+                { label: 'Active Now',      value: active,    colorCls: 'bg-gradient-to-r from-emerald-600 to-emerald-400' },
+                { label: 'Quotes Received', value: resCount,  colorCls: 'bg-gradient-to-r from-violet-600 to-violet-400' },
+                { label: 'Contracts',       value: contracts, colorCls: 'bg-gradient-to-r from-teal-600 to-teal-400' },
+              ]).map(({ label, value, colorCls }, i) => (
                 <div key={label} className="py-2.5 border-t border-white/[0.04] first:border-0 first:pt-0">
                   <div className="flex items-center justify-between mb-1.5">
                     <span className="text-sm text-gray-400">{label}</span>

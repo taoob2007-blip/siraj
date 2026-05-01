@@ -8,13 +8,34 @@ export async function PATCH(req: NextRequest, { params }: { params: { id: string
     if (!body.status || !allowed.includes(body.status)) {
       return NextResponse.json({ error: 'Invalid status' }, { status: 400 })
     }
+
     const supabase = await getServerSupabaseClient()
+
+    const { data: { user } } = await supabase.auth.getUser()
+    if (!user) {
+      return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
+    }
+
+    // RLS enforces ownership but we also check explicitly for a clear 404 vs 500
+    const { data: existing } = await supabase
+      .from('contracts')
+      .select('id')
+      .eq('id', params.id)
+      .eq('user_id', user.id)
+      .maybeSingle()
+
+    if (!existing) {
+      return NextResponse.json({ error: 'Contract not found' }, { status: 404 })
+    }
+
     const { data, error } = await supabase
       .from('contracts')
       .update({ status: body.status })
       .eq('id', params.id)
+      .eq('user_id', user.id)
       .select()
       .single()
+
     if (error) return NextResponse.json({ error: error.message }, { status: 500 })
     return NextResponse.json(data)
   } catch (err) {
