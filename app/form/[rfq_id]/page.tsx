@@ -1,4 +1,4 @@
-import { getServerSupabaseClient } from '@/lib/supabase/server'
+import { getServiceSupabaseClient } from '@/lib/supabase/server'
 import { SupplierFormPageClient } from '@/components/SupplierFormPageClient'
 import { InvalidTokenError } from '@/components/InvalidTokenError'
 import type { RFQField } from '@/lib/types'
@@ -11,8 +11,10 @@ interface FormPageProps {
 
 export default async function SupplierFormPage({ params, searchParams }: FormPageProps) {
   const rfqId    = params.rfq_id
-  const token    = searchParams.token
-  const inviteId = searchParams.invite
+  const token    = searchParams.token?.trim()
+  const inviteId = searchParams.invite?.trim()
+
+  console.log('[FormPage] incoming params:', { rfqId, token, invite: inviteId })
 
   if (!token) {
     return (
@@ -20,27 +22,48 @@ export default async function SupplierFormPage({ params, searchParams }: FormPag
     )
   }
 
+  if (!inviteId) {
+    return (
+      <InvalidTokenError reason="Missing invitation ID. Please use the link provided by the buyer." />
+    )
+  }
+
   try {
-    const supabase = await getServerSupabaseClient()
+    // Service-role client bypasses RLS so the unauthenticated supplier can
+    // have their token validated without needing a Supabase session.
+    const supabase = getServiceSupabaseClient()
 
     const { data: inviteData, error: inviteError } = await supabase
       .from('rfq_invites')
-      .select('id, rfq_id, supplier_email, responded, clicked_at')
+      .select('id, rfq_id, supplier_email, responded')
       .eq('token', token)
       .eq('rfq_id', rfqId)
-      .single()
+      .eq('id', inviteId)
+      .maybeSingle()
+
+    console.log('[FormPage] invite lookup:', {
+      found: !!inviteData,
+      error: inviteError?.message ?? null,
+      rfqId,
+      token,
+      inviteId,
+    })
 
     if (inviteError || !inviteData) {
+      console.error('[FormPage] token validation failed — rfqId:', rfqId, '| token:', token, '| error:', inviteError?.message)
       return <InvalidTokenError reason="Invalid or expired access token." />
     }
 
-    if (inviteId && !inviteData.clicked_at) {
-      await supabase
-        .from('rfq_invites')
-        .update({ clicked_at: new Date().toISOString() })
-        .eq('id', inviteId)
-        .is('clicked_at', null)
-      console.log('Invite clicked:', inviteId)
+    // Record first click — fire-and-forget; silently ignored if column absent
+    if (inviteId) {
+      void Promise.resolve(
+        supabase
+          .from('rfq_invites')
+          .update({ clicked_at: new Date().toISOString() })
+          .eq('id', inviteId)
+          .is('clicked_at', null)
+      ).then(() => console.log('[FormPage] invite clicked:', inviteId))
+       .catch(() => {})
     }
 
     if (inviteData.responded) {
@@ -85,7 +108,7 @@ export default async function SupplierFormPage({ params, searchParams }: FormPag
       </div>
     )
   } catch (error) {
-    console.error('Form page error:', error)
+    console.error('[FormPage] unexpected error:', error)
     return <InvalidTokenError reason="An error occurred while loading this form." />
   }
 }
