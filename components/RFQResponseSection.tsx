@@ -10,6 +10,7 @@ import {
 } from 'lucide-react'
 import type { AIDecision } from '@/lib/aiDecision'
 import type { SupplierScore } from '@/app/api/ai/score/route'
+import type { RFQField } from '@/lib/types'
 import type { DecideResult } from '@/app/api/ai/decide/route'
 import { SupplierCard } from '@/components/SupplierCard'
 import { AIDecisionPanel } from '@/components/AIDecisionPanel'
@@ -30,7 +31,7 @@ export interface RFQResponseSectionProps {
   title: string
   description?: string | null
   suppliers: Supplier[]
-  fields: never[]
+  fields: RFQField[]
   projectType: string
   aiDecision?: AIDecision | null
   rfqId?: string
@@ -185,6 +186,7 @@ export function RFQResponseSection({
   title: _title,
   description: _description,
   suppliers: suppliersRaw,
+  fields,
   aiDecision,
   rfqId,
   autoScore = false,
@@ -512,6 +514,7 @@ export function RFQResponseSection({
               maxPrice={prices.length ? Math.max(...prices) : null}
               minDelivery={minDelivery}
               maxDelivery={deliveries.length ? Math.max(...deliveries) : null}
+              formSchema={fields.length > 0 ? fields : undefined}
             />
           ))}
         </div>

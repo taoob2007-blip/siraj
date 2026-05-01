@@ -8,6 +8,7 @@ import {
   TrendingDown, Zap, AlertTriangle, ShieldCheck, Info,
 } from 'lucide-react'
 import type { SupplierScore } from '@/app/api/ai/score/route'
+import type { RFQField } from '@/lib/types'
 
 // ── Types ──────────────────────────────────────────────────────────────────────
 
@@ -40,6 +41,7 @@ export interface SupplierCardProps {
   maxPrice?: number | null
   minDelivery?: number | null
   maxDelivery?: number | null
+  formSchema?: RFQField[]
 }
 
 // ── Insight types ──────────────────────────────────────────────────────────────
@@ -375,6 +377,7 @@ export function SupplierCard({
   supplier, tags, score, isAIChoice, aiRank,
   rfqTitle, rfqDescription, competitors, aiScore,
   minPrice = null, maxPrice = null, minDelivery = null, maxDelivery = null,
+  formSchema,
 }: SupplierCardProps) {
   const [detailsOpen, setDetailsOpen]     = useState(false)
   const [negotiateOpen, setNegotiateOpen] = useState(false)
@@ -386,6 +389,17 @@ export function SupplierCard({
   const summary      = buildSummary(supplier, isAIChoice, minPrice, minDelivery, aiScore?.explanation)
   const insights     = deriveInsights(supplier, minPrice, maxPrice, minDelivery, maxDelivery)
   const rawFields    = Object.entries(supplier.answers ?? {}).filter(([k]) => !HIDDEN_KEYS.has(k.toLowerCase()))
+
+  // Schema-driven display fields — label + answer value pairs
+  const HIDDEN_LABELS = new Set(['price', 'delivery days', 'delivery'])
+  const schemaFields = formSchema
+    ? formSchema
+        .filter((f) => !HIDDEN_LABELS.has(f.label.toLowerCase()))
+        .map((f) => ({ label: f.label, value: supplier.answers?.[f.label] ?? '', type: f.type }))
+    : null
+
+  // Use schema fields when available, fall back to raw key-value pairs
+  const displayCount = schemaFields ? schemaFields.length : rawFields.length
 
   function toggleNegotiate() {
     if (negotiateOpen) { reset(); setNegotiateOpen(false) } else setNegotiateOpen(true)
@@ -521,7 +535,7 @@ export function SupplierCard({
         )}
 
         {/* ── VIEW DETAILS toggle ────────────────────────────────────────────── */}
-        {rawFields.length > 0 && (
+        {displayCount > 0 && (
           <button
             onClick={() => setDetailsOpen((v) => !v)}
             className={[
@@ -538,7 +552,7 @@ export function SupplierCard({
               {detailsOpen ? 'Hide details' : 'View full details'}
             </span>
             <span className="opacity-40 font-normal text-[10px]">
-              {rawFields.length} field{rawFields.length !== 1 ? 's' : ''}
+              {displayCount} field{displayCount !== 1 ? 's' : ''}
             </span>
           </button>
         )}
@@ -562,46 +576,58 @@ export function SupplierCard({
             <div className="flex-1 h-px bg-white/[0.05]" />
           </div>
 
-          <div className={`rounded-xl border divide-y ${
-            isAIChoice
-              ? 'border-amber-500/10 divide-amber-500/8 bg-amber-500/[0.03]'
-              : 'border-white/[0.06] divide-white/[0.04] bg-white/[0.02]'
-          }`}>
-            {rawFields.map(([key, value]) => {
-              const Icon = fieldIcon(key)
-              const isEmpty  = value === '' || value === null || value === undefined
-              const isPortfolio = key.toLowerCase().includes('portfolio') || key.toLowerCase().includes('project')
-              const listItems   = isPortfolio && typeof value === 'string'
-                ? value.split(/[,\n]+/).map((s) => s.trim()).filter(Boolean)
-                : null
+          <div className="grid gap-2">
+            {schemaFields
+              ? schemaFields.map((field) => {
+                  const isEmpty = field.value === '' || field.value === null || field.value === undefined
+                  return (
+                    <div
+                      key={field.label}
+                      className="flex flex-col gap-1 p-3 rounded-lg bg-white/[0.03] border border-white/[0.06] hover:bg-white/[0.06] transition-all duration-200"
+                    >
+                      <span className="text-[10px] text-white/40 uppercase tracking-widest">{field.label}</span>
+                      <span className="text-sm text-white font-medium">
+                        {isEmpty ? <span className="text-gray-700 font-normal italic">Not provided</span> : String(field.value)}
+                      </span>
+                    </div>
+                  )
+                })
+              : rawFields.map(([key, value]) => {
+                  const Icon = fieldIcon(key)
+                  const isEmpty     = value === '' || value === null || value === undefined
+                  const isPortfolio = key.toLowerCase().includes('portfolio') || key.toLowerCase().includes('project')
+                  const listItems   = isPortfolio && typeof value === 'string'
+                    ? value.split(/[,\n]+/).map((s) => s.trim()).filter(Boolean)
+                    : null
 
-              return (
-                <div key={key} className="flex items-start gap-3 px-4 py-3">
-                  <div className="p-1 rounded-md mt-0.5 shrink-0 bg-white/[0.04]">
-                    <Icon className="h-3 w-3 text-gray-600" />
-                  </div>
-                  <div className="flex-1 min-w-0">
-                    <p className="text-[10px] font-semibold uppercase tracking-widest text-gray-700 mb-1">
-                      {prettyKey(key)}
-                    </p>
-                    {isEmpty ? (
-                      <p className="text-[11px] text-gray-700 italic">Not provided</p>
-                    ) : listItems ? (
-                      <ul className="space-y-1">
-                        {listItems.map((item, i) => (
-                          <li key={i} className="flex items-start gap-1.5 text-xs text-gray-400">
-                            <span className="mt-1.5 h-1 w-1 rounded-full bg-gray-600 shrink-0" />
-                            {item}
-                          </li>
-                        ))}
-                      </ul>
-                    ) : (
-                      <p className="text-xs text-gray-300 leading-relaxed break-words">{String(value)}</p>
-                    )}
-                  </div>
-                </div>
-              )
-            })}
+                  return (
+                    <div key={key} className="flex items-start gap-3 px-4 py-3 rounded-lg bg-white/[0.02] border border-white/[0.04]">
+                      <div className="p-1 rounded-md mt-0.5 shrink-0 bg-white/[0.04]">
+                        <Icon className="h-3 w-3 text-gray-600" />
+                      </div>
+                      <div className="flex-1 min-w-0">
+                        <p className="text-[10px] font-semibold uppercase tracking-widest text-gray-700 mb-1">
+                          {prettyKey(key)}
+                        </p>
+                        {isEmpty ? (
+                          <p className="text-[11px] text-gray-700 italic">Not provided</p>
+                        ) : listItems ? (
+                          <ul className="space-y-1">
+                            {listItems.map((item, i) => (
+                              <li key={i} className="flex items-start gap-1.5 text-xs text-gray-400">
+                                <span className="mt-1.5 h-1 w-1 rounded-full bg-gray-600 shrink-0" />
+                                {item}
+                              </li>
+                            ))}
+                          </ul>
+                        ) : (
+                          <p className="text-xs text-gray-300 leading-relaxed break-words">{String(value)}</p>
+                        )}
+                      </div>
+                    </div>
+                  )
+                })
+            }
           </div>
         </div>
       </div>

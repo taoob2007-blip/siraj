@@ -245,7 +245,7 @@ export default async function RFQDetailPage({
               title={rfqData.title}
               description={rfqData.description}
               suppliers={responses}
-              fields={[]}
+              fields={fields}
               projectType="General"
               rfqId={rfqId}
               autoScore={true}
