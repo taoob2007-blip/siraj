@@ -2,7 +2,7 @@ import { createServerClient } from '@supabase/ssr'
 import { NextRequest, NextResponse } from 'next/server'
 
 export async function middleware(request: NextRequest) {
-  let response = NextResponse.next({ request })
+  const response = NextResponse.next()
 
   const supabase = createServerClient(
     process.env.NEXT_PUBLIC_SUPABASE_URL!,
@@ -13,44 +13,46 @@ export async function middleware(request: NextRequest) {
           return request.cookies.getAll()
         },
         setAll(cookiesToSet) {
-          cookiesToSet.forEach(({ name, value }) =>
-            request.cookies.set(name, value)
-          )
-          response = NextResponse.next({ request })
-          cookiesToSet.forEach(({ name, value, options }) =>
+          cookiesToSet.forEach(({ name, value, options }) => {
             response.cookies.set(name, value, options)
-          )
+          })
         },
       },
     }
   )
 
-  // Refresh session — keeps the cookie up-to-date on every request
-  const { data: { user } } = await supabase.auth.getUser()
+  // ⚠️ أهم شيء: هذا اللي يحدث session
+  const { data: { session } } = await supabase.auth.getSession()
 
   const { pathname } = request.nextUrl
 
-  const isAuthPage   = pathname.startsWith('/login') || pathname.startsWith('/signup')
-  const isProtected  = pathname.startsWith('/rfqs') ||
-                       pathname.startsWith('/dashboard') ||
-                       pathname.startsWith('/suppliers') ||
-                       pathname.startsWith('/analytics') ||
-                       pathname.startsWith('/comparisons') ||
-                       pathname.startsWith('/contracts') ||
-                       pathname.startsWith('/messages') ||
-                       pathname.startsWith('/categories')
+  const isAuthPage =
+    pathname.startsWith('/login') ||
+    pathname.startsWith('/signup')
 
-  if (!user && isProtected) {
+  const isProtected =
+    pathname.startsWith('/rfqs') ||
+    pathname.startsWith('/dashboard') ||
+    pathname.startsWith('/suppliers') ||
+    pathname.startsWith('/analytics') ||
+    pathname.startsWith('/comparisons') ||
+    pathname.startsWith('/contracts') ||
+    pathname.startsWith('/messages') ||
+    pathname.startsWith('/categories')
+
+  // ❌ لو ما فيه session → يروح login
+  if (!session && isProtected) {
     const loginUrl = request.nextUrl.clone()
     loginUrl.pathname = '/login'
     loginUrl.searchParams.set('next', pathname)
     return NextResponse.redirect(loginUrl)
   }
 
-  if (user && isAuthPage) {
-    const rfqsUrl = request.nextUrl.clone()
-    rfqsUrl.pathname = '/rfqs'
-    return NextResponse.redirect(rfqsUrl)
+  // ❌ لو فيه session → لا يرجع login
+  if (session && isAuthPage) {
+    const url = request.nextUrl.clone()
+    url.pathname = '/rfqs'
+    return NextResponse.redirect(url)
   }
 
   return response
