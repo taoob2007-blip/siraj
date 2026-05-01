@@ -7,7 +7,7 @@ import {
   Mail, DollarSign, Clock, ChevronDown, ChevronUp,
   MessageSquare, Copy, Check, Loader2, X, Trophy,
   Sparkles, Briefcase, FileText, Star, Package,
-  TrendingDown, Zap, AlertTriangle, ShieldCheck, Info, CheckCircle2,
+  TrendingDown, Zap, AlertTriangle, ShieldCheck, Info, CheckCircle2, XCircle,
 } from 'lucide-react'
 import type { SupplierScore } from '@/app/api/ai/score/route'
 import type { RFQField } from '@/lib/types'
