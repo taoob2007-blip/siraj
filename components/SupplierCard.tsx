@@ -45,6 +45,7 @@ export interface SupplierCardProps {
   maxDelivery?: number | null
   formSchema?: RFQField[]
   rfqId?: string
+  rfqStatus?: string
   acceptedSupplier?: string | null
   onAccepted?: (email: string) => void
 }
@@ -382,7 +383,7 @@ export function SupplierCard({
   supplier, tags, score, isAIChoice, aiRank,
   rfqTitle, rfqDescription, competitors, aiScore,
   minPrice = null, maxPrice = null, minDelivery = null, maxDelivery = null,
-  formSchema, rfqId, acceptedSupplier, onAccepted,
+  formSchema, rfqId, rfqStatus, acceptedSupplier, onAccepted,
 }: SupplierCardProps) {
   const router                                     = useRouter()
   const [detailsOpen, setDetailsOpen]     = useState(false)
@@ -393,10 +394,11 @@ export function SupplierCard({
   const { message, loading, error, copied, generate, copy, reset } = useNegotiate()
 
   const isThisAccepted = acceptedSupplier === supplier.supplier_email
+  const isClosed       = rfqStatus === 'closed'
   const anyAccepted    = !!acceptedSupplier
 
   async function handleAccept() {
-    if (!rfqId || accepting || isThisAccepted) return
+    if (!rfqId || accepting || isThisAccepted || isClosed) return
     setAccepting(true)
     setAcceptError(null)
     try {
@@ -405,13 +407,16 @@ export function SupplierCard({
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ selected_supplier: supplier.supplier_email }),
       })
+      const responseData = await res.json()
       if (!res.ok) {
-        const err = await res.json()
-        throw new Error(err.error || `Server error ${res.status}`)
+        throw new Error(responseData.error || `Server error ${res.status}`)
       }
       onAccepted?.(supplier.supplier_email)
-      setToast('Contract created successfully! Redirecting…')
-      setTimeout(() => router.push('/contracts'), 1800)
+      setToast('Deal closed successfully!')
+      const destination = responseData.contractId
+        ? `/contracts/${responseData.contractId}`
+        : '/contracts'
+      setTimeout(() => router.push(destination), 1800)
     } catch (e) {
       setAcceptError(e instanceof Error ? e.message : 'Failed to accept')
     } finally {
@@ -682,7 +687,8 @@ export function SupplierCard({
       {/* ══════════════════════════════════════════════════════════════════════
           ACCEPT
           ══════════════════════════════════════════════════════════════════ */}
-      {rfqId && !anyAccepted && (
+      {/* ── Active: show Accept button for all suppliers ─────────────────── */}
+      {rfqId && !isClosed && !anyAccepted && (
         <div className="px-5 pb-3">
           <button
             onClick={handleAccept}
@@ -690,7 +696,7 @@ export function SupplierCard({
             className="w-full rounded-xl bg-emerald-600 hover:bg-emerald-500 disabled:opacity-50 text-white text-sm font-semibold py-2.5 transition-all duration-200 active:scale-[0.98] flex items-center justify-center gap-2"
           >
             {accepting
-              ? <><Loader2 className="h-3.5 w-3.5 animate-spin" />Saving…</>
+              ? <><Loader2 className="h-3.5 w-3.5 animate-spin" />Closing deal…</>
               : <><CheckCircle2 className="h-3.5 w-3.5" />Accept Offer</>
             }
           </button>
@@ -702,10 +708,20 @@ export function SupplierCard({
         </div>
       )}
 
+      {/* ── Winner badge ──────────────────────────────────────────────────── */}
       {rfqId && isThisAccepted && (
         <div className="px-5 pb-3">
           <div className="w-full rounded-xl border border-emerald-500/30 bg-emerald-500/10 text-emerald-400 text-sm font-semibold py-2.5 flex items-center justify-center gap-2">
-            <CheckCircle2 className="h-3.5 w-3.5" />Accepted
+            <CheckCircle2 className="h-3.5 w-3.5" />Selected Supplier
+          </div>
+        </div>
+      )}
+
+      {/* ── Locked: RFQ closed, this supplier was NOT selected ───────────── */}
+      {rfqId && isClosed && !isThisAccepted && (
+        <div className="px-5 pb-3">
+          <div className="w-full rounded-xl border border-white/[0.06] bg-white/[0.02] text-gray-600 text-sm font-medium py-2.5 flex items-center justify-center gap-2 cursor-default">
+            <XCircle className="h-3.5 w-3.5" />Deal Closed
           </div>
         </div>
       )}

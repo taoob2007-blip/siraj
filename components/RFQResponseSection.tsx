@@ -40,6 +40,7 @@ export interface RFQResponseSectionProps {
   initialAiDecision?: PanelDecision | null
   acceptedSupplier?: string | null
   onAccepted?: (email: string) => void
+  rfqStatus?: string
 }
 
 // ── Data normalisation ────────────────────────────────────────────────────────
@@ -194,6 +195,7 @@ export function RFQResponseSection({
   initialAiDecision,
   acceptedSupplier,
   onAccepted,
+  rfqStatus,
 }: RFQResponseSectionProps) {
   const suppliers = useMemo(() => normalise(suppliersRaw), [suppliersRaw])
   const scores = useMemo(() => computeScores(suppliers), [suppliers])
@@ -518,6 +520,7 @@ export function RFQResponseSection({
               rfqId={rfqId}
               acceptedSupplier={acceptedSupplier}
               onAccepted={onAccepted}
+              rfqStatus={rfqStatus}
             />
           ))}
         </div>

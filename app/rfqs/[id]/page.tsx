@@ -4,7 +4,7 @@ import { BASE_URL } from '@/lib/constants'
 import { Card } from '@/components/ui/card'
 import { Badge } from '@/components/ui/badge'
 import { Button } from '@/components/ui/button'
-import { ArrowLeft } from 'lucide-react'
+import { ArrowLeft, CheckCircle2 } from 'lucide-react'
 import Link from 'next/link'
 import type { RFQField } from '@/lib/types'
 import { DEFAULT_RFQ_FIELDS } from '@/lib/types'
@@ -239,6 +239,19 @@ export default async function RFQDetailPage({
             </div>
           </div>
 
+          {/* Deal Closed banner */}
+          {status === 'closed' && rfqData.selected_supplier && (
+            <div className="flex items-center gap-3 rounded-xl border border-emerald-500/30 bg-emerald-500/8 px-4 py-3">
+              <CheckCircle2 className="h-4 w-4 text-emerald-400 shrink-0" />
+              <div>
+                <p className="text-sm font-semibold text-emerald-300">Deal Closed</p>
+                <p className="text-xs text-emerald-400/60 mt-0.5">
+                  Selected supplier: {rfqData.selected_supplier}
+                </p>
+              </div>
+            </div>
+          )}
+
           {/* Supplier Decision Dashboard */}
           {responses.length > 0 ? (
             <RFQResponseSection
@@ -252,6 +265,7 @@ export default async function RFQDetailPage({
               initialAiScores={Object.keys(cachedAiScores).length > 0 ? cachedAiScores : undefined}
               initialAiDecision={cachedAiDecision}
               acceptedSupplier={rfqData.selected_supplier ?? null}
+              rfqStatus={status}
             />
           ) : (
             <Card className="border-gray-700 bg-gray-900 p-8">

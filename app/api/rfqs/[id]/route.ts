@@ -115,6 +115,18 @@ export async function PATCH(req: NextRequest, { params }: RouteParams) {
     }
 
     if (body.selected_supplier !== undefined) {
+      // Guard: reject if RFQ is already closed (prevents double-accept)
+      const { data: currentRfq } = await supabase
+        .from('rfqs')
+        .select('status')
+        .eq('id', params.id)
+        .eq('user_id', user.id)
+        .maybeSingle()
+
+      if (currentRfq?.status === 'closed') {
+        return NextResponse.json({ error: 'RFQ already closed' }, { status: 400 })
+      }
+
       update.selected_supplier = body.selected_supplier
       update.status = 'closed'
     }
@@ -136,6 +148,8 @@ export async function PATCH(req: NextRequest, { params }: RouteParams) {
     }
 
     // Auto-create contract when a supplier is accepted (idempotent)
+    let contractId: string | null = null
+
     if (body.selected_supplier !== undefined) {
       try {
         // Look up the supplier's response to get price + delivery
@@ -153,18 +167,26 @@ export async function PATCH(req: NextRequest, { params }: RouteParams) {
           .eq('rfq_id', params.id)
           .maybeSingle()
 
-        if (!existing) {
-          await supabase.from('contracts').insert({
-            rfq_id:         params.id,
-            user_id:        user.id,
-            supplier_email: body.selected_supplier,
-            price:          supplierResponse?.price          ?? body.price          ?? null,
-            delivery_days:  supplierResponse?.delivery_days  ?? body.delivery_days  ?? null,
-            status:         'pending',
-          })
+        if (existing) {
+          contractId = existing.id
+        } else {
+          const { data: newContract } = await supabase
+            .from('contracts')
+            .insert({
+              rfq_id:         params.id,
+              user_id:        user.id,
+              supplier_email: body.selected_supplier,
+              price:          supplierResponse?.price         ?? body.price          ?? null,
+              delivery_days:  supplierResponse?.delivery_days ?? body.delivery_days  ?? null,
+              status:         'pending',
+            })
+            .select('id')
+            .single()
+
+          contractId = newContract?.id ?? null
         }
 
-        // Fetch all invited supplier emails to notify everyone
+        // Fetch all invited suppliers to notify everyone
         const { data: invites } = await supabase
           .from('rfq_invites')
           .select('supplier_email')
@@ -195,7 +217,7 @@ export async function PATCH(req: NextRequest, { params }: RouteParams) {
       }
     }
 
-    return NextResponse.json(data)
+    return NextResponse.json({ ...data, contractId })
   } catch (error: unknown) {
     const message = error instanceof Error ? error.message : 'Unknown error'
     return NextResponse.json({ error: message }, { status: 500 })
