@@ -50,14 +50,13 @@ export async function POST(req: NextRequest, { params }: { params: { id: string 
       .eq('user_id', user.id)
 
     if (updateError) {
-      return NextResponse.json({ error: updateError.message }, { status: 500 })
+      console.error('OTP verify update error:', updateError)
+      return NextResponse.json({ error: 'Failed to verify code' }, { status: 500 })
     }
 
     return NextResponse.json({ success: true })
   } catch (err) {
-    return NextResponse.json(
-      { error: err instanceof Error ? err.message : 'Unknown error' },
-      { status: 500 },
-    )
+    console.error('POST /api/contracts/[id]/verify-otp error:', err)
+    return NextResponse.json({ error: 'Something went wrong' }, { status: 500 })
   }
 }

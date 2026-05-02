@@ -65,7 +65,10 @@ export async function PATCH(req: NextRequest, { params }: { params: { id: string
       .select()
       .single()
 
-    if (error) return NextResponse.json({ error: error.message }, { status: 500 })
+    if (error) {
+      console.error('Contract update error:', error)
+      return NextResponse.json({ error: 'Failed to update contract' }, { status: 500 })
+    }
 
     // Audit log — fire-and-forget
     const auditEvent = body.status === 'signed' ? 'buyer_signed'
@@ -82,9 +85,7 @@ export async function PATCH(req: NextRequest, { params }: { params: { id: string
 
     return NextResponse.json(data)
   } catch (err) {
-    return NextResponse.json(
-      { error: err instanceof Error ? err.message : 'Unknown error' },
-      { status: 500 },
-    )
+    console.error('PATCH /api/contracts/[id] error:', err)
+    return NextResponse.json({ error: 'Something went wrong' }, { status: 500 })
   }
 }

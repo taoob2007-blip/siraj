@@ -50,7 +50,8 @@ export async function POST(req: NextRequest, { params }: { params: { id: string 
       .single()
 
     if (updateError) {
-      return NextResponse.json({ error: updateError.message }, { status: 500 })
+      console.error('Supplier signature update error:', updateError)
+      return NextResponse.json({ error: 'Failed to save signature' }, { status: 500 })
     }
 
     // Fire-and-forget audit — never block the response
@@ -72,9 +73,7 @@ export async function POST(req: NextRequest, { params }: { params: { id: string 
 
     return NextResponse.json({ success: true })
   } catch (err) {
-    return NextResponse.json(
-      { error: err instanceof Error ? err.message : 'Unknown error' },
-      { status: 500 },
-    )
+    console.error('POST /api/contracts/[id]/sign-supplier error:', err)
+    return NextResponse.json({ error: 'Something went wrong' }, { status: 500 })
   }
 }

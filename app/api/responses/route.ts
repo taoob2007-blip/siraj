@@ -86,6 +86,13 @@ export async function POST(req: NextRequest) {
     const price = parsedPrice.value
     const delivery_days = parsedDelivery.value
 
+    if (price !== null && price <= 0) {
+      return NextResponse.json({ error: 'Price must be greater than 0' }, { status: 400 })
+    }
+    if (delivery_days !== null && delivery_days <= 0) {
+      return NextResponse.json({ error: 'Delivery time must be greater than 0' }, { status: 400 })
+    }
+
     // 5. Store response
     const { data: responseData, error: responseError } = await supabase
       .from('responses')
@@ -117,6 +124,6 @@ export async function POST(req: NextRequest) {
     )
   } catch (error) {
     console.error('Response submission error:', error)
-    return NextResponse.json({ error: 'Internal server error' }, { status: 500 })
+    return NextResponse.json({ error: 'Something went wrong' }, { status: 500 })
   }
 }

@@ -29,7 +29,8 @@ export async function GET(_req: NextRequest, { params }: RouteParams) {
       .maybeSingle()
 
     if (rfqError) {
-      return NextResponse.json({ error: rfqError.message }, { status: 500 })
+      console.error('RFQ fetch error:', rfqError)
+      return NextResponse.json({ error: 'Failed to load RFQ' }, { status: 500 })
     }
 
     if (!rfq) {
@@ -54,8 +55,8 @@ export async function GET(_req: NextRequest, { params }: RouteParams) {
       { headers: { 'Cache-Control': 'no-store' } },
     )
   } catch (err: unknown) {
-    const message = err instanceof Error ? err.message : 'Unknown error'
-    return NextResponse.json({ error: message }, { status: 500 })
+    console.error('GET /api/rfqs/[id] error:', err)
+    return NextResponse.json({ error: 'Something went wrong' }, { status: 500 })
   }
 }
 
@@ -76,7 +77,7 @@ export async function DELETE(_req: NextRequest, { params }: RouteParams) {
 
     if (error) {
       console.error('Supabase delete error:', error)
-      return NextResponse.json({ error: error.message }, { status: 500 })
+      return NextResponse.json({ error: 'Failed to delete RFQ' }, { status: 500 })
     }
 
     if (count === 0) {
@@ -85,8 +86,8 @@ export async function DELETE(_req: NextRequest, { params }: RouteParams) {
 
     return NextResponse.json({ success: true })
   } catch (error: unknown) {
-    const message = error instanceof Error ? error.message : 'Unknown error'
-    return NextResponse.json({ error: message }, { status: 500 })
+    console.error('DELETE /api/rfqs/[id] error:', error)
+    return NextResponse.json({ error: 'Something went wrong' }, { status: 500 })
   }
 }
 
@@ -145,7 +146,8 @@ export async function PATCH(req: NextRequest, { params }: RouteParams) {
       .single()
 
     if (error) {
-      return NextResponse.json({ error: error.message }, { status: 500 })
+      console.error('RFQ update error:', error)
+      return NextResponse.json({ error: 'Failed to update RFQ' }, { status: 500 })
     }
 
     // Auto-create contract when a supplier is accepted (idempotent)
@@ -169,12 +171,8 @@ export async function PATCH(req: NextRequest, { params }: RouteParams) {
           .maybeSingle()
 
         if (existingError) {
-          // Most likely cause: contracts table doesn't exist yet
           console.error('[CONTRACT] check error (table may be missing):', existingError)
-          return NextResponse.json(
-            { error: `Contracts table error: ${existingError.message}. Run the migration SQL from the Contracts page.` },
-            { status: 500 },
-          )
+          return NextResponse.json({ error: 'Failed to verify contract status' }, { status: 500 })
         }
 
         if (existing) {
@@ -197,10 +195,7 @@ export async function PATCH(req: NextRequest, { params }: RouteParams) {
 
           if (contractError) {
             console.error('[CONTRACT] insert error:', contractError)
-            return NextResponse.json(
-              { error: `Contract creation failed: ${contractError.message}` },
-              { status: 500 },
-            )
+            return NextResponse.json({ error: 'Failed to create contract' }, { status: 500 })
           }
 
           console.log('[CONTRACT] created:', { id: newContract?.id, rfq_id: params.id, user_id: user.id, supplier: body.selected_supplier })
@@ -245,16 +240,13 @@ export async function PATCH(req: NextRequest, { params }: RouteParams) {
         })
       } catch (contractErr) {
         console.error('[CONTRACT] unexpected error:', contractErr)
-        return NextResponse.json(
-          { error: `Unexpected contract error: ${contractErr instanceof Error ? contractErr.message : String(contractErr)}` },
-          { status: 500 },
-        )
+        return NextResponse.json({ error: 'Something went wrong' }, { status: 500 })
       }
     }
 
     return NextResponse.json({ ...data, contractId })
   } catch (error: unknown) {
-    const message = error instanceof Error ? error.message : 'Unknown error'
-    return NextResponse.json({ error: message }, { status: 500 })
+    console.error('PATCH /api/rfqs/[id] error:', error)
+    return NextResponse.json({ error: 'Something went wrong' }, { status: 500 })
   }
 }

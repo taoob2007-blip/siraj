@@ -26,8 +26,8 @@ export async function GET() {
 
     return NextResponse.json({ rfqs: data ?? [] })
   } catch (error: unknown) {
-    const message = error instanceof Error ? error.message : 'Unknown error'
-    return NextResponse.json({ error: message }, { status: 500 })
+    console.error('GET /api/rfqs error:', error)
+    return NextResponse.json({ error: 'Something went wrong' }, { status: 500 })
   }
 }
 
@@ -78,7 +78,7 @@ export async function POST(req: NextRequest) {
 
     if (rfqError || !rfqData) {
       console.error('RFQ creation error:', rfqError)
-      return NextResponse.json({ error: rfqError?.message || 'Failed to create RFQ' }, { status: 500 })
+      return NextResponse.json({ error: 'Failed to create RFQ' }, { status: 500 })
     }
 
     const rfqId = rfqData.id
@@ -145,7 +145,7 @@ export async function POST(req: NextRequest) {
 
     return NextResponse.json({ success: true, rfq_id: rfqId, invites } satisfies CreateRFQResponse, { status: 201 })
   } catch (error: unknown) {
-    const message = error instanceof Error ? error.message : 'Unknown error'
-    return NextResponse.json({ error: message }, { status: 500 })
+    console.error('POST /api/rfqs error:', error)
+    return NextResponse.json({ error: 'Something went wrong' }, { status: 500 })
   }
 }

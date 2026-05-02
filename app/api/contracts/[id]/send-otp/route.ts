@@ -47,7 +47,8 @@ export async function POST(_req: NextRequest, { params }: { params: { id: string
       .eq('user_id', user.id)
 
     if (updateError) {
-      return NextResponse.json({ error: updateError.message }, { status: 500 })
+      console.error('OTP update error:', updateError)
+      return NextResponse.json({ error: 'Failed to generate verification code' }, { status: 500 })
     }
 
     const contractRef = params.id.split('-')[0].toUpperCase()
@@ -59,9 +60,7 @@ export async function POST(_req: NextRequest, { params }: { params: { id: string
 
     return NextResponse.json({ success: true, sentTo: maskedEmail })
   } catch (err) {
-    return NextResponse.json(
-      { error: err instanceof Error ? err.message : 'Unknown error' },
-      { status: 500 },
-    )
+    console.error('POST /api/contracts/[id]/send-otp error:', err)
+    return NextResponse.json({ error: 'Something went wrong' }, { status: 500 })
   }
 }
