@@ -1,13 +1,14 @@
 'use client'
 
 import { useState, useMemo } from 'react'
+import * as XLSX from 'xlsx'
 import {
   AreaChart, Area, BarChart, Bar, XAxis, YAxis, Tooltip,
   ResponsiveContainer, CartesianGrid,
 } from 'recharts'
 import {
   DollarSign, FileSignature, TrendingUp, Truck,
-  Download, CheckCircle2, Clock, XCircle, Users,
+  Download, CheckCircle2, Clock, XCircle, Users, FileText, Loader2,
 } from 'lucide-react'
 
 // ── Types ──────────────────────────────────────────────────────────────────────
@@ -63,7 +64,27 @@ const AXIS = { tick: { fill: '#4b5563', fontSize: 11 }, axisLine: false as const
 // ── Component ──────────────────────────────────────────────────────────────────
 
 export function ReportsClient({ contracts, totalRFQs, activeRFQs }: Props) {
-  const [dateFilter, setDateFilter] = useState<DateFilter>('30d')
+  const [dateFilter, setDateFilter]   = useState<DateFilter>('30d')
+  const [pdfLoading, setPdfLoading]   = useState(false)
+
+  async function downloadPDF() {
+    setPdfLoading(true)
+    try {
+      const res  = await fetch('/api/reports/pdf')
+      if (!res.ok) throw new Error('Failed to generate report')
+      const blob = await res.blob()
+      const url  = URL.createObjectURL(blob)
+      const a    = document.createElement('a')
+      a.href     = url
+      a.download = `SIRAJ-Executive-Report-${new Date().toISOString().split('T')[0]}.pdf`
+      a.click()
+      URL.revokeObjectURL(url)
+    } catch (e) {
+      console.error('[PDF download]', e)
+    } finally {
+      setPdfLoading(false)
+    }
+  }
 
   const filtered = useMemo(() => filterByDate(contracts, dateFilter), [contracts, dateFilter])
 
@@ -162,25 +183,76 @@ export function ReportsClient({ contracts, totalRFQs, activeRFQs }: Props) {
     spend: s.totalSpend,
   }))
 
-  function exportCSV() {
-    const header = ['ID', 'Supplier', 'Status', 'Price', 'Delivery Days', 'Created At', 'Signed']
-    const rows   = filtered.map((c) => [
-      c.id,
-      c.supplier_email,
-      c.status,
-      c.price ?? '',
-      c.delivery_days ?? '',
-      c.created_at.split('T')[0],
-      c.buyer_signature ? 'Yes' : 'No',
-    ])
-    const csv  = [header, ...rows].map((r) => r.join(',')).join('\n')
-    const blob = new Blob([csv], { type: 'text/csv' })
-    const url  = URL.createObjectURL(blob)
-    const a    = document.createElement('a')
-    a.href     = url
-    a.download = `contracts-report-${new Date().toISOString().split('T')[0]}.csv`
-    a.click()
-    URL.revokeObjectURL(url)
+  function exportExcel() {
+    const rows = filtered.map((c) => ({
+      'Contract ID':    c.id,
+      'Supplier':       c.supplier_email,
+      'Status':         c.buyer_signature && c.supplier_signature
+                          ? 'Fully Executed'
+                          : c.buyer_signature
+                          ? 'Signed (Awaiting Supplier)'
+                          : c.status === 'cancelled'
+                          ? 'Cancelled'
+                          : 'Pending',
+      'Price (SAR)':    c.price ?? '',
+      'Delivery Days':  c.delivery_days ?? '',
+      'Created At':     new Date(c.created_at).toLocaleDateString('en-US', { year: 'numeric', month: 'short', day: 'numeric' }),
+      'Buyer Signed':   c.buyer_signature   ? 'Yes' : 'No',
+      'Supplier Signed':c.supplier_signature ? 'Yes' : 'No',
+    }))
+
+    const ws = XLSX.utils.json_to_sheet(rows)
+
+    // Bold header row
+    const range = XLSX.utils.decode_range(ws['!ref'] ?? 'A1')
+    for (let col = range.s.c; col <= range.e.c; col++) {
+      const cell = ws[XLSX.utils.encode_cell({ r: 0, c: col })]
+      if (cell) cell.s = { font: { bold: true } }
+    }
+
+    // Auto column widths based on content
+    const colWidths = Object.keys(rows[0] ?? {}).map((key) => {
+      const maxData = rows.reduce((max, row) => {
+        const val = String((row as Record<string, unknown>)[key] ?? '')
+        return Math.max(max, val.length)
+      }, 0)
+      return { wch: Math.max(key.length, maxData) + 2 }
+    })
+    ws['!cols'] = colWidths
+
+    // Number format for price column (column index 3)
+    for (let row = 1; row <= rows.length; row++) {
+      const cell = ws[XLSX.utils.encode_cell({ r: row, c: 3 })]
+      if (cell && typeof cell.v === 'number') {
+        cell.t = 'n'
+        cell.z = '#,##0.00'
+      }
+    }
+
+    const wb = XLSX.utils.book_new()
+    XLSX.utils.book_append_sheet(wb, ws, 'Contracts')
+
+    // Summary sheet
+    const summaryRows = [
+      { Metric: 'Export Date',           Value: new Date().toLocaleDateString('en-US', { year: 'numeric', month: 'long', day: 'numeric' }) },
+      { Metric: 'Period Filter',         Value: dateFilter === '7d' ? 'Last 7 Days' : dateFilter === '30d' ? 'Last 30 Days' : 'All Time' },
+      { Metric: 'Total Contracts',       Value: metrics.total },
+      { Metric: 'Signed Contracts',      Value: metrics.signed },
+      { Metric: 'Fully Executed',        Value: metrics.fullyExec },
+      { Metric: 'Cancelled',             Value: metrics.cancelled },
+      { Metric: 'Pending',               Value: metrics.pending },
+      { Metric: 'Total Contract Value (SAR)', Value: metrics.totalSpend || '' },
+      { Metric: 'Avg Contract Value (SAR)',    Value: metrics.avgPrice   || '' },
+      { Metric: 'Avg Delivery (Days)',         Value: metrics.avgDelivery || '' },
+    ]
+    const wsSummary = XLSX.utils.json_to_sheet(summaryRows)
+    wsSummary['!cols'] = [{ wch: 32 }, { wch: 24 }]
+    const summaryHeader = wsSummary[XLSX.utils.encode_cell({ r: 0, c: 0 })]
+    if (summaryHeader) summaryHeader.s = { font: { bold: true } }
+    XLSX.utils.book_append_sheet(wb, wsSummary, 'Summary')
+
+    const filename = `SIRAJ-Contracts-Report-${new Date().toISOString().split('T')[0]}.xlsx`
+    XLSX.writeFile(wb, filename)
   }
 
   const hasSpendData    = spendOverTime.some((d) => d.spend > 0)
@@ -206,13 +278,26 @@ export function ReportsClient({ contracts, totalRFQs, activeRFQs }: Props) {
             </button>
           ))}
         </div>
-        <button
-          onClick={exportCSV}
-          className="inline-flex items-center gap-2 px-4 py-2 rounded-xl bg-white/[0.04] border border-white/[0.08] text-sm text-gray-300 hover:text-white hover:bg-white/[0.07] transition-all font-medium"
-        >
-          <Download className="h-3.5 w-3.5" />
-          Export CSV
-        </button>
+        <div className="flex items-center gap-2">
+          <button
+            onClick={exportExcel}
+            className="inline-flex items-center gap-2 px-4 py-2 rounded-xl bg-white/[0.04] border border-white/[0.08] text-sm text-gray-300 hover:text-white hover:bg-white/[0.07] transition-all font-medium"
+          >
+            <Download className="h-3.5 w-3.5" />
+            Export Excel
+          </button>
+          <button
+            onClick={downloadPDF}
+            disabled={pdfLoading}
+            className="inline-flex items-center gap-2 px-4 py-2 rounded-xl bg-blue-600/15 border border-blue-500/30 text-sm text-blue-300 hover:text-white hover:bg-blue-600/25 transition-all font-medium disabled:opacity-50 disabled:cursor-not-allowed"
+          >
+            {pdfLoading
+              ? <Loader2 className="h-3.5 w-3.5 animate-spin" />
+              : <FileText className="h-3.5 w-3.5" />
+            }
+            {pdfLoading ? 'Generating…' : 'Executive Report PDF'}
+          </button>
+        </div>
       </div>
 
       {/* KPI cards */}
