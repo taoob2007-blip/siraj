@@ -71,6 +71,7 @@ export async function POST(req: NextRequest) {
         title:       body.title.trim(),
         description: body.description?.trim() || null,
         form_schema: fields,
+        attachments: body.attachments?.length ? body.attachments : null,
       })
       .select('id, title, description')
       .single()

@@ -4,10 +4,11 @@ import { BASE_URL } from '@/lib/constants'
 import { Card } from '@/components/ui/card'
 import { Badge } from '@/components/ui/badge'
 import { Button } from '@/components/ui/button'
-import { ArrowLeft, CheckCircle2 } from 'lucide-react'
+import { ArrowLeft, CheckCircle2, FileText, ExternalLink, Paperclip, ImageIcon } from 'lucide-react'
 import Link from 'next/link'
-import type { RFQField } from '@/lib/types'
+import type { RFQField, Attachment } from '@/lib/types'
 import { DEFAULT_RFQ_FIELDS } from '@/lib/types'
+import { createClient } from '@supabase/supabase-js'
 import { RFQResponseSection } from '@/components/RFQResponseSection'
 import { SupplierInvitationsAccordion } from '@/components/SupplierInvitationsAccordion'
 import { AIChatPanel } from '@/components/AIChatPanel'
@@ -39,6 +40,7 @@ type RFQData = {
   form_schema: RFQField[] | null
   created_at: string
   selected_supplier: string | null
+  attachments: Attachment[] | null
   ai_result: {
     scores?: Array<{ email: string; score: number; label: string; explanation: string }>
     best_supplier?: string | null
@@ -138,6 +140,28 @@ export default async function RFQDetailPage({
       ? rfqData.form_schema
       : DEFAULT_RFQ_FIELDS
 
+  // Generate short-lived signed URLs for private bucket attachments
+  type AttachmentLink = Attachment & { signedUrl: string }
+  let attachmentLinks: AttachmentLink[] = []
+  if (Array.isArray(rfqData.attachments) && rfqData.attachments.length > 0) {
+    const storageClient = createClient(
+      process.env.NEXT_PUBLIC_SUPABASE_URL!,
+      process.env.SUPABASE_SERVICE_ROLE_KEY!,
+    )
+    attachmentLinks = (
+      await Promise.all(
+        rfqData.attachments.map(async (att) => {
+          const { data } = await storageClient.storage
+            .from('rfq-attachments')
+            .createSignedUrl(att.path, 3600)          // 1-hour URL
+          return data?.signedUrl
+            ? { ...att, signedUrl: data.signedUrl }
+            : null
+        }),
+      )
+    ).filter((x): x is AttachmentLink => x !== null)
+  }
+
   const status      = rfqData.status ?? 'active'
   const statusStyle = STATUS_STYLES[status] ?? STATUS_STYLES.active
   const responseRate = invites.length > 0
@@ -170,6 +194,36 @@ export default async function RFQDetailPage({
           {rfqData.description && (
             <p className="text-gray-400">{rfqData.description}</p>
           )}
+
+          {/* Attachments */}
+          {attachmentLinks.length > 0 && (
+            <div className="flex flex-wrap items-center gap-2 pt-1">
+              <div className="flex items-center gap-1.5 text-xs text-gray-600">
+                <Paperclip className="h-3 w-3" />
+                <span>Attachments:</span>
+              </div>
+              {attachmentLinks.map((att, i) => {
+                const isImage = att.type.startsWith('image/')
+                return (
+                  <a
+                    key={i}
+                    href={att.signedUrl}
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    className="inline-flex items-center gap-1.5 text-xs px-2.5 py-1 rounded-lg border border-white/[0.08] bg-white/[0.03] text-gray-400 hover:text-white hover:border-white/[0.15] hover:bg-white/[0.06] transition-colors"
+                  >
+                    {isImage
+                      ? <ImageIcon className="h-3 w-3 text-blue-400 shrink-0" />
+                      : <FileText  className="h-3 w-3 text-red-400  shrink-0" />
+                    }
+                    <span className="max-w-[160px] truncate">{att.name}</span>
+                    <ExternalLink className="h-2.5 w-2.5 text-gray-600 shrink-0" />
+                  </a>
+                )
+              })}
+            </div>
+          )}
+
           <div className="flex gap-4 text-sm text-gray-500 pt-1">
             <span>
               ID: <code className="font-mono text-gray-400 text-xs">{rfqId}</code>

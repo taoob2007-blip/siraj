@@ -1,3 +1,10 @@
+export interface Attachment {
+  path: string   // Supabase Storage object path
+  name: string   // Original filename
+  size: number   // Bytes
+  type: string   // MIME type
+}
+
 export interface RFQField {
   id: string
   label: string
@@ -20,6 +27,7 @@ export interface CreateRFQRequest {
     name: string
     email: string
   }>
+  attachments?: Attachment[]
 }
 
 export interface CreateRFQResponse {

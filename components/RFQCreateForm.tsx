@@ -6,12 +6,13 @@ import { useRouter } from 'next/navigation'
 import { SupplierSelector } from './SupplierSelector'
 import { InviteLinks } from './InviteLinks'
 import { FieldBuilder } from './FieldBuilder'
-import { Supplier, RFQFormData, CreateRFQResponse, DEFAULT_RFQ_FIELDS } from '@/lib/types'
+import { AttachmentUploader } from './AttachmentUploader'
+import { Supplier, RFQFormData, CreateRFQResponse, DEFAULT_RFQ_FIELDS, Attachment } from '@/lib/types'
 import { savePendingRFQ, buildTempRFQ, saveDraft, loadDraft, clearDraft } from '@/lib/rfqStore'
 import {
   AlertCircle, Loader2, FileText, AlignLeft, Sliders, Users,
   CheckCircle2, ArrowLeft, Send, Cloud, CloudOff, Dot,
-  Layers, ChevronDown, X,
+  Layers, ChevronDown, X, Paperclip,
 } from 'lucide-react'
 import Link from 'next/link'
 
@@ -190,11 +191,12 @@ const inputCls =
 export function RFQCreateForm() {
   const searchParams = useSearchParams()
   const router = useRouter()
-  const [step, setStep]         = useState<'form' | 'success'>('form')
-  const [isLoading, setIsLoading] = useState(false)
-  const [error, setError]       = useState<string | null>(null)
-  const [response, setResponse] = useState<CreateRFQResponse | null>(null)
+  const [step, setStep]             = useState<'form' | 'success'>('form')
+  const [isLoading, setIsLoading]   = useState(false)
+  const [error, setError]           = useState<string | null>(null)
+  const [response, setResponse]     = useState<CreateRFQResponse | null>(null)
   const [saveStatus, setSaveStatus] = useState<SaveStatus>('idle')
+  const [attachments, setAttachments] = useState<Attachment[]>([])
 
   // Category pre-fill — when navigated from /categories/[id]
   const prefilledCategoryName = searchParams?.get('category_name') ?? null
@@ -284,6 +286,7 @@ export function RFQCreateForm() {
           description: formData.description,
           fields:      formData.fields,
           suppliers:   formData.suppliers,
+          attachments: attachments.length > 0 ? attachments : undefined,
         }),
       })
 
@@ -332,6 +335,7 @@ export function RFQCreateForm() {
               setStep('form')
               setFormData({ title: '', description: '', fields: DEFAULT_RFQ_FIELDS, suppliers: [] })
               setResponse(null)
+              setAttachments([])
             }}
             className="inline-flex items-center gap-2 px-4 py-2.5 rounded-xl border border-white/[0.08] bg-white/[0.03] hover:bg-white/[0.06] text-sm text-gray-300 font-medium transition-all"
           >
@@ -382,17 +386,32 @@ export function RFQCreateForm() {
         />
       </SectionCard>
 
-      {/* Description */}
+      {/* Description + Attachments */}
       <SectionCard icon={AlignLeft} title="Description" description="Provide details about your requirements (optional).">
-        <textarea
-          id="description"
-          placeholder="e.g., We need 50 ergonomic office chairs with delivery by March 31st..."
-          value={formData.description}
-          onChange={(e) => setFormData({ ...formData, description: e.target.value })}
-          disabled={isLoading}
-          rows={3}
-          className={`${inputCls} resize-none`}
-        />
+        <div className="space-y-4">
+          <textarea
+            id="description"
+            placeholder="e.g., We need 50 ergonomic office chairs with delivery by March 31st..."
+            value={formData.description}
+            onChange={(e) => setFormData({ ...formData, description: e.target.value })}
+            disabled={isLoading}
+            rows={3}
+            className={`${inputCls} resize-none`}
+          />
+
+          {/* Attachments */}
+          <div>
+            <div className="flex items-center gap-2 mb-2">
+              <Paperclip className="h-3.5 w-3.5 text-gray-500" />
+              <span className="text-xs font-medium text-gray-400">Attachments</span>
+              <span className="text-[11px] text-gray-600">(optional)</span>
+            </div>
+            <AttachmentUploader
+              onChange={setAttachments}
+              disabled={isLoading}
+            />
+          </div>
+        </div>
       </SectionCard>
 
       {/* Fields */}
