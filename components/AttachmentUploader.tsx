@@ -1,7 +1,7 @@
 'use client'
 
 import { useRef, useState, useEffect } from 'react'
-import { createSupabaseBrowserClient } from '@/lib/supabase/client'
+import { createBrowserClient } from '@supabase/ssr'
 import {
   UploadCloud, X, FileText, AlertCircle, Loader2,
   CheckCircle2, Image as ImageIcon,
@@ -10,9 +10,21 @@ import type { Attachment } from '@/lib/types'
 
 // ── Constants ──────────────────────────────────────────────────────────────────
 
-const MAX_BYTES    = 5 * 1024 * 1024
+const BUCKET     = 'attachments'
+const MAX_BYTES  = 5 * 1024 * 1024   // 5 MB
 const ALLOWED_MIME = new Set(['application/pdf', 'image/png', 'image/jpeg', 'image/jpg', 'image/webp'])
 const ALLOWED_EXT  = /\.(pdf|png|jpg|jpeg|webp)$/i
+
+// ── Supabase client ────────────────────────────────────────────────────────────
+// createBrowserClient from @supabase/ssr is the correct equivalent of
+// createClientComponentClient() — it handles cookie-based auth automatically.
+
+function getSupabase() {
+  return createBrowserClient(
+    process.env.NEXT_PUBLIC_SUPABASE_URL!,
+    process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!,
+  )
+}
 
 // ── Types ──────────────────────────────────────────────────────────────────────
 
@@ -21,9 +33,9 @@ interface LocalFile {
   name:      string
   size:      number
   type:      string
-  objectUrl: string                              // blob URL for image preview
+  objectUrl: string
   status:    'uploading' | 'done' | 'error'
-  path?:     string                              // set after successful upload
+  path?:     string
   error?:    string
 }
 
@@ -35,19 +47,26 @@ interface Props {
 // ── Helpers ────────────────────────────────────────────────────────────────────
 
 function fmtSize(bytes: number): string {
-  if (bytes < 1024)              return `${bytes} B`
-  if (bytes < 1024 * 1024)      return `${(bytes / 1024).toFixed(0)} KB`
+  if (bytes < 1024)         return `${bytes} B`
+  if (bytes < 1024 * 1024)  return `${(bytes / 1024).toFixed(0)} KB`
   return `${(bytes / (1024 * 1024)).toFixed(1)} MB`
 }
 
 function validate(file: File): string | null {
-  if (!ALLOWED_MIME.has(file.type) && !ALLOWED_EXT.test(file.name)) {
-    return 'Unsupported type — use PDF, PNG, or JPG'
-  }
   if (file.size > MAX_BYTES) {
     return `Too large — max 5 MB (this file is ${fmtSize(file.size)})`
   }
+  if (!ALLOWED_MIME.has(file.type) && !ALLOWED_EXT.test(file.name)) {
+    return 'Unsupported type — use PDF, PNG, or JPG'
+  }
   return null
+}
+
+function buildPath(file: File): string {
+  const ext      = file.name.split('.').pop() ?? 'bin'
+  const random   = Math.random().toString(36).slice(2, 8)
+  const sanitized = file.name.replace(/[^a-zA-Z0-9._-]/g, '_').slice(0, 60)
+  return `rfq/${Date.now()}-${random}-${sanitized}.${ext}`
 }
 
 // ── Component ──────────────────────────────────────────────────────────────────
@@ -59,18 +78,17 @@ export function AttachmentUploader({ onChange, disabled }: Props) {
 
   useEffect(() => { onChangeRef.current = onChange }, [onChange])
 
-  // Notify parent whenever file list changes
+  // Notify parent when any file becomes done or is removed
   useEffect(() => {
     const done: Attachment[] = files
       .filter((f) => f.status === 'done' && f.path)
-      .map((f)  => ({ path: f.path!, name: f.name, size: f.size, type: f.type }))
+      .map((f)    => ({ path: f.path!, name: f.name, size: f.size, type: f.type }))
     onChangeRef.current(done)
   }, [files])
 
   // Revoke blob URLs on unmount
   useEffect(() => {
     return () => {
-      // capture current value to avoid stale ref in cleanup
       setFiles((prev) => {
         prev.forEach((f) => { if (f.objectUrl) URL.revokeObjectURL(f.objectUrl) })
         return prev
@@ -81,12 +99,11 @@ export function AttachmentUploader({ onChange, disabled }: Props) {
   async function handleInputChange(e: React.ChangeEvent<HTMLInputElement>) {
     if (!e.target.files?.length) return
     await processFiles(e.target.files)
-    // Reset input value so the same file can be re-selected after removal
     e.target.value = ''
   }
 
   async function processFiles(fileList: FileList) {
-    const supabase = createSupabaseBrowserClient()
+    const supabase = getSupabase()
 
     for (const file of Array.from(fileList)) {
       const id  = crypto.randomUUID()
@@ -101,27 +118,37 @@ export function AttachmentUploader({ onChange, disabled }: Props) {
       }
 
       const objectUrl = file.type.startsWith('image/') ? URL.createObjectURL(file) : ''
+      const path      = buildPath(file)
 
       setFiles((prev) => [...prev, {
         id, name: file.name, size: file.size, type: file.type,
         objectUrl, status: 'uploading',
       }])
 
-      // Upload — fire-and-forget per file; state update inside .then
-      const sanitized = file.name.replace(/[^a-zA-Z0-9._-]/g, '_')
-      const path = `rfqs/${Date.now()}-${sanitized}`
-
       void supabase.storage
-        .from('rfq-attachments')
-        .upload(path, file, { upsert: false })
-        .then(({ error: uploadErr }) => {
+        .from(BUCKET)
+        .upload(path, file, { cacheControl: '3600', upsert: false })
+        .then(({ data, error: uploadErr }) => {
+          if (uploadErr) {
+            // Debug: full error object visible in browser console
+            console.error('[AttachmentUploader] upload error', {
+              bucket: BUCKET,
+              path,
+              fileName: file.name,
+              fileSize: file.size,
+              fileType: file.type,
+              error: uploadErr,
+            })
+          } else {
+            console.log('[AttachmentUploader] upload success', { path: data.path })
+          }
+
           setFiles((prev) =>
             prev.map((f) =>
-              f.id === id
-                ? uploadErr
+              f.id !== id ? f
+                : uploadErr
                   ? { ...f, status: 'error' as const, error: uploadErr.message }
-                  : { ...f, status: 'done'  as const, path }
-                : f,
+                  : { ...f, status: 'done'  as const, path },
             ),
           )
         })
@@ -131,18 +158,25 @@ export function AttachmentUploader({ onChange, disabled }: Props) {
   async function remove(id: string) {
     const file = files.find((f) => f.id === id)
     if (!file) return
-
     if (file.objectUrl) URL.revokeObjectURL(file.objectUrl)
-
     if (file.path) {
-      const supabase = createSupabaseBrowserClient()
-      void supabase.storage.from('rfq-attachments').remove([file.path])
+      const supabase = getSupabase()
+      const { error } = await supabase.storage.from(BUCKET).remove([file.path])
+      if (error) console.warn('[AttachmentUploader] remove error', error)
     }
-
     setFiles((prev) => prev.filter((f) => f.id !== id))
   }
 
-  // ── Drag-and-drop ────────────────────────────────────────────────────────────
+  // ── Public URL helper (use only if bucket is public) ──────────────────────────
+  // For private buckets, generate signed URLs server-side instead.
+  //
+  // function getPublicUrl(path: string): string {
+  //   const supabase = getSupabase()
+  //   const { data } = supabase.storage.from(BUCKET).getPublicUrl(path)
+  //   return data.publicUrl
+  // }
+
+  // ── Drag-and-drop ─────────────────────────────────────────────────────────────
 
   const [dragging, setDragging] = useState(false)
 
@@ -158,7 +192,7 @@ export function AttachmentUploader({ onChange, disabled }: Props) {
     processFiles(e.dataTransfer.files)
   }
 
-  // ── Render ───────────────────────────────────────────────────────────────────
+  // ── Render ────────────────────────────────────────────────────────────────────
 
   return (
     <div className="space-y-3">
@@ -192,7 +226,7 @@ export function AttachmentUploader({ onChange, disabled }: Props) {
           ref={inputRef}
           type="file"
           multiple
-          accept=".pdf,.png,.jpg,.jpeg,image/*"
+          accept=".pdf,.png,.jpg,.jpeg,image/png,image/jpeg,application/pdf"
           className="hidden"
           disabled={disabled}
           onChange={handleInputChange}
@@ -211,7 +245,7 @@ export function AttachmentUploader({ onChange, disabled }: Props) {
   )
 }
 
-// ── File row ───────────────────────────────────────────────────────────────────
+// ── File row ──────────────────────────────────────────────────────────────────
 
 function FileRow({
   file, disabled, onRemove,

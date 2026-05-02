@@ -44,6 +44,36 @@ export interface Supplier {
   email: string
 }
 
+// ── File Analysis Types ────────────────────────────────────────────────────────
+
+export interface RFQAnalysis {
+  requirements:  string[]
+  quantities:    string[]
+  missing_info:  string[]
+  improvements:  string[]
+  summary:       string
+}
+
+export interface SupplierAnalysis {
+  risk_score:         number                           // 0–100
+  risk_level:         'low' | 'medium' | 'high'
+  red_flags:          string[]
+  pricing_analysis:   string
+  delivery_analysis:  string
+  recommendation:     'accept' | 'negotiate' | 'reject'
+  summary:            string
+}
+
+export type FileAnalysisMode = 'rfq' | 'supplier'
+
+export interface FileAnalysisResult {
+  mode:        FileAnalysisMode
+  rfq?:        RFQAnalysis
+  supplier?:   SupplierAnalysis
+  analyzed_at: string
+  file_name:   string
+}
+
 export interface RFQFormData {
   title: string
   description: string

@@ -152,7 +152,7 @@ export default async function RFQDetailPage({
       await Promise.all(
         rfqData.attachments.map(async (att) => {
           const { data } = await storageClient.storage
-            .from('rfq-attachments')
+            .from('attachments')
             .createSignedUrl(att.path, 3600)          // 1-hour URL
           return data?.signedUrl
             ? { ...att, signedUrl: data.signedUrl }
