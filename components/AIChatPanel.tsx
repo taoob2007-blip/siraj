@@ -1,7 +1,7 @@
 'use client'
 
 import { useState, useRef, useEffect, useCallback } from 'react'
-import { Send, Bot, Sparkles, RotateCcw, User, Zap } from 'lucide-react'
+import { Send, Bot, Sparkles, RotateCcw, User, Zap, ChevronDown } from 'lucide-react'
 import { parseAIDecision, isDecisionQuery, type AIDecision } from '@/lib/aiDecision'
 
 interface SupplierContext {
@@ -248,13 +248,39 @@ export function AIChatPanel({ rfqTitle, rfqDescription, suppliers, formFields, o
   const [input, setInput] = useState('')
   const [isStreaming, setIsStreaming] = useState(false)
   const [error, setError] = useState<string | null>(null)
-  const bottomRef = useRef<HTMLDivElement>(null)
-  const inputRef = useRef<HTMLTextAreaElement>(null)
-  const abortRef = useRef<AbortController | null>(null)
+  const [isNearBottom, setIsNearBottom] = useState(true)
+  const scrollContainerRef = useRef<HTMLDivElement>(null)
+  const isNearBottomRef    = useRef(true)
+  const inputRef           = useRef<HTMLTextAreaElement>(null)
+  const abortRef           = useRef<AbortController | null>(null)
 
+  const scrollToBottom = useCallback(() => {
+    const el = scrollContainerRef.current
+    if (!el) return
+    el.scrollTo({ top: el.scrollHeight, behavior: 'smooth' })
+  }, [])
+
+  function handleScroll() {
+    const el = scrollContainerRef.current
+    if (!el) return
+    const nearBottom = el.scrollHeight - el.scrollTop - el.clientHeight < 80
+    isNearBottomRef.current = nearBottom
+    setIsNearBottom(nearBottom)
+  }
+
+  // Auto-scroll on new content only when already near bottom
   useEffect(() => {
-    bottomRef.current?.scrollIntoView({ behavior: 'smooth' })
-  }, [messages])
+    if (isNearBottomRef.current) scrollToBottom()
+  }, [messages, scrollToBottom])
+
+  // Force-scroll to bottom when user sends a new message (streaming starts)
+  useEffect(() => {
+    if (isStreaming) {
+      isNearBottomRef.current = true
+      setIsNearBottom(true)
+      scrollToBottom()
+    }
+  }, [isStreaming, scrollToBottom])
 
   const send = useCallback(async (text: string) => {
     const trimmed = text.trim()
@@ -370,7 +396,12 @@ export function AIChatPanel({ rfqTitle, rfqDescription, suppliers, formFields, o
       </div>
 
       {/* Messages */}
-      <div className="flex-1 overflow-y-auto px-4 py-4 space-y-4 min-h-0 scroll-smooth">
+      <div className="relative flex-1 min-h-0">
+      <div
+        ref={scrollContainerRef}
+        onScroll={handleScroll}
+        className="h-full overflow-y-auto px-4 py-4 space-y-4 scroll-smooth"
+      >
 
         {isEmpty && (
           <div className="flex flex-col items-center gap-5 py-6">
@@ -454,7 +485,18 @@ export function AIChatPanel({ rfqTitle, rfqDescription, suppliers, formFields, o
           </div>
         )}
 
-        <div ref={bottomRef} />
+      </div>
+
+      {/* Jump to latest button */}
+      {!isNearBottom && (
+        <button
+          onClick={scrollToBottom}
+          className="absolute bottom-3 left-1/2 -translate-x-1/2 flex items-center gap-1.5 text-xs px-3 py-1.5 rounded-full border border-blue-500/40 bg-[#111827]/90 text-blue-300 hover:bg-blue-500/20 hover:text-white transition-all shadow-lg backdrop-blur-sm"
+        >
+          <ChevronDown className="h-3.5 w-3.5" />
+          Jump to latest
+        </button>
+      )}
       </div>
 
       {/* Input */}
