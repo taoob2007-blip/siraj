@@ -4,20 +4,18 @@ import { useRef, useState, useEffect } from 'react'
 import { createBrowserClient } from '@supabase/ssr'
 import {
   UploadCloud, X, FileText, AlertCircle, Loader2,
-  CheckCircle2, Image as ImageIcon,
+  CheckCircle2, Image as ImageIcon, ShieldAlert,
 } from 'lucide-react'
 import type { Attachment } from '@/lib/types'
 
 // ── Constants ──────────────────────────────────────────────────────────────────
 
-const BUCKET     = 'attachments'
-const MAX_BYTES  = 5 * 1024 * 1024   // 5 MB
+const BUCKET       = 'attachments'
+const MAX_BYTES    = 5 * 1024 * 1024
 const ALLOWED_MIME = new Set(['application/pdf', 'image/png', 'image/jpeg', 'image/jpg', 'image/webp'])
 const ALLOWED_EXT  = /\.(pdf|png|jpg|jpeg|webp)$/i
 
-// ── Supabase client ────────────────────────────────────────────────────────────
-// createBrowserClient from @supabase/ssr is the correct equivalent of
-// createClientComponentClient() — it handles cookie-based auth automatically.
+// ── Supabase ───────────────────────────────────────────────────────────────────
 
 function getSupabase() {
   return createBrowserClient(
@@ -62,11 +60,13 @@ function validate(file: File): string | null {
   return null
 }
 
-function buildPath(file: File): string {
-  const ext      = file.name.split('.').pop() ?? 'bin'
+// Path is scoped to the authenticated user so RLS policies can match on folder.
+// Shape: {userId}/rfq/{timestamp}-{random}-{sanitized}.{ext}
+function buildPath(userId: string, file: File): string {
+  const ext      = (file.name.split('.').pop() ?? 'bin').toLowerCase()
   const random   = Math.random().toString(36).slice(2, 8)
   const sanitized = file.name.replace(/[^a-zA-Z0-9._-]/g, '_').slice(0, 60)
-  return `rfq/${Date.now()}-${random}-${sanitized}.${ext}`
+  return `${userId}/rfq/${Date.now()}-${random}-${sanitized}.${ext}`
 }
 
 // ── Component ──────────────────────────────────────────────────────────────────
@@ -74,11 +74,11 @@ function buildPath(file: File): string {
 export function AttachmentUploader({ onChange, disabled }: Props) {
   const inputRef    = useRef<HTMLInputElement>(null)
   const [files, setFiles] = useState<LocalFile[]>([])
+  const [authError, setAuthError] = useState<string | null>(null)
   const onChangeRef = useRef(onChange)
 
   useEffect(() => { onChangeRef.current = onChange }, [onChange])
 
-  // Notify parent when any file becomes done or is removed
   useEffect(() => {
     const done: Attachment[] = files
       .filter((f) => f.status === 'done' && f.path)
@@ -86,7 +86,6 @@ export function AttachmentUploader({ onChange, disabled }: Props) {
     onChangeRef.current(done)
   }, [files])
 
-  // Revoke blob URLs on unmount
   useEffect(() => {
     return () => {
       setFiles((prev) => {
@@ -103,7 +102,20 @@ export function AttachmentUploader({ onChange, disabled }: Props) {
   }
 
   async function processFiles(fileList: FileList) {
+    setAuthError(null)
     const supabase = getSupabase()
+
+    // ── Auth check — MUST happen before any storage call ─────────────────────
+    // "Bucket not found" is returned by Supabase when the request is anonymous
+    // (no session) or when no INSERT policy matches. Checking auth first gives
+    // a clear error message instead of the misleading storage 400.
+    const { data: { user }, error: authErr } = await supabase.auth.getUser()
+
+    if (authErr || !user) {
+      console.error('[AttachmentUploader] not authenticated:', authErr)
+      setAuthError('You must be signed in to upload files.')
+      return
+    }
 
     for (const file of Array.from(fileList)) {
       const id  = crypto.randomUUID()
@@ -118,7 +130,8 @@ export function AttachmentUploader({ onChange, disabled }: Props) {
       }
 
       const objectUrl = file.type.startsWith('image/') ? URL.createObjectURL(file) : ''
-      const path      = buildPath(file)
+      // Include user.id in path — required for user-scoped RLS policies
+      const path = buildPath(user.id, file)
 
       setFiles((prev) => [...prev, {
         id, name: file.name, size: file.size, type: file.type,
@@ -130,25 +143,32 @@ export function AttachmentUploader({ onChange, disabled }: Props) {
         .upload(path, file, { cacheControl: '3600', upsert: false })
         .then(({ data, error: uploadErr }) => {
           if (uploadErr) {
-            // Debug: full error object visible in browser console
-            console.error('[AttachmentUploader] upload error', {
-              bucket: BUCKET,
+            console.error('[AttachmentUploader] upload failed', {
+              bucket:   BUCKET,
               path,
+              userId:   user.id,
               fileName: file.name,
-              fileSize: file.size,
               fileType: file.type,
-              error: uploadErr,
+              fileSize: file.size,
+              // The full error object — statusCode 400 + "Bucket not found"
+              // means the RLS INSERT policy is missing or not matching.
+              errorMessage: uploadErr.message,
+              errorStatus:  (uploadErr as { statusCode?: string }).statusCode,
             })
           } else {
-            console.log('[AttachmentUploader] upload success', { path: data.path })
+            console.log('[AttachmentUploader] upload ok', { path: data.path })
           }
 
           setFiles((prev) =>
             prev.map((f) =>
               f.id !== id ? f
                 : uploadErr
-                  ? { ...f, status: 'error' as const, error: uploadErr.message }
-                  : { ...f, status: 'done'  as const, path },
+                  ? {
+                      ...f,
+                      status: 'error' as const,
+                      error: friendlyError(uploadErr.message),
+                    }
+                  : { ...f, status: 'done' as const, path },
             ),
           )
         })
@@ -167,35 +187,31 @@ export function AttachmentUploader({ onChange, disabled }: Props) {
     setFiles((prev) => prev.filter((f) => f.id !== id))
   }
 
-  // ── Public URL helper (use only if bucket is public) ──────────────────────────
-  // For private buckets, generate signed URLs server-side instead.
-  //
-  // function getPublicUrl(path: string): string {
-  //   const supabase = getSupabase()
-  //   const { data } = supabase.storage.from(BUCKET).getPublicUrl(path)
-  //   return data.publicUrl
-  // }
-
   // ── Drag-and-drop ─────────────────────────────────────────────────────────────
 
   const [dragging, setDragging] = useState(false)
 
-  function onDragOver(e: React.DragEvent) {
-    e.preventDefault()
-    if (!disabled) setDragging(true)
-  }
-  function onDragLeave() { setDragging(false) }
+  function onDragOver(e: React.DragEvent)  { e.preventDefault(); if (!disabled) setDragging(true) }
+  function onDragLeave()                    { setDragging(false) }
   function onDrop(e: React.DragEvent) {
     e.preventDefault()
     setDragging(false)
     if (disabled || !e.dataTransfer.files.length) return
-    processFiles(e.dataTransfer.files)
+    void processFiles(e.dataTransfer.files)
   }
 
   // ── Render ────────────────────────────────────────────────────────────────────
 
   return (
     <div className="space-y-3">
+
+      {/* Auth error banner */}
+      {authError && (
+        <div className="flex items-center gap-2.5 rounded-lg border border-red-500/25 bg-red-500/[0.06] px-3 py-2.5">
+          <ShieldAlert className="h-4 w-4 text-red-400 shrink-0" />
+          <p className="text-xs text-red-300 font-medium">{authError}</p>
+        </div>
+      )}
 
       {/* Drop zone */}
       <div
@@ -213,7 +229,9 @@ export function AttachmentUploader({ onChange, disabled }: Props) {
               : 'border-white/[0.08] bg-[#0d1220] hover:border-blue-500/40 hover:bg-blue-500/[0.03] cursor-pointer',
         ].join(' ')}
       >
-        <div className={`p-2.5 rounded-xl border transition-colors ${dragging ? 'border-blue-500/30 bg-blue-500/10' : 'border-white/[0.06] bg-white/[0.03]'}`}>
+        <div className={`p-2.5 rounded-xl border transition-colors ${
+          dragging ? 'border-blue-500/30 bg-blue-500/10' : 'border-white/[0.06] bg-white/[0.03]'
+        }`}>
           <UploadCloud className={`h-5 w-5 ${dragging ? 'text-blue-400' : 'text-gray-500'}`} />
         </div>
         <div>
@@ -245,6 +263,21 @@ export function AttachmentUploader({ onChange, disabled }: Props) {
   )
 }
 
+// ── Error message translation ──────────────────────────────────────────────────
+
+function friendlyError(raw: string): string {
+  const msg = raw.toLowerCase()
+  if (msg.includes('bucket not found'))
+    return 'Upload not permitted — contact support (storage policy missing)'
+  if (msg.includes('duplicate') || msg.includes('already exists'))
+    return 'File already uploaded'
+  if (msg.includes('payload too large') || msg.includes('entity too large'))
+    return 'File too large — max 5 MB'
+  if (msg.includes('invalid mime type') || msg.includes('not allowed'))
+    return 'File type not allowed'
+  return raw
+}
+
 // ── File row ──────────────────────────────────────────────────────────────────
 
 function FileRow({
@@ -261,19 +294,17 @@ function FileRow({
         : 'border-white/[0.07] bg-[#111827]',
     ].join(' ')}>
 
-      {/* Thumbnail or icon */}
       <div className="shrink-0 w-9 h-9 rounded-lg overflow-hidden border border-white/[0.08] flex items-center justify-center bg-white/[0.03]">
         {isImage && file.objectUrl ? (
           // eslint-disable-next-line @next/next/no-img-element
           <img src={file.objectUrl} alt={file.name} className="w-full h-full object-cover" />
         ) : isPDF ? (
-          <FileText className="h-4 w-4 text-red-400" />
+          <FileText  className="h-4 w-4 text-red-400"  />
         ) : (
           <ImageIcon className="h-4 w-4 text-blue-400" />
         )}
       </div>
 
-      {/* Info */}
       <div className="flex-1 min-w-0">
         <p className="text-xs font-medium text-gray-200 truncate">{file.name}</p>
         <div className="flex items-center gap-2 mt-0.5">
@@ -297,7 +328,6 @@ function FileRow({
         </div>
       </div>
 
-      {/* Remove */}
       <button
         type="button"
         onClick={onRemove}
