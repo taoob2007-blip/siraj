@@ -4,7 +4,7 @@ import { useState, useCallback } from 'react'
 import {
   CheckCircle2, XCircle, Clock, DollarSign, Truck,
   Calendar, Mail, FileText, Printer, AlertTriangle, Loader2,
-  ExternalLink, PenTool,
+  ExternalLink, PenTool, Link2, Check, Users,
 } from 'lucide-react'
 import Link from 'next/link'
 import { SignatureModal } from '@/components/SignatureModal'
@@ -22,6 +22,12 @@ interface Contract {
   created_at: string
   buyer_signature?: string | null
   signed_at?: string | null
+  signature_method?: string | null
+  signer_ip?: string | null
+  signer_user_agent?: string | null
+  supplier_signature?: string | null
+  supplier_signed_at?: string | null
+  signing_token?: string | null
 }
 
 interface RFQ {
@@ -32,52 +38,52 @@ interface RFQ {
 
 interface Props { contract: Contract; rfq: RFQ }
 
-// ── Status config ──────────────────────────────────────────────────────────────
+// ── Status display derives from both status column + signature columns ─────────
 
-const STATUS = {
-  pending:   { label: 'Pending Signature', cls: 'bg-yellow-500/15 text-yellow-300 border-yellow-500/30',  icon: Clock        },
-  signed:    { label: 'Signed',            cls: 'bg-emerald-500/15 text-emerald-300 border-emerald-500/30', icon: CheckCircle2 },
-  cancelled: { label: 'Cancelled',         cls: 'bg-red-500/15 text-red-300 border-red-500/30',            icon: XCircle      },
+function deriveStatus(contract: Contract) {
+  if (contract.status === 'cancelled') {
+    return { label: 'Cancelled',       cls: 'bg-red-500/15 text-red-300 border-red-500/30',              icon: XCircle      }
+  }
+  if (contract.buyer_signature && contract.supplier_signature) {
+    return { label: 'Fully Executed',  cls: 'bg-emerald-500/15 text-emerald-300 border-emerald-500/30',  icon: CheckCircle2 }
+  }
+  if (contract.buyer_signature && !contract.supplier_signature) {
+    return { label: 'Awaiting Supplier', cls: 'bg-blue-500/15 text-blue-300 border-blue-500/30',         icon: Users        }
+  }
+  if (contract.status === 'signed') {
+    return { label: 'Signed',          cls: 'bg-emerald-500/15 text-emerald-300 border-emerald-500/30',  icon: CheckCircle2 }
+  }
+  return   { label: 'Pending Signature', cls: 'bg-yellow-500/15 text-yellow-300 border-yellow-500/30',   icon: Clock        }
 }
 
 // ── Component ──────────────────────────────────────────────────────────────────
 
 export function ContractDetailClient({ contract: initial, rfq }: Props) {
-  const [contract, setContract] = useState(initial)
-  const [updating, setUpdating] = useState(false)
-  const [error, setError]       = useState<string | null>(null)
+  const [contract, setContract]         = useState(initial)
+  const [updating, setUpdating]         = useState(false)
+  const [error, setError]               = useState<string | null>(null)
   const [showSigModal, setShowSigModal] = useState(false)
+  const [linkCopied, setLinkCopied]     = useState(false)
 
-  const cfg        = STATUS[contract.status]
+  const cfg        = deriveStatus(contract)
   const StatusIcon = cfg.icon
 
-  const signContract = useCallback(async (signature: string) => {
-    setUpdating(true)
-    setError(null)
-    try {
-      const res = await fetch(`/api/contracts/${contract.id}`, {
-        method:  'PATCH',
-        headers: { 'Content-Type': 'application/json' },
-        body:    JSON.stringify({ status: 'signed', signature }),
-      })
-      if (!res.ok) {
-        const err = await res.json()
-        throw new Error(err.error || `Error ${res.status}`)
-      }
-      const updated = await res.json()
-      setContract((prev) => ({
-        ...prev,
-        status: 'signed',
-        buyer_signature: updated.buyer_signature ?? signature,
-        signed_at: updated.signed_at ?? new Date().toISOString(),
-      }))
-      setShowSigModal(false)
-    } catch (e) {
-      setError(e instanceof Error ? e.message : 'Failed to sign')
-    } finally {
-      setUpdating(false)
-    }
-  }, [contract.id])
+  function copySigningLink() {
+    if (!contract.signing_token) return
+    const url = `${window.location.origin}/contracts/sign/${contract.signing_token}`
+    navigator.clipboard.writeText(url).then(() => {
+      setLinkCopied(true)
+      setTimeout(() => setLinkCopied(false), 2500)
+    })
+  }
+
+  const handleSigned = useCallback((updated: {
+    status: 'signed'; buyer_signature: string; signed_at: string
+    signature_method: string; signer_ip?: string; signer_user_agent?: string
+  }) => {
+    setContract((prev) => ({ ...prev, ...updated }))
+    setShowSigModal(false)
+  }, [])
 
   const cancelContract = useCallback(async () => {
     setUpdating(true)
@@ -126,10 +132,10 @@ export function ContractDetailClient({ contract: initial, rfq }: Props) {
       {/* Signature modal */}
       {showSigModal && (
         <SignatureModal
+          contractId={contract.id}
           contractRef={contract.id.split('-')[0].toUpperCase()}
-          onConfirm={signContract}
-          onClose={() => !updating && setShowSigModal(false)}
-          loading={updating}
+          onDone={handleSigned}
+          onClose={() => setShowSigModal(false)}
         />
       )}
 
@@ -151,26 +157,40 @@ export function ContractDetailClient({ contract: initial, rfq }: Props) {
           )}
         </div>
 
-        <div className="flex items-center gap-2">
-          {contract.status === 'pending' && (
+        <div className="flex items-center gap-2 flex-wrap">
+          {/* Buyer hasn't signed yet */}
+          {contract.status === 'pending' && !contract.buyer_signature && (
             <>
               <button
                 onClick={() => setShowSigModal(true)}
                 disabled={updating}
                 className="inline-flex items-center gap-1.5 text-sm px-4 py-2 rounded-xl bg-emerald-600 hover:bg-emerald-500 text-white font-semibold transition-all disabled:opacity-50 shadow-lg shadow-emerald-900/30 active:scale-[0.98]"
               >
-                {updating ? <Loader2 className="h-3.5 w-3.5 animate-spin" /> : <PenTool className="h-3.5 w-3.5" />}
-                Sign Contract
+                <PenTool className="h-3.5 w-3.5" />Sign Contract
               </button>
               <button
                 onClick={cancelContract}
                 disabled={updating}
                 className="inline-flex items-center gap-1.5 text-sm px-4 py-2 rounded-xl border border-red-500/30 bg-red-500/8 hover:bg-red-500/15 text-red-300 font-medium transition-all disabled:opacity-50"
               >
-                <XCircle className="h-3.5 w-3.5" />Cancel
+                {updating ? <Loader2 className="h-3.5 w-3.5 animate-spin" /> : <XCircle className="h-3.5 w-3.5" />}
+                Cancel
               </button>
             </>
           )}
+
+          {/* Buyer signed, supplier hasn't — show copy link */}
+          {contract.buyer_signature && !contract.supplier_signature && contract.signing_token && (
+            <button
+              onClick={copySigningLink}
+              className="inline-flex items-center gap-1.5 text-sm px-4 py-2 rounded-xl border border-blue-500/30 bg-blue-500/8 hover:bg-blue-500/15 text-blue-300 font-medium transition-all"
+            >
+              {linkCopied
+                ? <><Check className="h-3.5 w-3.5 text-emerald-400" />Link copied!</>
+                : <><Link2 className="h-3.5 w-3.5" />Copy supplier signing link</>}
+            </button>
+          )}
+
           <button
             onClick={() => window.print()}
             className="inline-flex items-center gap-1.5 text-sm px-4 py-2 rounded-xl border border-white/[0.10] bg-white/[0.04] hover:bg-white/[0.08] text-gray-300 font-medium transition-all"
@@ -259,10 +279,22 @@ export function ContractDetailClient({ contract: initial, rfq }: Props) {
             label="Buyer Signature"
             signatureDataUrl={contract.buyer_signature ?? null}
             signedAt={signedDate}
-            pending={contract.status === 'pending'}
+            signatureMethod={contract.signature_method ?? null}
+            signerIp={contract.signer_ip ?? null}
+            signerUserAgent={contract.signer_user_agent ?? null}
+            pending={contract.status === 'pending' && !contract.buyer_signature}
             onSign={() => setShowSigModal(true)}
           />
-          <SignatureBlock label="Supplier Signature" />
+          <SignatureBlock
+            label="Supplier Signature"
+            signatureDataUrl={contract.supplier_signature ?? null}
+            signedAt={contract.supplier_signed_at
+              ? new Date(contract.supplier_signed_at).toLocaleDateString('en-US', { year: 'numeric', month: 'long', day: 'numeric' })
+              : null}
+            awaitingMessage={contract.buyer_signature && !contract.supplier_signature
+              ? 'Waiting for supplier to sign'
+              : undefined}
+          />
         </div>
 
         {/* Footer */}
@@ -325,39 +357,67 @@ function SignatureBlock({
   label,
   signatureDataUrl,
   signedAt,
+  signatureMethod,
+  signerIp,
+  signerUserAgent,
   pending,
   onSign,
+  awaitingMessage,
 }: {
   label: string
   signatureDataUrl?: string | null
   signedAt?: string | null
+  signatureMethod?: string | null
+  signerIp?: string | null
+  signerUserAgent?: string | null
   pending?: boolean
   onSign?: () => void
+  awaitingMessage?: string
 }) {
+  // Derive a short browser/OS label from user-agent
+  const deviceLabel = signerUserAgent
+    ? signerUserAgent.includes('Mobile') ? 'Mobile'
+      : signerUserAgent.includes('Mac')  ? 'macOS'
+      : signerUserAgent.includes('Win')  ? 'Windows'
+      : signerUserAgent.includes('Linux') ? 'Linux'
+      : 'Desktop'
+    : null
+
   return (
     <div className="rounded-xl border border-white/[0.06] bg-white/[0.02] p-5">
       <p className="text-[11px] font-semibold text-gray-600 uppercase tracking-widest mb-3">{label}</p>
 
       {signatureDataUrl ? (
-        /* Captured signature */
-        <div className="space-y-2">
+        <div className="space-y-3">
+          {/* Signature image */}
           <div className="rounded-lg bg-white p-2 border border-white/[0.08]">
             {/* eslint-disable-next-line @next/next/no-img-element */}
-            <img
-              src={signatureDataUrl}
-              alt="Signature"
-              className="h-16 w-full object-contain"
-            />
+            <img src={signatureDataUrl} alt="Signature" className="h-16 w-full object-contain" />
           </div>
+
+          {/* Signed timestamp */}
           {signedAt && (
             <div className="flex items-center gap-1.5">
               <CheckCircle2 className="h-3 w-3 text-emerald-400 shrink-0" />
               <p className="text-[11px] text-emerald-400/70">Signed {signedAt}</p>
             </div>
           )}
+
+          {/* Audit trail */}
+          <div className="rounded-lg border border-white/[0.05] bg-white/[0.01] p-3 space-y-1.5">
+            <p className="text-[10px] font-semibold text-gray-600 uppercase tracking-widest mb-2">Audit Trail</p>
+            {signatureMethod && (
+              <AuditRow icon="🔐" label="Method" value={signatureMethod.replace(/_/g, ' ')} />
+            )}
+            {signerIp && signerIp !== 'unknown' && (
+              <AuditRow icon="🌐" label="IP Address" value={signerIp} mono />
+            )}
+            {deviceLabel && (
+              <AuditRow icon="💻" label="Device" value={deviceLabel} />
+            )}
+          </div>
         </div>
       ) : pending && onSign ? (
-        /* Pending — clickable prompt */
         <button
           onClick={onSign}
           className="w-full rounded-lg border border-dashed border-white/[0.10] bg-white/[0.01] hover:bg-white/[0.04] hover:border-emerald-500/30 transition-all py-6 flex flex-col items-center gap-2 group"
@@ -365,12 +425,27 @@ function SignatureBlock({
           <PenTool className="h-5 w-5 text-gray-700 group-hover:text-emerald-400 transition-colors" />
           <span className="text-[11px] text-gray-700 group-hover:text-emerald-400 transition-colors">Click to sign</span>
         </button>
+      ) : awaitingMessage ? (
+        <div className="rounded-lg border border-dashed border-blue-500/20 bg-blue-500/5 py-6 flex flex-col items-center gap-2">
+          <Users className="h-5 w-5 text-blue-500/50" />
+          <span className="text-[11px] text-blue-400/60">{awaitingMessage}</span>
+        </div>
       ) : (
-        /* Blank / supplier block */
         <div className="pt-10 border-t border-white/[0.08]">
           <p className="text-[11px] text-gray-700">Signature · Date</p>
         </div>
       )}
+    </div>
+  )
+}
+
+function AuditRow({ icon, label, value, mono }: { icon: string; label: string; value: string; mono?: boolean }) {
+  return (
+    <div className="flex items-center justify-between gap-2">
+      <span className="text-[10px] text-gray-600 flex items-center gap-1">
+        <span>{icon}</span>{label}
+      </span>
+      <span className={`text-[10px] text-gray-400 ${mono ? 'font-mono' : ''}`}>{value}</span>
     </div>
   )
 }

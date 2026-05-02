@@ -20,6 +20,12 @@ interface ContractRow {
   created_at: string
   buyer_signature: string | null
   signed_at: string | null
+  signature_method: string | null
+  signer_ip: string | null
+  signer_user_agent: string | null
+  supplier_signature: string | null
+  supplier_signed_at: string | null
+  signing_token: string | null
 }
 
 interface RFQRow {

@@ -22,6 +22,9 @@ interface Contract {
   notes?: string | null
   buyer_signature?: string | null
   signed_at?: string | null
+  supplier_signature?: string | null
+  supplier_signed_at?: string | null
+  signing_token?: string | null
 }
 
 interface RFQ { id: string; title: string }
@@ -30,9 +33,19 @@ interface Props { contracts: Contract[]; rfqs: RFQ[]; tableExists: boolean }
 // ── Config ─────────────────────────────────────────────────────────────────────
 
 const STATUS_CFG = {
-  pending:   { label: 'Pending',   cls: 'bg-yellow-500/15 text-yellow-300 border-yellow-500/30',  icon: Clock        },
-  signed:    { label: 'Signed',    cls: 'bg-emerald-500/15 text-emerald-300 border-emerald-500/30', icon: CheckCircle2 },
-  cancelled: { label: 'Cancelled', cls: 'bg-red-500/15 text-red-300 border-red-500/30',            icon: XCircle      },
+  pending:           { label: 'Pending',            cls: 'bg-yellow-500/15 text-yellow-300 border-yellow-500/30',  icon: Clock        },
+  awaiting_supplier: { label: 'Awaiting Supplier',  cls: 'bg-blue-500/15 text-blue-300 border-blue-500/30',       icon: Clock        },
+  signed:            { label: 'Signed',             cls: 'bg-emerald-500/15 text-emerald-300 border-emerald-500/30', icon: CheckCircle2 },
+  fully_executed:    { label: 'Fully Executed',     cls: 'bg-emerald-500/15 text-emerald-300 border-emerald-500/30', icon: CheckCircle2 },
+  cancelled:         { label: 'Cancelled',          cls: 'bg-red-500/15 text-red-300 border-red-500/30',            icon: XCircle      },
+}
+
+function deriveContractStatus(c: Contract) {
+  if (c.status === 'cancelled') return STATUS_CFG.cancelled
+  if (c.buyer_signature && c.supplier_signature) return STATUS_CFG.fully_executed
+  if (c.buyer_signature && !c.supplier_signature) return STATUS_CFG.awaiting_supplier
+  if (c.status === 'signed') return STATUS_CFG.signed
+  return STATUS_CFG.pending
 }
 
 const MIGRATION_SQL = `-- Run once in your Supabase SQL Editor
@@ -70,30 +83,12 @@ export function ContractsClient({ contracts, rfqs, tableExists }: Props) {
 
   const rfqMap = Object.fromEntries(rfqs.map((r) => [r.id, r.title]))
 
-  async function signContract(id: string, signature: string) {
-    setUpdating(id)
-    setUpdateErr(null)
-    try {
-      const res = await fetch(`/api/contracts/${id}`, {
-        method: 'PATCH',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ status: 'signed', signature }),
-      })
-      if (!res.ok) {
-        const err = await res.json()
-        throw new Error(err.error || `Server error ${res.status}`)
-      }
-      const updated = await res.json()
-      setLocal((prev) => prev.map((c) => c.id === id
-        ? { ...c, status: 'signed', buyer_signature: updated.buyer_signature ?? signature, signed_at: updated.signed_at ?? new Date().toISOString() }
-        : c
-      ))
-      setSigningId(null)
-    } catch (e) {
-      setUpdateErr(e instanceof Error ? e.message : 'Failed to sign')
-    } finally {
-      setUpdating(null)
-    }
+  function handleSigned(id: string, updated: {
+    status: 'signed'; buyer_signature: string; signed_at: string
+    signature_method: string; signer_ip?: string; signer_user_agent?: string
+  }) {
+    setLocal((prev) => prev.map((c) => c.id === id ? { ...c, ...updated } : c))
+    setSigningId(null)
   }
 
   async function cancelContract(id: string) {
@@ -222,7 +217,7 @@ export function ContractsClient({ contracts, rfqs, tableExists }: Props) {
             /* ── Contract list ─────────────────────────────────────────────── */
             <div className="rounded-2xl border border-white/[0.07] bg-[#111827] overflow-hidden divide-y divide-white/[0.05]">
               {local.map((c) => {
-                const cfg        = STATUS_CFG[c.status] ?? STATUS_CFG.pending
+                const cfg        = deriveContractStatus(c)
                 const StatusIcon = cfg.icon
                 const isUpdating = updating === c.id
 
@@ -301,10 +296,10 @@ export function ContractsClient({ contracts, rfqs, tableExists }: Props) {
       {/* Signature modal */}
       {signingId && (
         <SignatureModal
+          contractId={signingId}
           contractRef={signingId.split('-')[0].toUpperCase()}
-          onConfirm={(sig) => signContract(signingId, sig)}
-          onClose={() => !updating && setSigningId(null)}
-          loading={updating === signingId}
+          onDone={(updated) => handleSigned(signingId, updated)}
+          onClose={() => setSigningId(null)}
         />
       )}
     </div>

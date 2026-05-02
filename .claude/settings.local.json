@@ -6,7 +6,8 @@
       "Bash(npx next *)",
       "Bash(npm install *)",
       "Bash(grep -rn \"^\\\\s*const.*=.*\\\\[0\\\\]$\\\\|\\\\.reduce.*null.*,\\\\|\\\\.map.*?\\(\\\\s*_\\\\s*,\\\\s*i\\\\s*\\)\\\\|\\\\.split\\\\|\\\\.entries\\\\|for.*of.*Map\" /c/Users/HP/Desktop/Siraj/components --include=\"*.tsx\")",
-      "Bash(npm list *)"
+      "Bash(npm list *)",
+      "Bash(set NODE_OPTIONS=--max-old-space-size=3072)"
     ]
   }
 }

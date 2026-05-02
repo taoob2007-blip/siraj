@@ -19,7 +19,7 @@ const NAV: { href: string; label: string; icon: ElementType; soon?: boolean; bad
   { href: '/comparisons',   label: 'Comparisons',  icon: GitCompare },
   { href: '/contracts',     label: 'Contracts',    icon: FileSignature },
   { href: '/messages',      label: 'Messages',     icon: MessageSquare },
-  { href: '/reports',       label: 'Reports',      icon: PieChart,      soon: true },
+  { href: '/reports',       label: 'Reports',      icon: PieChart },
   { href: '/notifications', label: 'Notifications',icon: Bell,          soon: true },
   { href: '/settings',      label: 'Settings',     icon: Settings,      soon: true },
 ]

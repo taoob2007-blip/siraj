@@ -1,0 +1,67 @@
+import { NextRequest, NextResponse } from 'next/server'
+import { getServerSupabaseClient } from '@/lib/supabase/server'
+import { sendOtpEmail } from '@/lib/email/sendOtpEmail'
+
+export async function POST(_req: NextRequest, { params }: { params: { id: string } }) {
+  try {
+    const supabase = await getServerSupabaseClient()
+
+    const { data: { user } } = await supabase.auth.getUser()
+    if (!user) {
+      return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
+    }
+    if (!user.email) {
+      return NextResponse.json({ error: 'No email on account' }, { status: 400 })
+    }
+
+    // Verify contract belongs to user and is signable
+    const { data: contract } = await supabase
+      .from('contracts')
+      .select('id, status')
+      .eq('id', params.id)
+      .eq('user_id', user.id)
+      .maybeSingle()
+
+    if (!contract) {
+      return NextResponse.json({ error: 'Contract not found' }, { status: 404 })
+    }
+    if (contract.status === 'signed') {
+      return NextResponse.json({ error: 'Contract already signed' }, { status: 400 })
+    }
+    if (contract.status === 'cancelled') {
+      return NextResponse.json({ error: 'Contract is cancelled' }, { status: 400 })
+    }
+
+    // Generate 6-digit OTP
+    const code    = String(Math.floor(100000 + Math.random() * 900000))
+    const expires = new Date(Date.now() + 10 * 60 * 1000).toISOString()
+
+    const { error: updateError } = await supabase
+      .from('contracts')
+      .update({
+        verification_code:            code,
+        verification_code_expires_at: expires,
+        otp_verified:                 false,
+      })
+      .eq('id', params.id)
+      .eq('user_id', user.id)
+
+    if (updateError) {
+      return NextResponse.json({ error: updateError.message }, { status: 500 })
+    }
+
+    const contractRef = params.id.split('-')[0].toUpperCase()
+    await sendOtpEmail({ email: user.email, code, contractRef })
+
+    // Mask email for the response (e.g. u****@example.com)
+    const [local, domain] = user.email.split('@')
+    const maskedEmail = `${local[0]}${'*'.repeat(Math.max(local.length - 1, 3))}@${domain}`
+
+    return NextResponse.json({ success: true, sentTo: maskedEmail })
+  } catch (err) {
+    return NextResponse.json(
+      { error: err instanceof Error ? err.message : 'Unknown error' },
+      { status: 500 },
+    )
+  }
+}
