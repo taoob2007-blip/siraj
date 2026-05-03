@@ -218,8 +218,22 @@ export async function getUserSubscriptionAccess(): Promise<SubscriptionAccess> {
       .eq('id', user.id)
       .single()
 
-    return checkAccess(profile)
-  } catch {
+    const access = checkAccess(profile)
+
+    console.log('[subscription] USER:', user.id)
+    console.log('[subscription] SUB:', {
+      status:               profile?.subscription_status ?? 'none',
+      trial_ends_at:        profile?.trial_ends_at       ?? null,
+      subscription_ends_at: profile?.subscription_ends_at ?? null,
+      allowed:              access.allowed,
+      isActive:             access.isActive,
+      isTrial:              access.isTrial,
+      daysLeft:             access.daysLeft,
+    })
+
+    return access
+  } catch (err) {
+    console.error('[subscription] getUserSubscriptionAccess error:', err)
     return {
       allowed: false, isActive: false, isTrial: false,
       expiresAt: null, status: 'free', daysLeft: 0,

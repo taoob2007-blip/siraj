@@ -58,7 +58,9 @@ export async function approvePaymentRequest(requestId: string): Promise<ActionRe
     if (reqUpdate.error)     throw new Error(reqUpdate.error.message)
     if (profileUpdate.error) throw new Error(profileUpdate.error.message)
 
+    // Bust server-component caches for both the admin view and the user's own pages.
     revalidatePath('/admin')
+    revalidatePath('/', 'layout')
     return { ok: true }
   } catch (e) {
     return { ok: false, error: e instanceof Error ? e.message : 'Unknown error' }
@@ -106,6 +108,7 @@ export async function activateSubscription(userId: string): Promise<ActionResult
 
     if (error) throw new Error(error.message)
     revalidatePath('/admin')
+    revalidatePath('/', 'layout')
     return { ok: true }
   } catch (e) {
     return { ok: false, error: e instanceof Error ? e.message : 'Unknown error' }
@@ -127,6 +130,7 @@ export async function expireSubscription(userId: string): Promise<ActionResult> 
 
     if (error) throw new Error(error.message)
     revalidatePath('/admin')
+    revalidatePath('/', 'layout')
     return { ok: true }
   } catch (e) {
     return { ok: false, error: e instanceof Error ? e.message : 'Unknown error' }
@@ -151,6 +155,7 @@ export async function startTrial(userId: string, days = 14): Promise<ActionResul
 
     if (error) throw new Error(error.message)
     revalidatePath('/admin')
+    revalidatePath('/', 'layout')
     return { ok: true }
   } catch (e) {
     return { ok: false, error: e instanceof Error ? e.message : 'Unknown error' }

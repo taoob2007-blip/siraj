@@ -44,6 +44,8 @@ export function PricingCTA({ email }: Props) {
       if (result.ok) {
         setDone(true)
         toast.success('تم إرسال طلب الدفع. سيتم التفعيل خلال دقائق.')
+        // Refresh server components so SubscriptionBanner and status cards update.
+        router.refresh()
       } else if (result.error?.toLowerCase().includes('pending')) {
         setDone(true)
       } else {

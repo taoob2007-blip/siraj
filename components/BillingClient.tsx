@@ -2,6 +2,7 @@
 
 import { useState, useTransition } from 'react'
 import Link from 'next/link'
+import { useRouter } from 'next/navigation'
 import {
   CreditCard, CheckCircle2, Clock, XCircle, AlertTriangle,
   ArrowRight, Copy, Check, Loader2, Sparkles, Crown,
@@ -84,9 +85,12 @@ interface Props {
 }
 
 export function BillingClient({ email, fullName, access, requests, hasPending, lastRequest }: Props) {
+  const router = useRouter()
   const [, startTransition] = useTransition()
-  const [submitting, setSubmitting] = useState(false)
-  const [submitted, setSubmitted]   = useState(hasPending)
+  const [submitting, setSubmitting]     = useState(false)
+  const [submitted, setSubmitted]       = useState(hasPending)
+  const [checking, setChecking]         = useState(false)
+  const [checkResult, setCheckResult]   = useState<'idle' | 'activated' | 'pending'>('idle')
 
   const safeEmail = email || 'Not provided'
   const waLink    = buildWaLink(safeEmail)
@@ -112,6 +116,32 @@ export function BillingClient({ email, fullName, access, requests, hasPending, l
       }
       setSubmitting(false)
     })
+  }
+
+  // Polls the live subscription status from the DB.
+  // If activated by admin, refresh server components and signal the user.
+  async function handleCheckActivation() {
+    setChecking(true)
+    setCheckResult('idle')
+    try {
+      const res  = await fetch('/api/subscription', { cache: 'no-store' })
+      const data = await res.json()
+      console.log('[billing] USER:', email, '| SUB:', data)
+      if (data.allowed && data.isActive) {
+        setCheckResult('activated')
+        toast.success('Subscription activated! Refreshing…')
+        // Refresh all server components so the sidebar and pages update immediately.
+        router.refresh()
+        // Hard reload after a short delay so middleware re-reads the DB and unlocks all routes.
+        setTimeout(() => window.location.reload(), 1200)
+      } else {
+        setCheckResult('pending')
+      }
+    } catch {
+      toast.error('Could not check status. Please try again.')
+    } finally {
+      setChecking(false)
+    }
   }
 
   const isExpired       = !access.allowed
@@ -326,11 +356,31 @@ export function BillingClient({ email, fullName, access, requests, hasPending, l
                   <div>
                     <p className="text-sm font-semibold text-emerald-300">Request submitted!</p>
                     <p className="text-xs text-emerald-400/70 mt-0.5">
-                      Your payment request has been logged. Contact us on WhatsApp for the fastest activation.
+                      Your payment request has been logged. Once approved by admin, click the button below to activate your access immediately.
                     </p>
                   </div>
                 </div>
-                {/* Still let them open WhatsApp after submitting */}
+
+                {/* Activation check — lets user unlock access the moment admin approves */}
+                <button
+                  onClick={handleCheckActivation}
+                  disabled={checking || checkResult === 'activated'}
+                  className="w-full inline-flex items-center justify-center gap-2 px-5 py-3 rounded-xl bg-blue-600 hover:bg-blue-500 active:scale-95 text-white text-sm font-semibold transition-all disabled:opacity-60 shadow-lg shadow-blue-600/20"
+                >
+                  {checking
+                    ? <><Loader2 className="h-4 w-4 animate-spin" />Checking…</>
+                    : checkResult === 'activated'
+                    ? <><CheckCircle2 className="h-4 w-4" />Activated! Reloading…</>
+                    : <><RefreshCw className="h-4 w-4" />Check if my account is activated</>
+                  }
+                </button>
+
+                {checkResult === 'pending' && (
+                  <p className="text-xs text-amber-400/80 text-center">
+                    Not yet activated — please wait for admin approval, then check again.
+                  </p>
+                )}
+
                 <a
                   href={waLink}
                   target="_blank"
