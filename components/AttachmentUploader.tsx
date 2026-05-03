@@ -16,13 +16,25 @@ const ALLOWED_MIME = new Set(['application/pdf', 'image/png', 'image/jpeg', 'ima
 const ALLOWED_EXT  = /\.(pdf|png|jpg|jpeg|webp)$/i
 
 // ── Supabase ───────────────────────────────────────────────────────────────────
+// SINGLETON — must be created ONCE at module level, not inside a function.
+//
+// Why this matters for storage uploads:
+//   createBrowserClient reads the session from cookies into an in-memory cache.
+//   The Storage module reads the auth token FROM that in-memory cache when it
+//   builds the Authorization header.  If you call createBrowserClient() inside
+//   a function, every call produces a fresh instance whose cache is empty.
+//   auth.getUser() still "works" on a fresh instance because it makes a direct
+//   network call that carries the cookie — but that call does NOT populate the
+//   cache.  The storage upload that follows sees an empty cache → no token →
+//   Supabase treats the request as anonymous → "Upload not permitted".
+//
+//   A module-level singleton is initialised once, the cookie is read once, and
+//   every subsequent call (auth AND storage) shares the same populated cache.
 
-function getSupabase() {
-  return createBrowserClient(
-    process.env.NEXT_PUBLIC_SUPABASE_URL!,
-    process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!,
-  )
-}
+const supabase = createBrowserClient(
+  process.env.NEXT_PUBLIC_SUPABASE_URL!,
+  process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!,
+)
 
 // ── Types ──────────────────────────────────────────────────────────────────────
 
@@ -103,7 +115,6 @@ export function AttachmentUploader({ onChange, disabled }: Props) {
 
   async function processFiles(fileList: FileList) {
     setAuthError(null)
-    const supabase = getSupabase()
 
     // ── Auth check — MUST happen before any storage call ─────────────────────
     // "Bucket not found" is returned by Supabase when the request is anonymous
@@ -151,7 +162,7 @@ export function AttachmentUploader({ onChange, disabled }: Props) {
       void supabase.storage
         .from(BUCKET)
         .upload(path, file, { cacheControl: '3600', upsert: false })
-        .then(({ data, error: uploadErr }) => {
+        .then(({ data, error: uploadErr }: { data: { path: string } | null; error: { message: string; statusCode?: string } | null }) => {
           if (uploadErr) {
             console.error('[AttachmentUploader] upload failed', {
               bucket:   BUCKET,
@@ -166,7 +177,7 @@ export function AttachmentUploader({ onChange, disabled }: Props) {
               errorStatus:  (uploadErr as { statusCode?: string }).statusCode,
             })
           } else {
-            console.log('[AttachmentUploader] upload ok', { path: data.path })
+            console.log('[AttachmentUploader] upload ok', { path: data?.path })
           }
 
           setFiles((prev) =>
@@ -190,7 +201,6 @@ export function AttachmentUploader({ onChange, disabled }: Props) {
     if (!file) return
     if (file.objectUrl) URL.revokeObjectURL(file.objectUrl)
     if (file.path) {
-      const supabase = getSupabase()
       const { error } = await supabase.storage.from(BUCKET).remove([file.path])
       if (error) console.warn('[AttachmentUploader] remove error', error)
     }
