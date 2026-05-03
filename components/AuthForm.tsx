@@ -59,10 +59,14 @@ export function AuthForm({ mode }: AuthFormProps) {
     setGoogleLoading(true)
     setError(null)
 
+    // Hardcode the production callback URL so it always matches the Supabase
+    // allowed redirect list. Using window.location.origin causes "invalid flow
+    // state" when the user lands on www.usesiraj.com (a different origin than
+    // what Supabase expects), breaking the PKCE code-verifier cookie lookup.
     const { error } = await supabase.auth.signInWithOAuth({
       provider: 'google',
       options: {
-        redirectTo: `${window.location.origin}/auth/callback`,
+        redirectTo: 'https://usesiraj.com/auth/callback',
       },
     })
 

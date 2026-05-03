@@ -3,6 +3,19 @@ import { NextRequest, NextResponse } from 'next/server'
 import { checkAccess } from '@/lib/subscription'
 
 export async function middleware(request: NextRequest) {
+  // ── 0. Enforce non-www domain ──────────────────────────────────────────────
+  // The PKCE code-verifier cookie is scoped to the exact origin. If a user
+  // hits www.usesiraj.com the cookie domain won't match usesiraj.com, causing
+  // "invalid flow state" on the OAuth callback. Redirect www → non-www before
+  // doing anything else so the entire auth flow stays on one origin.
+  const host = request.headers.get('host') ?? ''
+  if (host.startsWith('www.')) {
+    const url = request.nextUrl.clone()
+    url.host = host.slice(4) // strip "www."
+    url.protocol = 'https:'
+    return NextResponse.redirect(url, { status: 301 })
+  }
+
   let response = NextResponse.next({
     request: { headers: request.headers },
   })
@@ -31,7 +44,9 @@ export async function middleware(request: NextRequest) {
   // ── 1. Auth: routes that need a session ────────────────────────────────────
   // /login, /signup, /pricing are fully public — no session required
   const isAuthPage   = pathname.startsWith('/login') || pathname.startsWith('/signup')
-  const isPublicPage = isAuthPage || pathname.startsWith('/pricing')
+  // /auth/callback must never be gated — it's the OAuth landing route that
+  // creates the session. Blocking it would break the entire OAuth flow.
+  const isPublicPage = isAuthPage || pathname.startsWith('/pricing') || pathname.startsWith('/auth')
 
   const isAuthRequired =
     pathname === '/' ||
