@@ -51,6 +51,8 @@ export async function middleware(request: NextRequest) {
     pathname.startsWith('/contracts') ||
     pathname.startsWith('/messages') ||
     pathname.startsWith('/categories') ||
+    pathname.startsWith('/notifications') ||
+    pathname.startsWith('/settings') ||
     pathname === '/'
 
   if (!session && isProtected) {
@@ -64,6 +66,29 @@ export async function middleware(request: NextRequest) {
     const url = request.nextUrl.clone()
     url.pathname = '/'
     return NextResponse.redirect(url)
+  }
+
+  // ── Pro-only routes ────────────────────────────────────────────────────────
+  // Check subscription for /analytics and /comparisons.
+  // Free users are redirected to home with ?upgrade=1 to open pricing modal.
+  const isProRoute =
+    pathname.startsWith('/analytics') ||
+    pathname.startsWith('/comparisons')
+
+  if (session && isProRoute) {
+    const { data: profile } = await supabase
+      .from('profiles')
+      .select('subscription_status')
+      .eq('id', session.user.id)
+      .single()
+
+    const isPro = profile?.subscription_status === 'pro'
+    if (!isPro) {
+      const url = request.nextUrl.clone()
+      url.pathname = '/'
+      url.searchParams.set('upgrade', '1')
+      return NextResponse.redirect(url)
+    }
   }
 
   return response

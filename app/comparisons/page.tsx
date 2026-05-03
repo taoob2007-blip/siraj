@@ -1,5 +1,7 @@
 export const dynamic = 'force-dynamic'
 
+import { redirect } from 'next/navigation'
+import { getUserSubscription } from '@/lib/subscription'
 import { getServerSupabaseClient } from '@/lib/supabase/server'
 import { ComparisonClient } from '@/components/ComparisonClient'
 
@@ -17,6 +19,9 @@ async function getData() {
 }
 
 export default async function ComparisonsPage() {
+  const subscription = await getUserSubscription()
+  if (subscription !== 'pro') redirect('/?upgrade=1')
+
   const { rfqs, responses } = await getData()
   return <ComparisonClient rfqs={rfqs} responses={responses} />
 }

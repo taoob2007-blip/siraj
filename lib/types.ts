@@ -97,10 +97,13 @@ export interface NotificationItem {
 
 // ── Profile ───────────────────────────────────────────────────────────────────
 
+export type SubscriptionStatus = 'free' | 'pro'
+
 export interface Profile {
-  id:         string
-  full_name:  string | null
-  company:    string | null
-  role:       string | null
-  updated_at: string | null
+  id:                  string
+  full_name:           string | null
+  company:             string | null
+  role:                string | null
+  updated_at:          string | null
+  subscription_status: SubscriptionStatus
 }

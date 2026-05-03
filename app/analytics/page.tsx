@@ -1,5 +1,7 @@
 export const dynamic = 'force-dynamic'
 
+import { redirect } from 'next/navigation'
+import { getUserSubscription } from '@/lib/subscription'
 import { getServerSupabaseClient } from '@/lib/supabase/server'
 import { AnalyticsCharts } from '@/components/AnalyticsCharts'
 import { Activity, MessageSquare, TrendingUp, BarChart3, FileSignature, CheckCircle2 } from 'lucide-react'
@@ -79,6 +81,9 @@ function buildDistribution(values: number[], buckets: number, unit: string) {
 }
 
 export default async function AnalyticsPage() {
+  const subscription = await getUserSubscription()
+  if (subscription !== 'pro') redirect('/?upgrade=1')
+
   const data = await getAnalyticsData()
 
   const kpis = [
