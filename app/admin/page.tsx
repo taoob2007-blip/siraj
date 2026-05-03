@@ -1,20 +1,22 @@
 ﻿export const dynamic = 'force-dynamic'
 
 import { redirect } from 'next/navigation'
-import { Shield, Users, RefreshCw } from 'lucide-react'
+import { Shield, RefreshCw } from 'lucide-react'
 import { getAuthUser, getServiceSupabaseClient } from '@/lib/supabase/server'
 import { AdminTable } from '@/components/AdminTable'
-import type { AdminProfile } from '@/lib/types'
+import { PaymentRequestsTable } from '@/components/PaymentRequestsTable'
+import type { AdminProfile, PaymentRequestWithUser } from '@/lib/types'
 
 // ── Data fetching ─────────────────────────────────────────────────────────────
 
 async function getAdminData(): Promise<{
   allowed: boolean
   profiles: AdminProfile[]
+  paymentRequests: PaymentRequestWithUser[]
   adminEmail: string
 }> {
   const user = await getAuthUser()
-  if (!user) return { allowed: false, profiles: [], adminEmail: '' }
+  if (!user) return { allowed: false, profiles: [], paymentRequests: [], adminEmail: '' }
 
   // Use service role to bypass RLS — admin can read all profiles
   const supabase = getServiceSupabaseClient()
@@ -26,26 +28,58 @@ async function getAdminData(): Promise<{
     .eq('id', user.id)
     .single()
 
-  if (myProfile?.role !== 'admin') return { allowed: false, profiles: [], adminEmail: '' }
+  if (myProfile?.role !== 'admin') return { allowed: false, profiles: [], paymentRequests: [], adminEmail: '' }
 
-  // Fetch all profiles
-  const { data: profiles } = await supabase
-    .from('profiles')
-    .select(`
-      id,
-      full_name,
-      company,
-      role,
-      subscription_status,
-      trial_ends_at,
-      subscription_ends_at,
-      updated_at
-    `)
-    .order('updated_at', { ascending: false, nullsFirst: false })
+  // Fetch all profiles + payment requests in parallel
+  const [profilesRes, paymentReqRes] = await Promise.all([
+    supabase
+      .from('profiles')
+      .select(`
+        id,
+        full_name,
+        company,
+        role,
+        subscription_status,
+        trial_ends_at,
+        subscription_ends_at,
+        updated_at
+      `)
+      .order('updated_at', { ascending: false, nullsFirst: false }),
+    supabase
+      .from('payment_requests')
+      .select('id, user_id, status, notes, created_at')
+      .order('created_at', { ascending: false })
+      .limit(100),
+  ])
+
+  const profiles = (profilesRes.data ?? []) as AdminProfile[]
+  const rawRequests = paymentReqRes.data ?? []
+
+  // Build user email map via auth admin API
+  let emailMap: Record<string, string> = {}
+  try {
+    const { data: { users } } = await supabase.auth.admin.listUsers({ perPage: 1000 })
+    emailMap = Object.fromEntries(users.map((u) => [u.id, u.email ?? '']))
+  } catch { /* non-critical — emails will be empty */ }
+
+  // Build profile lookup for names/companies
+  const profileMap = Object.fromEntries(profiles.map((p) => [p.id, p]))
+
+  const paymentRequests: PaymentRequestWithUser[] = rawRequests.map((r) => ({
+    id:         r.id,
+    user_id:    r.user_id,
+    status:     r.status,
+    notes:      r.notes,
+    created_at: r.created_at,
+    full_name:  profileMap[r.user_id]?.full_name ?? null,
+    company:    profileMap[r.user_id]?.company   ?? null,
+    email:      emailMap[r.user_id]              ?? null,
+  }))
 
   return {
     allowed: true,
-    profiles: (profiles ?? []) as AdminProfile[],
+    profiles,
+    paymentRequests,
     adminEmail: user.email ?? '',
   }
 }
@@ -53,9 +87,11 @@ async function getAdminData(): Promise<{
 // ── Page ──────────────────────────────────────────────────────────────────────
 
 export default async function AdminPage() {
-  const { allowed, profiles, adminEmail } = await getAdminData()
+  const { allowed, profiles, paymentRequests, adminEmail } = await getAdminData()
 
   if (!allowed) redirect('/')
+
+  const pendingCount = paymentRequests.filter((r) => r.status === 'pending').length
 
   return (
     <div className="space-y-6">
@@ -95,7 +131,10 @@ export default async function AdminPage() {
         </p>
       </div>
 
-      {/* Table */}
+      {/* Payment requests section */}
+      <PaymentRequestsTable initialRequests={paymentRequests} pendingCount={pendingCount} />
+
+      {/* Users table */}
       <AdminTable initialProfiles={profiles} />
     </div>
   )

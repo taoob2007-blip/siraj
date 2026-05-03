@@ -1,5 +1,6 @@
-import { createServerClient } from '@supabase/ssr'
+﻿import { createServerClient } from '@supabase/ssr'
 import { NextRequest, NextResponse } from 'next/server'
+import { checkAccess } from '@/lib/subscription'
 
 export async function middleware(request: NextRequest) {
   let response = NextResponse.next({
@@ -11,19 +12,10 @@ export async function middleware(request: NextRequest) {
     process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!,
     {
       cookies: {
-        getAll() {
-          return request.cookies.getAll()
-        },
+        getAll() { return request.cookies.getAll() },
         setAll(cookiesToSet) {
-          // Write refreshed tokens back to the request so that getSession()
-          // and any subsequent reads within the same request see updated values.
-          cookiesToSet.forEach(({ name, value }) =>
-            request.cookies.set(name, value)
-          )
-          // Rebuild response so the Set-Cookie headers reach the browser.
-          response = NextResponse.next({
-            request: { headers: request.headers },
-          })
+          cookiesToSet.forEach(({ name, value }) => request.cookies.set(name, value))
+          response = NextResponse.next({ request: { headers: request.headers } })
           cookiesToSet.forEach(({ name, value, options }) =>
             response.cookies.set(name, value, options)
           )
@@ -32,35 +24,33 @@ export async function middleware(request: NextRequest) {
     }
   )
 
-  // Always call getSession() — this refreshes expired access tokens and
-  // writes the refreshed cookies via setAll above.
+  // Always refresh session tokens
   const { data: { session } } = await supabase.auth.getSession()
-
   const { pathname } = request.nextUrl
 
-  const isAuthPage =
-    pathname.startsWith('/login') ||
-    pathname.startsWith('/signup')
+  // ── 1. Auth: routes that need a session ────────────────────────────────────
+  const isAuthPage = pathname.startsWith('/login') || pathname.startsWith('/signup')
 
-  const isProtected =
+  const isAuthRequired =
+    pathname === '/' ||
     pathname.startsWith('/rfqs') ||
-    pathname.startsWith('/dashboard') ||
     pathname.startsWith('/suppliers') ||
+    pathname.startsWith('/categories') ||
     pathname.startsWith('/analytics') ||
     pathname.startsWith('/comparisons') ||
     pathname.startsWith('/contracts') ||
     pathname.startsWith('/messages') ||
-    pathname.startsWith('/categories') ||
+    pathname.startsWith('/reports') ||
     pathname.startsWith('/notifications') ||
     pathname.startsWith('/settings') ||
-    pathname.startsWith('/admin') ||
-    pathname === '/'
+    pathname.startsWith('/billing') ||
+    pathname.startsWith('/admin')
 
-  if (!session && isProtected) {
-    const loginUrl = request.nextUrl.clone()
-    loginUrl.pathname = '/login'
-    loginUrl.searchParams.set('next', pathname)
-    return NextResponse.redirect(loginUrl)
+  if (!session && isAuthRequired) {
+    const url = request.nextUrl.clone()
+    url.pathname = '/login'
+    url.searchParams.set('next', pathname)
+    return NextResponse.redirect(url)
   }
 
   if (session && isAuthPage) {
@@ -69,26 +59,34 @@ export async function middleware(request: NextRequest) {
     return NextResponse.redirect(url)
   }
 
-  // ── Pro-only routes ────────────────────────────────────────────────────────
-  // Check subscription for /analytics and /comparisons.
-  // Free users are redirected to home with ?upgrade=1 to open pricing modal.
-  const isProRoute =
+  // ── 2. Subscription gate: feature routes need active/trial access ──────────
+  // /billing and /settings are always reachable (so expired users can pay/update)
+  // /admin is role-gated at page level, not subscription-gated
+  const isSubscriptionGated =
+    pathname === '/' ||
+    pathname.startsWith('/rfqs') ||
+    pathname.startsWith('/suppliers') ||
+    pathname.startsWith('/categories') ||
     pathname.startsWith('/analytics') ||
-    pathname.startsWith('/comparisons')
+    pathname.startsWith('/comparisons') ||
+    pathname.startsWith('/contracts') ||
+    pathname.startsWith('/messages') ||
+    pathname.startsWith('/reports')
 
-  if (session && isProRoute) {
+  if (session && isSubscriptionGated) {
     const { data: profile } = await supabase
       .from('profiles')
-      .select('subscription_status')
+      .select('subscription_status, trial_ends_at, subscription_ends_at')
       .eq('id', session.user.id)
       .single()
 
-    const isPro = profile?.subscription_status === 'pro'
-    if (!isPro) {
+    const { allowed } = checkAccess(profile)
+
+    if (!allowed) {
       const url = request.nextUrl.clone()
-      url.pathname = '/'
-      url.searchParams.set('upgrade', '1')
-      return NextResponse.redirect(url)
+      url.pathname = '/billing'
+      // Avoid redirect loop
+      if (pathname !== '/billing') return NextResponse.redirect(url)
     }
   }
 
@@ -96,7 +94,5 @@ export async function middleware(request: NextRequest) {
 }
 
 export const config = {
-  matcher: [
-    '/((?!_next/static|_next/image|favicon.ico|form|api).*)',
-  ],
+  matcher: ['/((?!_next/static|_next/image|favicon.ico|form|api).*)',],
 }

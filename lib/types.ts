@@ -121,5 +121,24 @@ export interface AdminProfile {
   trial_ends_at:        string | null
   subscription_ends_at: string | null
   updated_at:           string | null
+  created_at:           string | null
   email?:               string | null
+}
+
+// ── Payment Requests ──────────────────────────────────────────────────────────
+
+export type PaymentStatus = 'pending' | 'approved' | 'rejected'
+
+export interface PaymentRequest {
+  id:         string
+  user_id:    string
+  status:     PaymentStatus
+  notes:      string | null
+  created_at: string
+}
+
+export interface PaymentRequestWithUser extends PaymentRequest {
+  full_name:  string | null
+  email:      string | null
+  company:    string | null
 }
