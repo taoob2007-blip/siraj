@@ -20,7 +20,7 @@ async function getData() {
 
 export default async function ComparisonsPage() {
   const subscription = await getUserSubscription()
-  if (subscription !== 'pro') redirect('/?upgrade=1')
+  if (subscription !== 'pro') redirect('/pricing')
 
   const { rfqs, responses } = await getData()
   return <ComparisonClient rfqs={rfqs} responses={responses} />

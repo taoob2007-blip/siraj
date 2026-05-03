@@ -82,7 +82,7 @@ function buildDistribution(values: number[], buckets: number, unit: string) {
 
 export default async function AnalyticsPage() {
   const subscription = await getUserSubscription()
-  if (subscription !== 'pro') redirect('/?upgrade=1')
+  if (subscription !== 'pro') redirect('/pricing')
 
   const data = await getAnalyticsData()
 

@@ -47,7 +47,14 @@ export function Sidebar() {
           if (!data) return
           setUserName(data.profile?.full_name ?? '')
           setUserRole(data.profile?.role ?? '')
-          setIsPro(data.profile?.subscription_status === 'active' || data.profile?.subscription_status === 'trial')
+          // Evaluate expiry to avoid showing Pro badge for expired statuses
+          const status  = data.profile?.subscription_status
+          const trialEnd = data.profile?.trial_ends_at
+          const subEnd   = data.profile?.subscription_ends_at
+          const now      = Date.now()
+          const activePro   = status === 'active'  && (!subEnd   || new Date(subEnd).getTime()   > now)
+          const activeTrial = status === 'trial'   && (!!trialEnd && new Date(trialEnd).getTime() > now)
+          setIsPro(activePro || activeTrial)
           setIsAdmin(data.profile?.role === 'admin')
         })
         .catch(() => {})

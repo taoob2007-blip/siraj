@@ -15,12 +15,11 @@ export async function SubscriptionBanner() {
       .eq('id', user.id)
       .single()
 
-    const { allowed, status, daysLeft } = checkAccess(profile)
+    const { allowed, isTrial, daysLeft } = checkAccess(profile)
 
-    // Show for trial users with ≤ 7 days left
-    const nearExpiry = status === 'trial' && allowed && daysLeft <= 7
-    // Show for expired users (middleware will redirect them to /billing but show banner just in case)
-    const expired = !allowed
+    // Show warning banner for trial users with ≤ 7 days remaining
+    const nearExpiry = isTrial && allowed && daysLeft <= 7
+    const expired    = !allowed
 
     if (!nearExpiry && !expired) return null
 
@@ -30,11 +29,11 @@ export async function SubscriptionBanner() {
           <div className="flex items-center gap-2 min-w-0">
             <AlertTriangle className="h-3.5 w-3.5 text-red-400 shrink-0" />
             <p className="text-xs text-red-300 font-medium truncate">
-              Your subscription has expired. Some features may be unavailable.
+              Your subscription has expired. Renew to regain full access.
             </p>
           </div>
           <Link
-            href="/billing"
+            href="/pricing"
             className="shrink-0 text-xs px-3 py-1 rounded-lg bg-red-600 hover:bg-red-500 text-white font-semibold transition-colors"
           >
             Renew Now
@@ -48,11 +47,11 @@ export async function SubscriptionBanner() {
         <div className="flex items-center gap-2 min-w-0">
           <Clock className="h-3.5 w-3.5 text-amber-400 shrink-0" />
           <p className="text-xs text-amber-300 font-medium truncate">
-            Your trial ends in <span className="font-bold">{daysLeft} day{daysLeft !== 1 ? 's' : ''}</span>. Upgrade to keep access.
+            Trial ends in <span className="font-bold">{daysLeft} day{daysLeft !== 1 ? 's' : ''}</span>. Upgrade to keep full access.
           </p>
         </div>
         <Link
-          href="/billing"
+          href="/pricing"
           className="shrink-0 text-xs px-3 py-1 rounded-lg bg-amber-600 hover:bg-amber-500 text-white font-semibold transition-colors"
         >
           Upgrade

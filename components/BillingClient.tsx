@@ -114,9 +114,9 @@ export function BillingClient({ email, fullName, access, requests, hasPending, l
     })
   }
 
-  const isExpired  = !access.allowed
-  const isActive   = access.allowed && access.status === 'active'
-  const isTrial    = access.allowed && access.status === 'trial'
+  const isExpired       = !access.allowed
+  const isActive        = access.isActive
+  const isTrial         = access.isTrial
   const showPaymentFlow = isExpired || isTrial
 
   return (
