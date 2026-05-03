@@ -177,8 +177,13 @@ export function AdminTable({ initialProfiles }: Props) {
       const result = await activateSubscription(profile.id)
       if (result.ok) {
         const endsAt = new Date(Date.now() + 30 * 24 * 60 * 60 * 1000).toISOString()
-        patchProfile(profile.id, { subscription_status: 'active', subscription_ends_at: endsAt })
-        toast.success(`Activated — ${profile.full_name ?? profile.id} has 30 days`)
+        patchProfile(profile.id, {
+          subscription_status:  'active',
+          subscription_ends_at: endsAt,
+          trial_ends_at:        null,
+          updated_at:           new Date().toISOString(),
+        })
+        toast.success('Subscription activated')
       } else {
         toast.error(result.error)
       }
@@ -191,8 +196,11 @@ export function AdminTable({ initialProfiles }: Props) {
     startTransition(async () => {
       const result = await expireSubscription(profile.id)
       if (result.ok) {
-        patchProfile(profile.id, { subscription_status: 'expired' })
-        toast.success(`Expired — ${profile.full_name ?? profile.id}`)
+        patchProfile(profile.id, {
+          subscription_status: 'expired',
+          updated_at:          new Date().toISOString(),
+        })
+        toast.success('User expired')
       } else {
         toast.error(result.error)
       }
@@ -206,8 +214,13 @@ export function AdminTable({ initialProfiles }: Props) {
       const result = await startTrial(profile.id)
       if (result.ok) {
         const endsAt = new Date(Date.now() + 14 * 24 * 60 * 60 * 1000).toISOString()
-        patchProfile(profile.id, { subscription_status: 'trial', trial_ends_at: endsAt })
-        toast.success(`Trial started — ${profile.full_name ?? profile.id} has 14 days`)
+        patchProfile(profile.id, {
+          subscription_status:  'trial',
+          trial_ends_at:        endsAt,
+          subscription_ends_at: null,
+          updated_at:           new Date().toISOString(),
+        })
+        toast.success('Trial activated')
       } else {
         toast.error(result.error)
       }

@@ -1,18 +1,30 @@
-﻿'use client'
+'use client'
 
 import { useState, useTransition } from 'react'
 import Link from 'next/link'
 import {
   CreditCard, CheckCircle2, Clock, XCircle, AlertTriangle,
   ArrowRight, Copy, Check, Loader2, Sparkles, Crown,
-  Building, Phone, Banknote, Info, RefreshCw,
+  Building, MessageCircle, Banknote, Zap, RefreshCw, Users,
 } from 'lucide-react'
 import { toast } from '@/components/Toast'
 import { submitPaymentRequest } from '@/app/billing/actions'
 import type { PaymentRequest, SubscriptionStatus } from '@/lib/types'
 import type { SubscriptionAccess } from '@/lib/subscription'
 
+// ── Constants ─────────────────────────────────────────────────────────────────
+
+const WA_NUMBER = '966552488556'
+const IBAN      = 'SA27 8000 0523 6080 1012 5902'
+const BANK      = 'Al Rajhi Bank'
+const PRICE_SAR = 299
+
 // ── Helpers ───────────────────────────────────────────────────────────────────
+
+function buildWaLink(email: string) {
+  const msg = `I have paid. Email: ${email || 'Not provided'}`
+  return `https://wa.me/${WA_NUMBER}?text=${encodeURIComponent(msg)}`
+}
 
 function fmtDate(iso: string | null): string {
   if (!iso) return '—'
@@ -40,40 +52,23 @@ const REQUEST_STYLE: Record<string, { color: string; icon: React.ElementType; la
 
 // ── Copy button ───────────────────────────────────────────────────────────────
 
-function CopyBtn({ value }: { value: string }) {
+function CopyBtn({ value, label }: { value: string; label?: string }) {
   const [copied, setCopied] = useState(false)
   function copy() {
     navigator.clipboard.writeText(value)
     setCopied(true)
+    toast.success(label ? `${label} copied` : 'Copied')
     setTimeout(() => setCopied(false), 2000)
   }
   return (
     <button
       onClick={copy}
-      className="ml-1.5 p-1 rounded text-gray-600 hover:text-gray-300 transition-colors"
-      title="Copy"
+      className="ml-1 inline-flex items-center gap-1 px-2 py-0.5 rounded-md border border-white/[0.08] bg-white/[0.03] hover:bg-white/[0.07] text-gray-500 hover:text-gray-200 text-[10px] font-medium transition-all"
+      title={`Copy ${label ?? ''}`}
     >
-      {copied ? <Check className="h-3 w-3 text-emerald-400" /> : <Copy className="h-3 w-3" />}
+      {copied ? <Check className="h-2.5 w-2.5 text-emerald-400" /> : <Copy className="h-2.5 w-2.5" />}
+      {copied ? 'Copied' : 'Copy'}
     </button>
-  )
-}
-
-// ── Payment info row ──────────────────────────────────────────────────────────
-
-function PayRow({ icon: Icon, label, value }: { icon: React.ElementType; label: string; value: string }) {
-  return (
-    <div className="flex items-start gap-3 py-3 border-t border-white/[0.05] first:border-0">
-      <div className="p-1.5 rounded-lg bg-white/[0.04] border border-white/[0.06] shrink-0 mt-0.5">
-        <Icon className="h-3.5 w-3.5 text-gray-400" />
-      </div>
-      <div className="flex-1 min-w-0">
-        <p className="text-[11px] text-gray-500 uppercase tracking-wider font-semibold">{label}</p>
-        <div className="flex items-center gap-0.5 mt-0.5">
-          <p className="text-sm text-gray-200 font-mono">{value}</p>
-          <CopyBtn value={value} />
-        </div>
-      </div>
-    </div>
   )
 }
 
@@ -93,17 +88,27 @@ export function BillingClient({ email, fullName, access, requests, hasPending, l
   const [submitting, setSubmitting] = useState(false)
   const [submitted, setSubmitted]   = useState(hasPending)
 
+  const safeEmail = email || 'Not provided'
+  const waLink    = buildWaLink(safeEmail)
   const statusMeta = STATUS_COPY[access.status]
 
-  function handleSubmit() {
+  // Open WhatsApp immediately (must be synchronous to avoid popup blockers),
+  // then submit the DB record in the background.
+  function handleWaSubmit() {
+    window.open(waLink, '_blank', 'noopener,noreferrer')
+
+    if (submitted) return   // already have a pending record — no duplicate insert needed
+
     setSubmitting(true)
     startTransition(async () => {
       const result = await submitPaymentRequest()
       if (result.ok) {
         setSubmitted(true)
-        toast.success('Payment request submitted! Admin will review it shortly.')
-      } else {
+        toast.success('Payment request sent. Waiting for admin approval.')
+      } else if (!result.error?.toLowerCase().includes('pending')) {
         toast.error(result.error)
+      } else {
+        setSubmitted(true)
       }
       setSubmitting(false)
     })
@@ -112,6 +117,7 @@ export function BillingClient({ email, fullName, access, requests, hasPending, l
   const isExpired  = !access.allowed
   const isActive   = access.allowed && access.status === 'active'
   const isTrial    = access.allowed && access.status === 'trial'
+  const showPaymentFlow = isExpired || isTrial
 
   return (
     <div className="max-w-2xl mx-auto space-y-6">
@@ -125,14 +131,14 @@ export function BillingClient({ email, fullName, access, requests, hasPending, l
         <p className="text-sm text-gray-500 mt-1">Manage your SIRAJ subscription</p>
       </div>
 
-      {/* ── Expiry alert banner ── */}
+      {/* ── Expiry alert ── */}
       {isExpired && (
         <div className="flex items-start gap-3 rounded-xl border border-red-500/30 bg-red-500/[0.06] px-4 py-3.5">
           <AlertTriangle className="h-4 w-4 text-red-400 shrink-0 mt-0.5" />
           <div>
             <p className="text-sm font-semibold text-red-300">Subscription Expired</p>
             <p className="text-xs text-red-400/80 mt-0.5">
-              Your access has expired. Complete the payment below and click &quot;I have paid&quot; to restore access.
+              Your access has expired. Complete the transfer below and contact us on WhatsApp to restore access.
             </p>
           </div>
         </div>
@@ -161,107 +167,217 @@ export function BillingClient({ email, fullName, access, requests, hasPending, l
           </div>
 
           <div className="text-right">
-            <p className="text-3xl font-bold text-white">299</p>
+            <p className="text-3xl font-bold text-white">{PRICE_SAR}</p>
             <p className="text-xs text-gray-500">SAR / month</p>
           </div>
         </div>
 
-        <div className="pt-2 border-t border-white/[0.05]">
+        <div className="pt-2 border-t border-white/[0.05] space-y-1.5">
           <div className="flex items-center gap-2 text-xs text-emerald-400">
             <CheckCircle2 className="h-3.5 w-3.5 shrink-0" />
             First month free — no credit card required
           </div>
-          <div className="flex items-center gap-2 text-xs text-gray-400 mt-1.5">
+          <div className="flex items-center gap-2 text-xs text-gray-400">
             <CheckCircle2 className="h-3.5 w-3.5 shrink-0 text-gray-600" />
-            Manual payment (STC Pay / bank transfer)
+            Manual payment via bank transfer
           </div>
-          <div className="flex items-center gap-2 text-xs text-gray-400 mt-1.5">
+          <div className="flex items-center gap-2 text-xs text-gray-400">
             <CheckCircle2 className="h-3.5 w-3.5 shrink-0 text-gray-600" />
-            Admin approves within 24 hours
+            Confirm via WhatsApp — admin activates within 24 h
           </div>
         </div>
       </div>
 
-      {/* ── Payment instructions ── */}
-      {(isExpired || isTrial) && (
-        <div className="rounded-2xl border border-white/[0.07] bg-[#0d1220] p-6 space-y-1 relative overflow-hidden">
-          <div className="pointer-events-none absolute top-0 left-8 right-8 h-px bg-gradient-to-r from-transparent via-blue-500/15 to-transparent" />
+      {/* ── Payment flow ── */}
+      {showPaymentFlow && (
+        <>
+          {/* Step-by-step instructions */}
+          <div className="rounded-2xl border border-white/[0.07] bg-[#0d1220] p-6 relative overflow-hidden">
+            <div className="pointer-events-none absolute top-0 left-8 right-8 h-px bg-gradient-to-r from-transparent via-blue-500/15 to-transparent" />
 
-          <div className="flex items-center gap-2 mb-4">
-            <div className="p-1.5 rounded-lg bg-blue-500/10 border border-blue-500/20">
-              <Banknote className="h-4 w-4 text-blue-400" />
+            <div className="flex items-center gap-2 mb-5">
+              <div className="p-1.5 rounded-lg bg-blue-500/10 border border-blue-500/20">
+                <Banknote className="h-4 w-4 text-blue-400" />
+              </div>
+              <p className="text-sm font-semibold text-white">How to Subscribe</p>
             </div>
-            <p className="text-sm font-semibold text-white">How to Pay</p>
+
+            <ol className="space-y-3">
+              {[
+                { n: 1, text: `Transfer ${PRICE_SAR} SAR to the IBAN below` },
+                { n: 2, text: `Include your email (${safeEmail}) in the transfer note` },
+                { n: 3, text: 'Click the WhatsApp button — we\'ll confirm your payment', highlight: true },
+                { n: 4, text: 'Your account will be activated within 24 hours' },
+              ].map(({ n, text, highlight }) => (
+                <li key={n} className="flex items-start gap-3">
+                  <span className={`flex-none h-5 w-5 rounded-full text-[10px] font-bold flex items-center justify-center mt-0.5 ${
+                    highlight
+                      ? 'bg-emerald-500/20 border border-emerald-500/30 text-emerald-400'
+                      : 'bg-white/[0.05] border border-white/[0.08] text-gray-500'
+                  }`}>
+                    {n}
+                  </span>
+                  <p className={`text-sm leading-relaxed ${highlight ? 'text-emerald-300 font-medium' : 'text-gray-400'}`}>
+                    {text}
+                    {highlight && (
+                      <span className="ml-2 inline-flex items-center gap-1 text-[10px] font-bold uppercase tracking-wide px-1.5 py-0.5 rounded-md bg-emerald-500/15 border border-emerald-500/20 text-emerald-400">
+                        <Zap className="h-2.5 w-2.5" />
+                        Fastest
+                      </span>
+                    )}
+                  </p>
+                </li>
+              ))}
+            </ol>
           </div>
 
-          <div className="space-y-0 rounded-xl border border-white/[0.06] bg-white/[0.02] px-4 divide-y divide-white/[0.04]">
-            <PayRow icon={Phone}    label="STC Pay"      value="0512345678" />
-            <PayRow icon={Building} label="IBAN"         value="SA1234567890123456789012" />
-            <PayRow icon={Banknote} label="Bank"         value="Al Rajhi Bank" />
-            <PayRow icon={Info}     label="Transfer Note" value={email} />
-          </div>
+          {/* Bank details */}
+          <div className="rounded-2xl border border-white/[0.07] bg-[#0d1220] overflow-hidden">
 
-          <div className="flex items-start gap-2 mt-3 rounded-xl bg-amber-500/[0.05] border border-amber-500/15 px-3 py-2.5">
-            <Info className="h-3.5 w-3.5 text-amber-400 shrink-0 mt-0.5" />
-            <p className="text-xs text-amber-300/80 leading-relaxed">
-              Include your email address <span className="font-semibold text-amber-300">{email}</span> in the transfer note so we can identify your payment.
-            </p>
-          </div>
-        </div>
-      )}
-
-      {/* ── Submit payment request ── */}
-      {(isExpired || isTrial) && (
-        <div className="rounded-2xl border border-white/[0.07] bg-[#0d1220] p-6 space-y-4">
-          <div>
-            <p className="text-sm font-semibold text-white">Confirm Payment</p>
-            <p className="text-xs text-gray-500 mt-1">
-              After completing your bank transfer or STC Pay, click the button below. An admin will verify and activate your account within 24 hours.
-            </p>
-          </div>
-
-          {submitted ? (
-            <div className="flex items-center gap-3 rounded-xl border border-emerald-500/25 bg-emerald-500/[0.06] px-4 py-3.5">
-              <CheckCircle2 className="h-4 w-4 text-emerald-400 shrink-0" />
-              <div>
-                <p className="text-sm font-semibold text-emerald-300">Request submitted!</p>
-                <p className="text-xs text-emerald-400/70 mt-0.5">
-                  We&apos;ll activate your account within 24 hours. You&apos;ll be able to access all features once approved.
+            {/* WhatsApp row — highlighted as primary */}
+            <a
+              href={waLink}
+              target="_blank"
+              rel="noopener noreferrer"
+              className="flex items-center gap-4 px-5 py-4 bg-emerald-500/[0.06] border-b border-emerald-500/15 hover:bg-emerald-500/10 transition-colors group"
+            >
+              <div className="p-2 rounded-xl bg-emerald-500/15 border border-emerald-500/25 shrink-0">
+                <MessageCircle className="h-4.5 w-4.5 text-emerald-400" />
+              </div>
+              <div className="flex-1 min-w-0">
+                <div className="flex items-center gap-2 flex-wrap">
+                  <p className="text-xs font-semibold text-gray-400 uppercase tracking-wider">WhatsApp Contact</p>
+                  <span className="inline-flex items-center gap-1 text-[10px] font-bold uppercase tracking-wide px-1.5 py-0.5 rounded-md bg-emerald-500/15 border border-emerald-500/20 text-emerald-400">
+                    <Zap className="h-2.5 w-2.5" />
+                    Fastest approval
+                  </span>
+                </div>
+                <p className="text-sm font-mono text-white mt-0.5 group-hover:text-emerald-300 transition-colors">
+                  0552488556
                 </p>
               </div>
-            </div>
-          ) : lastRequest?.status === 'rejected' ? (
-            <div className="space-y-3">
-              <div className="flex items-center gap-3 rounded-xl border border-red-500/25 bg-red-500/[0.06] px-4 py-3.5">
-                <XCircle className="h-4 w-4 text-red-400 shrink-0" />
-                <div>
-                  <p className="text-sm font-semibold text-red-300">Previous request rejected</p>
-                  <p className="text-xs text-red-400/70 mt-0.5">
-                    Your last payment request was rejected. Please verify the payment and try again, or contact support.
-                  </p>
+              <div className="shrink-0 flex items-center gap-1.5 text-xs text-emerald-400 font-semibold group-hover:text-emerald-300 transition-colors">
+                <MessageCircle className="h-3.5 w-3.5" />
+                Open Chat
+              </div>
+            </a>
+
+            {/* IBAN + Bank rows */}
+            <div className="divide-y divide-white/[0.04] px-5">
+
+              <div className="flex items-start gap-3 py-3.5">
+                <div className="p-1.5 rounded-lg bg-white/[0.04] border border-white/[0.06] shrink-0 mt-0.5">
+                  <Building className="h-3.5 w-3.5 text-gray-400" />
+                </div>
+                <div className="flex-1 min-w-0">
+                  <p className="text-[11px] text-gray-500 uppercase tracking-wider font-semibold">IBAN</p>
+                  <div className="flex items-center gap-1 mt-0.5 flex-wrap">
+                    <p className="text-sm text-gray-200 font-mono">{IBAN}</p>
+                    <CopyBtn value={IBAN} label="IBAN" />
+                  </div>
                 </div>
               </div>
-              <button
-                onClick={handleSubmit}
-                disabled={submitting}
-                className="flex items-center gap-2 px-5 py-2.5 rounded-xl bg-blue-600 hover:bg-blue-500 active:scale-95 text-white text-sm font-semibold transition-all disabled:opacity-60 shadow-lg shadow-blue-600/20"
-              >
-                {submitting ? <Loader2 className="h-4 w-4 animate-spin" /> : <RefreshCw className="h-4 w-4" />}
-                Submit Again
-              </button>
+
+              <div className="flex items-start gap-3 py-3.5">
+                <div className="p-1.5 rounded-lg bg-white/[0.04] border border-white/[0.06] shrink-0 mt-0.5">
+                  <Banknote className="h-3.5 w-3.5 text-gray-400" />
+                </div>
+                <div className="flex-1 min-w-0">
+                  <p className="text-[11px] text-gray-500 uppercase tracking-wider font-semibold">Bank</p>
+                  <p className="text-sm text-gray-200 font-mono mt-0.5">{BANK}</p>
+                </div>
+              </div>
+
+              <div className="flex items-start gap-3 py-3.5">
+                <div className="p-1.5 rounded-lg bg-white/[0.04] border border-white/[0.06] shrink-0 mt-0.5">
+                  <CreditCard className="h-3.5 w-3.5 text-gray-400" />
+                </div>
+                <div className="flex-1 min-w-0">
+                  <p className="text-[11px] text-gray-500 uppercase tracking-wider font-semibold">Transfer Note</p>
+                  <div className="flex items-center gap-1 mt-0.5 flex-wrap">
+                    <p className="text-sm text-gray-200 font-mono">{safeEmail}</p>
+                    <CopyBtn value={safeEmail} label="Email" />
+                  </div>
+                </div>
+              </div>
+
             </div>
-          ) : (
-            <button
-              onClick={handleSubmit}
-              disabled={submitting}
-              className="flex items-center gap-2 px-6 py-3 rounded-xl bg-gradient-to-r from-blue-600 to-indigo-600 hover:from-blue-500 hover:to-indigo-500 active:scale-95 text-white text-sm font-semibold transition-all disabled:opacity-60 shadow-lg shadow-blue-600/25"
-            >
-              {submitting ? <Loader2 className="h-4 w-4 animate-spin" /> : <CheckCircle2 className="h-4 w-4" />}
-              I have paid — Notify admin
-              <ArrowRight className="h-3.5 w-3.5" />
-            </button>
-          )}
-        </div>
+          </div>
+
+          {/* Primary action */}
+          <div className="rounded-2xl border border-white/[0.07] bg-[#0d1220] p-6 space-y-4">
+            <div>
+              <p className="text-sm font-semibold text-white">Confirm Your Payment</p>
+              <p className="text-xs text-gray-500 mt-1">
+                After completing the bank transfer, click the button below to open WhatsApp — your payment request will also be logged automatically.
+              </p>
+            </div>
+
+            {/* Trust line */}
+            <div className="flex items-center gap-2 text-xs text-gray-500">
+              <Users className="h-3.5 w-3.5 text-gray-600 shrink-0" />
+              Most users get activated in less than 2 hours
+            </div>
+
+            {submitted ? (
+              <div className="space-y-3">
+                <div className="flex items-center gap-3 rounded-xl border border-emerald-500/25 bg-emerald-500/[0.06] px-4 py-3.5">
+                  <CheckCircle2 className="h-4 w-4 text-emerald-400 shrink-0" />
+                  <div>
+                    <p className="text-sm font-semibold text-emerald-300">Request submitted!</p>
+                    <p className="text-xs text-emerald-400/70 mt-0.5">
+                      Your payment request has been logged. Contact us on WhatsApp for the fastest activation.
+                    </p>
+                  </div>
+                </div>
+                {/* Still let them open WhatsApp after submitting */}
+                <a
+                  href={waLink}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="inline-flex items-center gap-2 px-5 py-2.5 rounded-xl border border-emerald-500/30 bg-emerald-500/[0.08] hover:bg-emerald-500/15 active:scale-95 text-emerald-300 text-sm font-semibold transition-all"
+                >
+                  <MessageCircle className="h-4 w-4" />
+                  Open WhatsApp Chat
+                </a>
+              </div>
+            ) : lastRequest?.status === 'rejected' ? (
+              <div className="space-y-3">
+                <div className="flex items-center gap-3 rounded-xl border border-red-500/25 bg-red-500/[0.06] px-4 py-3.5">
+                  <XCircle className="h-4 w-4 text-red-400 shrink-0" />
+                  <div>
+                    <p className="text-sm font-semibold text-red-300">Previous request rejected</p>
+                    <p className="text-xs text-red-400/70 mt-0.5">
+                      Please verify your transfer and contact us on WhatsApp to resolve this.
+                    </p>
+                  </div>
+                </div>
+                <button
+                  onClick={handleWaSubmit}
+                  disabled={submitting}
+                  className="inline-flex items-center gap-2 px-5 py-2.5 rounded-xl bg-emerald-600 hover:bg-emerald-500 active:scale-95 text-white text-sm font-semibold transition-all disabled:opacity-60 shadow-lg shadow-emerald-600/20"
+                >
+                  {submitting
+                    ? <Loader2 className="h-4 w-4 animate-spin" />
+                    : <RefreshCw className="h-4 w-4" />}
+                  Try Again via WhatsApp
+                </button>
+              </div>
+            ) : (
+              <button
+                onClick={handleWaSubmit}
+                disabled={submitting}
+                className="inline-flex items-center gap-2 px-6 py-3 rounded-xl bg-gradient-to-r from-emerald-600 to-emerald-500 hover:from-emerald-500 hover:to-emerald-400 active:scale-95 text-white text-sm font-semibold transition-all disabled:opacity-60 shadow-lg shadow-emerald-600/25"
+              >
+                {submitting
+                  ? <Loader2 className="h-4 w-4 animate-spin" />
+                  : <MessageCircle className="h-4 w-4" />}
+                I have paid — Contact via WhatsApp
+                <ArrowRight className="h-3.5 w-3.5" />
+              </button>
+            )}
+          </div>
+        </>
       )}
 
       {/* ── Active subscription — success state ── */}

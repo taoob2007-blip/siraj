@@ -88,7 +88,7 @@ export async function rejectPaymentRequest(requestId: string): Promise<ActionRes
 
 export type ActionResult = { ok: true } | { ok: false; error: string }
 
-/** Set subscription_status = 'active', subscription_ends_at = now + 30 days */
+/** Set subscription_status = 'active', subscription_ends_at = now + 30 days, trial_ends_at = null */
 export async function activateSubscription(userId: string): Promise<ActionResult> {
   try {
     const supabase = await requireAdmin()
@@ -99,6 +99,7 @@ export async function activateSubscription(userId: string): Promise<ActionResult
       .update({
         subscription_status:  'active',
         subscription_ends_at: endsAt,
+        trial_ends_at:        null,
         updated_at:           new Date().toISOString(),
       })
       .eq('id', userId)
@@ -132,7 +133,7 @@ export async function expireSubscription(userId: string): Promise<ActionResult> 
   }
 }
 
-/** Set subscription_status = 'trial', trial_ends_at = now + N days (default 14) */
+/** Set subscription_status = 'trial', trial_ends_at = now + 14 days, subscription_ends_at = null */
 export async function startTrial(userId: string, days = 14): Promise<ActionResult> {
   try {
     const supabase = await requireAdmin()
@@ -141,9 +142,10 @@ export async function startTrial(userId: string, days = 14): Promise<ActionResul
     const { error } = await supabase
       .from('profiles')
       .update({
-        subscription_status: 'trial',
-        trial_ends_at:       endsAt,
-        updated_at:          new Date().toISOString(),
+        subscription_status:  'trial',
+        trial_ends_at:        endsAt,
+        subscription_ends_at: null,
+        updated_at:           new Date().toISOString(),
       })
       .eq('id', userId)
 
