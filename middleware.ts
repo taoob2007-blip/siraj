@@ -56,20 +56,10 @@ export async function middleware(req: NextRequest) {
     return NextResponse.redirect(url)
   }
 
-  if (pathname.startsWith('/admin')) {
-    const { data: profile } = await supabase
-      .from('profiles')
-      .select('role')
-      .eq('id', user.id)
-      .single()
-
-    if (profile?.role !== 'admin') {
-      const url = req.nextUrl.clone()
-      url.pathname = '/rfqs'
-      url.search = ''
-      return NextResponse.redirect(url)
-    }
-  }
+  // Admin role check is intentionally NOT done here.
+  // The middleware uses the anon key (RLS-scoped) which may not be able to
+  // read profiles, causing valid admins to get redirected. The admin page
+  // itself does the role check using the service role key (bypasses RLS).
 
   return res
 }

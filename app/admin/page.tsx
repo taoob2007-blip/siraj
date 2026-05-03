@@ -89,7 +89,7 @@ async function getAdminData(): Promise<{
 export default async function AdminPage() {
   const { allowed, profiles, paymentRequests, adminEmail } = await getAdminData()
 
-  if (!allowed) redirect('/')
+  if (!allowed) redirect('/rfqs')
 
   const pendingCount = paymentRequests.filter((r) => r.status === 'pending').length
 
