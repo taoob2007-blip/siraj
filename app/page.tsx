@@ -14,7 +14,6 @@ import { HeroBanner } from '@/components/HeroBanner'
 import { getServerSupabaseClient } from '@/lib/supabase/server'
 import { getUserSubscription } from '@/lib/subscription'
 import { ProGate, UpgradeCard } from '@/components/ProGate'
-import { UpgradePrompt } from '@/components/PricingModal'
 
 // ── Data ──────────────────────────────────────────────────────────────────────
 
@@ -357,8 +356,6 @@ export default async function Home() {
   return (
     <div className="space-y-8 animate-fade-in">
 
-      {/* Auto-open pricing modal when ?upgrade=1 */}
-      <UpgradePrompt />
 
       {/* ════ HERO ════ */}
       <StaggerIn index={0}>

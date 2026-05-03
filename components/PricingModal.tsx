@@ -1,57 +1,55 @@
-﻿'use client'
+'use client'
 
 import { useEffect, useState } from 'react'
+import { useRouter } from 'next/navigation'
 import {
   X, Crown, Check, Zap, BarChart3, GitCompare, Brain,
-  Shield, Bell, FileSignature, Sparkles, Star,
+  Shield, Bell, FileSignature, Sparkles, Star, MessageCircle,
 } from 'lucide-react'
-import { toast } from '@/components/Toast'
+
+// ── Plan data ─────────────────────────────────────────────────────────────────
 
 const FREE_FEATURES = [
-  { text: 'Up to 10 RFQs per month' },
-  { text: 'Unlimited suppliers' },
-  { text: 'Basic contract management' },
-  { text: 'Email notifications' },
-  { text: 'Standard response collection' },
+  'حتى 10 طلبات عروض شهرياً',
+  'موردون غير محدودين',
+  'إدارة عقود أساسية',
+  'إشعارات بالبريد الإلكتروني',
+  'جمع العروض القياسي',
 ]
 
 const PRO_FEATURES = [
-  { icon: Brain,       text: 'AI-powered supplier insights',      highlight: true },
-  { icon: BarChart3,   text: 'Advanced analytics & charts',       highlight: true },
-  { icon: GitCompare,  text: 'Side-by-side supplier comparisons', highlight: true },
-  { icon: Zap,         text: 'Unlimited RFQs',                   highlight: false },
-  { icon: FileSignature, text: 'Priority contract AI scoring',   highlight: false },
-  { icon: Bell,        text: 'Real-time notifications',           highlight: false },
-  { icon: Shield,      text: 'Priority support',                  highlight: false },
+  { icon: Brain,         text: 'تحليل الموردين بالذكاء الاصطناعي', highlight: true },
+  { icon: BarChart3,     text: 'تقارير وتحليلات متقدمة',           highlight: true },
+  { icon: GitCompare,    text: 'مقارنة الموردين جنبًا إلى جنب',    highlight: true },
+  { icon: Zap,           text: 'طلبات عروض غير محدودة',            highlight: false },
+  { icon: FileSignature, text: 'تسجيل عقود بالذكاء الاصطناعي',    highlight: false },
+  { icon: Bell,          text: 'إشعارات فورية',                    highlight: false },
+  { icon: Shield,        text: 'دعم أولوية',                       highlight: false },
 ]
 
-interface Props {
-  onClose: () => void
-  autoOpen?: boolean
-}
+// ── Modal ─────────────────────────────────────────────────────────────────────
+
+interface Props { onClose: () => void }
 
 export function PricingModal({ onClose }: Props) {
+  const router  = useRouter()
   const [billing, setBilling] = useState<'monthly' | 'annual'>('monthly')
-  const [loading, setLoading] = useState(false)
+
+  // SAR prices
+  const monthlyPrice = 299
+  const annualPrice  = Math.round(monthlyPrice * 12 * 0.83)  // 17% off
+  const displayPrice = billing === 'monthly' ? monthlyPrice : Math.round(annualPrice / 12)
 
   useEffect(() => {
-    function onKey(e: KeyboardEvent) { if (e.key === 'Escape') onClose() }
-    window.addEventListener('keydown', onKey)
-    return () => window.removeEventListener('keydown', onKey)
+    const onKey = (e: KeyboardEvent) => { if (e.key === 'Escape') onClose() }
+    document.addEventListener('keydown', onKey)
+    return () => document.removeEventListener('keydown', onKey)
   }, [onClose])
 
-  function handleUpgrade() {
-    setLoading(true)
-    // Simulate async upgrade flow (replace with Stripe/Paddle integration)
-    setTimeout(() => {
-      setLoading(false)
-      toast.success('Upgrade initiated — check your email to complete payment.')
-      onClose()
-    }, 1200)
+  function handleSubscribe() {
+    onClose()
+    router.push('/pricing')
   }
-
-  const monthlyPrice = billing === 'monthly' ? 29 : 24
-  const annualTotal  = monthlyPrice * 12
 
   return (
     <div
@@ -59,12 +57,12 @@ export function PricingModal({ onClose }: Props) {
       onClick={onClose}
     >
       <div
-        className="relative w-full max-w-3xl bg-[#0a0f1a] border border-white/[0.08] rounded-2xl shadow-2xl overflow-hidden"
-        onClick={(e) => e.stopPropagation()}
+        className="relative w-full max-w-2xl bg-[#0a0f1a] border border-white/[0.08] rounded-2xl shadow-2xl overflow-hidden"
+        onClick={e => e.stopPropagation()}
       >
-        {/* Header gradient */}
-        <div className="pointer-events-none absolute top-0 left-0 right-0 h-px bg-gradient-to-r from-transparent via-violet-500/40 to-transparent" />
-        <div className="pointer-events-none absolute -top-20 left-1/2 -translate-x-1/2 h-40 w-60 rounded-full bg-violet-500/10 blur-3xl" />
+        {/* Decorative top line */}
+        <div className="absolute top-0 left-0 right-0 h-px bg-gradient-to-r from-transparent via-violet-500/50 to-transparent" />
+        <div className="pointer-events-none absolute -top-24 left-1/2 -translate-x-1/2 h-48 w-72 rounded-full bg-violet-500/10 blur-3xl" />
 
         {/* Close */}
         <button
@@ -74,19 +72,19 @@ export function PricingModal({ onClose }: Props) {
           <X className="h-4 w-4" />
         </button>
 
-        <div className="relative p-8">
+        <div className="relative p-6 sm:p-8">
 
           {/* Title */}
-          <div className="text-center mb-8">
+          <div className="text-center mb-6">
             <div className="inline-flex items-center gap-1.5 text-xs font-bold uppercase tracking-widest text-violet-400 bg-violet-500/10 border border-violet-500/20 px-3 py-1.5 rounded-full mb-3">
               <Sparkles className="h-3 w-3" />
-              Upgrade to Pro
+              ترقية إلى Pro
             </div>
-            <h2 className="text-2xl font-bold text-white">Unlock the Full Power of SIRAJ</h2>
-            <p className="text-gray-400 mt-2 text-sm">Everything in Free, plus AI insights and advanced tools</p>
+            <h2 className="text-2xl font-bold text-white">اكتشف كامل قدرات SIRAJ</h2>
+            <p className="text-gray-400 mt-1.5 text-sm">كل ما في الخطة المجانية، بالإضافة إلى الذكاء الاصطناعي وأدوات متقدمة</p>
 
             {/* Billing toggle */}
-            <div className="flex items-center justify-center gap-3 mt-5">
+            <div className="flex items-center justify-center gap-2 mt-4">
               <button
                 onClick={() => setBilling('monthly')}
                 className={`px-4 py-1.5 rounded-lg text-sm font-medium transition-all ${
@@ -95,7 +93,7 @@ export function PricingModal({ onClose }: Props) {
                     : 'text-gray-500 hover:text-gray-300'
                 }`}
               >
-                Monthly
+                شهري
               </button>
               <button
                 onClick={() => setBilling('annual')}
@@ -105,46 +103,46 @@ export function PricingModal({ onClose }: Props) {
                     : 'text-gray-500 hover:text-gray-300'
                 }`}
               >
-                Annual
+                سنوي
                 <span className="text-[10px] font-bold text-emerald-400 bg-emerald-500/10 border border-emerald-500/20 px-1.5 py-0.5 rounded-full">
-                  SAVE 17%
+                  وفّر 17%
                 </span>
               </button>
             </div>
           </div>
 
-          {/* Plans grid */}
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+          {/* Plans */}
+          <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
 
             {/* Free */}
-            <div className="rounded-2xl border border-white/[0.07] bg-white/[0.02] p-6 space-y-4">
+            <div className="rounded-2xl border border-white/[0.07] bg-white/[0.02] p-5 space-y-4">
               <div>
-                <p className="text-xs font-semibold text-gray-500 uppercase tracking-wider">Free</p>
+                <p className="text-xs font-semibold text-gray-500 uppercase tracking-wider">مجاني</p>
                 <div className="flex items-baseline gap-1 mt-2">
-                  <span className="text-3xl font-bold text-white">$0</span>
-                  <span className="text-sm text-gray-500">/month</span>
+                  <span className="text-3xl font-bold text-white">0</span>
+                  <span className="text-sm text-gray-400">ر.س / شهر</span>
                 </div>
-                <p className="text-xs text-gray-600 mt-1">No credit card required</p>
+                <p className="text-xs text-gray-600 mt-1">بدون بطاقة ائتمانية</p>
               </div>
-              <div className="space-y-2.5">
-                {FREE_FEATURES.map(({ text }) => (
-                  <div key={text} className="flex items-start gap-2.5">
-                    <Check className="h-3.5 w-3.5 text-gray-500 mt-0.5 shrink-0" />
-                    <span className="text-sm text-gray-400">{text}</span>
+              <div className="space-y-2">
+                {FREE_FEATURES.map(text => (
+                  <div key={text} className="flex items-start gap-2">
+                    <Check className="h-3.5 w-3.5 text-gray-600 mt-0.5 shrink-0" />
+                    <span className="text-xs text-gray-500">{text}</span>
                   </div>
                 ))}
               </div>
               <button
                 disabled
-                className="w-full py-2.5 rounded-xl border border-white/[0.08] text-sm font-medium text-gray-500 cursor-not-allowed"
+                className="w-full py-2.5 rounded-xl border border-white/[0.07] text-xs font-medium text-gray-600 cursor-not-allowed"
               >
-                Current Plan
+                الخطة الحالية
               </button>
             </div>
 
             {/* Pro */}
-            <div className="rounded-2xl border border-violet-500/30 bg-gradient-to-br from-violet-950/50 to-blue-950/30 p-6 space-y-4 relative overflow-hidden">
-              <div className="pointer-events-none absolute top-0 left-6 right-6 h-px bg-gradient-to-r from-transparent via-violet-400/30 to-transparent" />
+            <div className="rounded-2xl border border-violet-500/30 bg-gradient-to-br from-violet-950/60 to-blue-950/30 p-5 space-y-4 relative overflow-hidden">
+              <div className="absolute top-0 left-6 right-6 h-px bg-gradient-to-r from-transparent via-violet-400/30 to-transparent" />
 
               <div className="flex items-start justify-between">
                 <div>
@@ -152,30 +150,28 @@ export function PricingModal({ onClose }: Props) {
                     <p className="text-xs font-semibold text-violet-400 uppercase tracking-wider">Pro</p>
                     <span className="inline-flex items-center gap-1 text-[9px] font-bold uppercase tracking-widest text-amber-400 bg-amber-500/10 border border-amber-500/20 px-1.5 py-0.5 rounded-full">
                       <Star className="h-2 w-2" />
-                      Popular
+                      الأكثر شيوعاً
                     </span>
                   </div>
-                  <div className="flex items-baseline gap-1 mt-2">
-                    <span className="text-3xl font-bold text-white">${monthlyPrice}</span>
-                    <span className="text-sm text-gray-400">/month</span>
+                  <div className="flex items-baseline gap-1.5 mt-2">
+                    <span className="text-3xl font-bold text-white">{displayPrice}</span>
+                    <span className="text-sm text-gray-400">ر.س / شهر</span>
                   </div>
-                  {billing === 'annual' && (
-                    <p className="text-xs text-emerald-400 mt-1">Billed ${annualTotal}/year</p>
-                  )}
+                  {billing === 'annual'
+                    ? <p className="text-xs text-emerald-400 mt-1">يُفوتر {annualPrice} ر.س / سنة</p>
+                    : <p className="text-xs text-emerald-400 mt-1">الشهر الأول مجاناً ✓</p>
+                  }
                 </div>
-                <Crown className="h-5 w-5 text-violet-400 mt-1" />
+                <Crown className="h-5 w-5 text-violet-400 mt-1 shrink-0" />
               </div>
 
-              <div className="space-y-2.5">
+              <div className="space-y-2">
                 {PRO_FEATURES.map(({ icon: Icon, text, highlight }) => (
-                  <div key={text} className="flex items-start gap-2.5">
-                    <div className={`mt-0.5 shrink-0 ${highlight ? 'text-violet-400' : 'text-gray-400'}`}>
-                      {highlight
-                        ? <Icon className="h-3.5 w-3.5" />
-                        : <Check className="h-3.5 w-3.5" />
-                      }
+                  <div key={text} className="flex items-start gap-2">
+                    <div className={`mt-0.5 shrink-0 ${highlight ? 'text-violet-400' : 'text-gray-500'}`}>
+                      {highlight ? <Icon className="h-3.5 w-3.5" /> : <Check className="h-3.5 w-3.5" />}
                     </div>
-                    <span className={`text-sm ${highlight ? 'text-gray-200 font-medium' : 'text-gray-400'}`}>
+                    <span className={`text-xs ${highlight ? 'text-gray-200 font-medium' : 'text-gray-400'}`}>
                       {text}
                     </span>
                   </div>
@@ -183,30 +179,17 @@ export function PricingModal({ onClose }: Props) {
               </div>
 
               <button
-                onClick={handleUpgrade}
-                disabled={loading}
-                className="w-full py-2.5 rounded-xl bg-gradient-to-r from-violet-600 to-blue-600 hover:from-violet-500 hover:to-blue-500 text-white text-sm font-semibold shadow-lg shadow-violet-600/30 transition-all active:scale-[0.98] disabled:opacity-70 flex items-center justify-center gap-2"
+                onClick={handleSubscribe}
+                className="w-full py-2.5 rounded-xl bg-gradient-to-r from-violet-600 to-blue-600 hover:from-violet-500 hover:to-blue-500 text-white text-sm font-bold shadow-lg shadow-violet-600/30 transition-all active:scale-[0.98] flex items-center justify-center gap-2"
               >
-                {loading ? (
-                  <>
-                    <svg className="h-4 w-4 animate-spin" viewBox="0 0 24 24" fill="none">
-                      <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"/>
-                      <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4z"/>
-                    </svg>
-                    Processing...
-                  </>
-                ) : (
-                  <>
-                    <Crown className="h-4 w-4" />
-                    Upgrade Now
-                  </>
-                )}
+                <MessageCircle className="h-4 w-4" />
+                اشترك الآن
               </button>
             </div>
           </div>
 
           <p className="text-center text-xs text-gray-600 mt-4">
-            Secure payment · Cancel anytime · Instant activation
+            دفع آمن عبر تحويل بنكي · إلغاء في أي وقت · تفعيل فوري
           </p>
         </div>
       </div>
@@ -214,22 +197,6 @@ export function PricingModal({ onClose }: Props) {
   )
 }
 
-// ── UpgradePrompt — auto-opens modal when ?upgrade=1 is in URL ──────────────────
-
-export function UpgradePrompt() {
-  const [open, setOpen] = useState(false)
-
-  useEffect(() => {
-    const params = new URLSearchParams(window.location.search)
-    if (params.get('upgrade') === '1') {
-      setOpen(true)
-      // Clean URL without reload
-      const url = new URL(window.location.href)
-      url.searchParams.delete('upgrade')
-      window.history.replaceState({}, '', url.toString())
-    }
-  }, [])
-
-  if (!open) return null
-  return <PricingModal onClose={() => setOpen(false)} />
-}
+// UpgradePrompt — kept for backward compat but no longer auto-opens.
+// All upgrade CTAs now navigate directly to /pricing.
+export function UpgradePrompt() { return null }

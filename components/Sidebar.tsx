@@ -150,9 +150,9 @@ export function Sidebar() {
           <p className="text-[11px] text-gray-500 mb-2.5 leading-relaxed">
             Unlock AI insights, analytics &amp; more.
           </p>
-          <Link href="/?upgrade=1">
+          <Link href="/pricing">
             <button className="w-full text-xs bg-violet-600 hover:bg-violet-500 active:scale-95 text-white py-1.5 rounded-lg transition-all font-semibold">
-              Upgrade Now
+              اشترك الآن
             </button>
           </Link>
         </div>
