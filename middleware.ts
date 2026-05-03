@@ -21,10 +21,15 @@ function isSubscriptionFree(pathname: string) {
 export async function middleware(req: NextRequest) {
   const pathname = req.nextUrl.pathname
 
+  // Forward the pathname in request headers so server components (e.g.
+  // SubscriptionBanner) can know the current route without a client component.
+  const requestHeaders = new Headers(req.headers)
+  requestHeaders.set('x-pathname', pathname)
+
   // Build the Supabase SSR client.
   // IMPORTANT: must use getAll/setAll — the old get/set/remove API breaks token
   // refresh and causes infinite redirect loops.
-  let res = NextResponse.next({ request: { headers: req.headers } })
+  let res = NextResponse.next({ request: { headers: requestHeaders } })
 
   const supabase = createServerClient(
     process.env.NEXT_PUBLIC_SUPABASE_URL!,
@@ -34,7 +39,8 @@ export async function middleware(req: NextRequest) {
         getAll: () => req.cookies.getAll(),
         setAll: (cookiesToSet) => {
           cookiesToSet.forEach(({ name, value }) => req.cookies.set(name, value))
-          res = NextResponse.next({ request: { headers: req.headers } })
+          // Preserve the x-pathname header when the token-refresh rewrites res.
+          res = NextResponse.next({ request: { headers: requestHeaders } })
           cookiesToSet.forEach(({ name, value, options }) =>
             res.cookies.set(name, value, options)
           )
@@ -80,7 +86,7 @@ export async function middleware(req: NextRequest) {
 
     console.log('[middleware] PROFILE:', profile)
 
-    // No profile row yet (e.g. trigger hasn't run, or race condition on signup).
+    // No profile row yet (trigger hasn't run, or race condition on signup).
     // Let the user through — the trigger/SQL fix will create the row shortly.
     if (!profile) {
       console.log('[middleware] No profile found → allowing access temporarily')

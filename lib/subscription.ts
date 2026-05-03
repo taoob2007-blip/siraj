@@ -16,8 +16,9 @@
 //   CHECK (subscription_status IN ('free', 'trial', 'active', 'expired'));
 //
 // ── STEP 2: Fix existing users — give 30-day trial to free/expired users ──────
-// Users who are 'free', 'expired', or stuck as 'trial' with no expiry date
-// get a fresh 30-day trial window.
+// IMPORTANT: the WHERE clause must NOT touch 'active' users.
+// Active users have trial_ends_at = NULL by design, so a naive
+// "trial_ends_at IS NULL" condition would wrongly downgrade them.
 //
 // UPDATE public.profiles
 // SET
@@ -27,7 +28,9 @@
 // WHERE
 //   subscription_status IN ('free', 'expired')
 //   OR (subscription_status = 'trial' AND trial_ends_at IS NULL)
-//   OR (subscription_status = 'trial' AND trial_ends_at < NOW());
+//   OR (subscription_status = 'trial' AND trial_ends_at < NOW())
+//   -- never touch active subscriptions:
+//   AND subscription_status != 'active';
 //
 // ── STEP 3: Fix 'active' users with NULL or already-expired subscription_ends_at
 // These users manually had status set to 'active' but no date was provided.

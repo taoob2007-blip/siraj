@@ -1,10 +1,17 @@
 import Link from 'next/link'
+import { headers } from 'next/headers'
 import { AlertTriangle, Clock } from 'lucide-react'
 import { getAuthUser, getServerSupabaseClient } from '@/lib/supabase/server'
 import { checkAccess } from '@/lib/subscription'
 
 export async function SubscriptionBanner() {
   try {
+    // Don't show the banner on /pricing or /billing — the user is already
+    // on the renewal/payment page, so showing "Renew Now → /pricing" is a loop.
+    const headersList = await headers()
+    const pathname    = headersList.get('x-pathname') ?? ''
+    if (pathname === '/pricing' || pathname.startsWith('/billing')) return null
+
     const user = await getAuthUser()
     if (!user) return null
 
