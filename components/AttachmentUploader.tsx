@@ -118,10 +118,13 @@ export function AttachmentUploader({ onChange, disabled }: Props) {
     // "Bucket not found" is returned by Supabase when the request is anonymous
     // (no session) or when no INSERT policy matches. Checking auth first gives
     // a clear error message instead of the misleading storage 400.
-    const { data: { user }, error: authErr } = await supabase.auth.getUser()
+    // getSession() hydrates the in-memory token cache so storage requests
+    // include the Authorization header. getUser() alone does not do this.
+    const { data: { session } } = await supabase.auth.getSession()
+    const user = session?.user ?? null
 
-    if (authErr || !user) {
-      console.error('[AttachmentUploader] not authenticated:', authErr)
+    if (!user) {
+      console.error('[AttachmentUploader] not authenticated')
       setAuthError('You must be signed in to upload files.')
       return
     }
