@@ -1,7 +1,7 @@
 'use client'
 
 import { useState, useRef, useCallback } from 'react'
-import { createBrowserClient } from '@supabase/ssr'
+import { supabaseBrowserClient as supabase } from '@/lib/supabase/client'
 import {
   Sparkles, Loader2, AlertTriangle, CheckCircle2, AlertCircle,
   TrendingDown, TrendingUp, Minus, ChevronDown, ChevronUp,
@@ -16,13 +16,6 @@ import type {
   RFQAnalysis,
   SupplierAnalysis,
 } from '@/lib/types'
-
-// ── Supabase ───────────────────────────────────────────────────────────────────
-
-const supabase = createBrowserClient(
-  process.env.NEXT_PUBLIC_SUPABASE_URL!,
-  process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!,
-)
 
 // ── Types ──────────────────────────────────────────────────────────────────────
 

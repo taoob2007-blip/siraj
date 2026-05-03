@@ -1,7 +1,7 @@
 'use client'
 
 import { useState, type FormEvent } from 'react'
-import { createSupabaseBrowserClient } from '@/lib/supabase/client'
+import { supabaseBrowserClient as supabase } from '@/lib/supabase/client'
 import { useRouter } from 'next/navigation'
 
 interface AuthFormProps {
@@ -34,8 +34,6 @@ export function AuthForm({ mode }: AuthFormProps) {
     setError(null)
     setInfo(null)
 
-    const supabase = createSupabaseBrowserClient()
-
     if (mode === 'login') {
       const { error } = await supabase.auth.signInWithPassword({ email, password })
       if (error) {
@@ -61,7 +59,6 @@ export function AuthForm({ mode }: AuthFormProps) {
     setGoogleLoading(true)
     setError(null)
 
-    const supabase = createSupabaseBrowserClient()
     const { error } = await supabase.auth.signInWithOAuth({
       provider: 'google',
       options: {

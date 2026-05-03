@@ -1,7 +1,7 @@
 'use client'
 
 import { useRef, useState, useEffect } from 'react'
-import { createBrowserClient } from '@supabase/ssr'
+import { supabaseBrowserClient as supabase } from '@/lib/supabase/client'
 import {
   UploadCloud, X, FileText, AlertCircle, Loader2,
   CheckCircle2, Image as ImageIcon, ShieldAlert,
@@ -14,27 +14,6 @@ const BUCKET       = 'attachments'
 const MAX_BYTES    = 5 * 1024 * 1024
 const ALLOWED_MIME = new Set(['application/pdf', 'image/png', 'image/jpeg', 'image/jpg', 'image/webp'])
 const ALLOWED_EXT  = /\.(pdf|png|jpg|jpeg|webp)$/i
-
-// ── Supabase ───────────────────────────────────────────────────────────────────
-// SINGLETON — must be created ONCE at module level, not inside a function.
-//
-// Why this matters for storage uploads:
-//   createBrowserClient reads the session from cookies into an in-memory cache.
-//   The Storage module reads the auth token FROM that in-memory cache when it
-//   builds the Authorization header.  If you call createBrowserClient() inside
-//   a function, every call produces a fresh instance whose cache is empty.
-//   auth.getUser() still "works" on a fresh instance because it makes a direct
-//   network call that carries the cookie — but that call does NOT populate the
-//   cache.  The storage upload that follows sees an empty cache → no token →
-//   Supabase treats the request as anonymous → "Upload not permitted".
-//
-//   A module-level singleton is initialised once, the cookie is read once, and
-//   every subsequent call (auth AND storage) shares the same populated cache.
-
-const supabase = createBrowserClient(
-  process.env.NEXT_PUBLIC_SUPABASE_URL!,
-  process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!,
-)
 
 // ── Types ──────────────────────────────────────────────────────────────────────
 
@@ -72,8 +51,6 @@ function validate(file: File): string | null {
   return null
 }
 
-// Path is scoped to the authenticated user so RLS policies can match on folder.
-// Shape: {userId}/rfq/{timestamp}-{random}-{sanitized}.{ext}
 function buildPath(userId: string, file: File): string {
   const sanitized = file.name.replace(/[^a-zA-Z0-9._-]/g, '_')
   return `${userId}/${sanitized}`
@@ -114,17 +91,15 @@ export function AttachmentUploader({ onChange, disabled }: Props) {
   async function processFiles(fileList: FileList) {
     setAuthError(null)
 
-    // ── Auth check — MUST happen before any storage call ─────────────────────
-    // "Bucket not found" is returned by Supabase when the request is anonymous
-    // (no session) or when no INSERT policy matches. Checking auth first gives
-    // a clear error message instead of the misleading storage 400.
-    // getSession() hydrates the in-memory token cache so storage requests
-    // include the Authorization header. getUser() alone does not do this.
+    // getSession() reads from localStorage and populates the in-memory token
+    // cache that the Storage client uses for the Authorization header.
     const { data: { session } } = await supabase.auth.getSession()
+    console.log('SESSION', session)
+
     const user = session?.user ?? null
 
     if (!user) {
-      console.error('[AttachmentUploader] not authenticated')
+      console.error('[AttachmentUploader] no active session')
       setAuthError('You must be signed in to upload files.')
       return
     }
@@ -142,8 +117,8 @@ export function AttachmentUploader({ onChange, disabled }: Props) {
       }
 
       const objectUrl = file.type.startsWith('image/') ? URL.createObjectURL(file) : ''
-      // Include user.id in path — required for user-scoped RLS policies
       const path = buildPath(user.id, file)
+      console.log('UPLOAD PATH', path)
 
       setFiles((prev) => [...prev, {
         id, name: file.name, size: file.size, type: file.type,
@@ -156,16 +131,11 @@ export function AttachmentUploader({ onChange, disabled }: Props) {
         .then(({ data, error: uploadErr }: { data: { path: string } | null; error: { message: string; statusCode?: string } | null }) => {
           if (uploadErr) {
             console.error('[AttachmentUploader] upload failed', {
-              bucket:   BUCKET,
+              bucket:      BUCKET,
               path,
-              userId:   user.id,
-              fileName: file.name,
-              fileType: file.type,
-              fileSize: file.size,
-              // The full error object — statusCode 400 + "Bucket not found"
-              // means the RLS INSERT policy is missing or not matching.
+              userId:      user.id,
               errorMessage: uploadErr.message,
-              errorStatus:  (uploadErr as { statusCode?: string }).statusCode,
+              errorStatus:  uploadErr.statusCode,
             })
           } else {
             console.log('[AttachmentUploader] upload ok', { path: data?.path })
@@ -175,12 +145,8 @@ export function AttachmentUploader({ onChange, disabled }: Props) {
             prev.map((f) =>
               f.id !== id ? f
                 : uploadErr
-                  ? {
-                      ...f,
-                      status: 'error' as const,
-                      error: friendlyError(uploadErr.message),
-                    }
-                  : { ...f, status: 'done' as const, path },
+                  ? { ...f, status: 'error' as const, error: friendlyError(uploadErr.message) }
+                  : { ...f, status: 'done'  as const, path },
             ),
           )
         })
@@ -279,7 +245,7 @@ export function AttachmentUploader({ onChange, disabled }: Props) {
 function friendlyError(raw: string): string {
   const msg = raw.toLowerCase()
   if (msg.includes('bucket not found'))
-    return 'Upload not permitted — contact support (storage policy missing)'
+    return 'Upload not permitted — bucket missing or no INSERT policy'
   if (msg.includes('duplicate') || msg.includes('already exists'))
     return 'File already uploaded'
   if (msg.includes('payload too large') || msg.includes('entity too large'))
