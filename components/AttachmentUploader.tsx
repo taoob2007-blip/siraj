@@ -75,10 +75,8 @@ function validate(file: File): string | null {
 // Path is scoped to the authenticated user so RLS policies can match on folder.
 // Shape: {userId}/rfq/{timestamp}-{random}-{sanitized}.{ext}
 function buildPath(userId: string, file: File): string {
-  const ext      = (file.name.split('.').pop() ?? 'bin').toLowerCase()
-  const random   = Math.random().toString(36).slice(2, 8)
-  const sanitized = file.name.replace(/[^a-zA-Z0-9._-]/g, '_').slice(0, 60)
-  return `${userId}/rfq/${Date.now()}-${random}-${sanitized}.${ext}`
+  const sanitized = file.name.replace(/[^a-zA-Z0-9._-]/g, '_')
+  return `${userId}/${sanitized}`
 }
 
 // ── Component ──────────────────────────────────────────────────────────────────
@@ -121,24 +119,6 @@ export function AttachmentUploader({ onChange, disabled }: Props) {
     // (no session) or when no INSERT policy matches. Checking auth first gives
     // a clear error message instead of the misleading storage 400.
     const { data: { user }, error: authErr } = await supabase.auth.getUser()
-
-    // ── SESSION / URL DEBUG ───────────────────────────────────────────────────
-    console.log("DEBUG → SUPABASE URL:", process.env.NEXT_PUBLIC_SUPABASE_URL)
-    const { data: sessionData } = await supabase.auth.getSession()
-    console.log("DEBUG → SESSION:", sessionData?.session)
-    console.log("DEBUG → USER:", user)
-    console.log("DEBUG → AUTH ERROR:", authErr)
-    // ─────────────────────────────────────────────────────────────────────────
-
-    // ── TEMPORARY DEBUG — remove before shipping ──────────────────────────────
-    console.log("AUTH DEBUG USER:", user)
-    console.log("AUTH DEBUG ERROR:", authErr)
-    if (!user) {
-      alert("USER IS NULL — NOT AUTHENTICATED")
-    } else {
-      alert("USER OK: " + user.id)
-    }
-    // ── END DEBUG ─────────────────────────────────────────────────────────────
 
     if (authErr || !user) {
       console.error('[AttachmentUploader] not authenticated:', authErr)

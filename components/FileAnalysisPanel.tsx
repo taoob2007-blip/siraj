@@ -19,19 +19,18 @@ import type {
 
 // ── Supabase ───────────────────────────────────────────────────────────────────
 
-function getSupabase() {
-  return createBrowserClient(
-    process.env.NEXT_PUBLIC_SUPABASE_URL!,
-    process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!,
-  )
-}
+const supabase = createBrowserClient(
+  process.env.NEXT_PUBLIC_SUPABASE_URL!,
+  process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!,
+)
 
 // ── Types ──────────────────────────────────────────────────────────────────────
 
 interface Props {
-  mode:       FileAnalysisMode
-  onResults?: (results: FileAnalysisResult[]) => void
-  disabled?:  boolean
+  mode:                  FileAnalysisMode
+  onResults?:            (results: FileAnalysisResult[]) => void
+  onAttachmentsChange?:  (attachments: Attachment[]) => void
+  disabled?:             boolean
 }
 
 // Discriminated union — status field narrows the whole type
@@ -285,7 +284,7 @@ function AnalysisResultCard({ state, fileName, mode }: {
 
 // ── Main component ─────────────────────────────────────────────────────────────
 
-export function FileAnalysisPanel({ mode, onResults, disabled }: Props) {
+export function FileAnalysisPanel({ mode, onResults, onAttachmentsChange, disabled }: Props) {
   // Record<path, AnalysisState> — plain object avoids all MapIterator issues.
   // Object.entries / Object.values / Object.keys are always safe to use.
   const [states, setStates] = useState<StateMap>({})
@@ -307,7 +306,6 @@ export function FileAnalysisPanel({ mode, onResults, disabled }: Props) {
     setFileState(path, { status: 'signing' })
 
     try {
-      const supabase = getSupabase()
       const { data: signed, error: signErr } = await supabase.storage
         .from('attachments')
         .createSignedUrl(path, 300)
@@ -347,6 +345,8 @@ export function FileAnalysisPanel({ mode, onResults, disabled }: Props) {
 
   // ── Handle uploader onChange ─────────────────────────────────────────────────
   const handleAttachmentsChange = useCallback((attachments: Attachment[]) => {
+    onAttachmentsChange?.(attachments)
+
     // Register file names
     for (const att of attachments) {
       fileNames.current[att.path] = att.name

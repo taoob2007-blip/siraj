@@ -6,7 +6,7 @@ import { useRouter } from 'next/navigation'
 import { SupplierSelector } from './SupplierSelector'
 import { InviteLinks } from './InviteLinks'
 import { FieldBuilder } from './FieldBuilder'
-import { AttachmentUploader } from './AttachmentUploader'
+import { FileAnalysisPanel } from './FileAnalysisPanel'
 import { Supplier, RFQFormData, CreateRFQResponse, DEFAULT_RFQ_FIELDS, Attachment } from '@/lib/types'
 import { savePendingRFQ, buildTempRFQ, saveDraft, loadDraft, clearDraft } from '@/lib/rfqStore'
 import {
@@ -406,8 +406,9 @@ export function RFQCreateForm() {
               <span className="text-xs font-medium text-gray-400">Attachments</span>
               <span className="text-[11px] text-gray-600">(optional)</span>
             </div>
-            <AttachmentUploader
-              onChange={setAttachments}
+            <FileAnalysisPanel
+              mode="rfq"
+              onAttachmentsChange={setAttachments}
               disabled={isLoading}
             />
           </div>
