@@ -122,6 +122,14 @@ export function AttachmentUploader({ onChange, disabled }: Props) {
     // a clear error message instead of the misleading storage 400.
     const { data: { user }, error: authErr } = await supabase.auth.getUser()
 
+    // ── SESSION / URL DEBUG ───────────────────────────────────────────────────
+    console.log("DEBUG → SUPABASE URL:", process.env.NEXT_PUBLIC_SUPABASE_URL)
+    const { data: sessionData } = await supabase.auth.getSession()
+    console.log("DEBUG → SESSION:", sessionData?.session)
+    console.log("DEBUG → USER:", user)
+    console.log("DEBUG → AUTH ERROR:", authErr)
+    // ─────────────────────────────────────────────────────────────────────────
+
     // ── TEMPORARY DEBUG — remove before shipping ──────────────────────────────
     console.log("AUTH DEBUG USER:", user)
     console.log("AUTH DEBUG ERROR:", authErr)
