@@ -32,16 +32,17 @@ export function AuthForm({ mode }: AuthFormProps) {
     setInfo(null)
 
     if (mode === 'login') {
-      const { error } = await supabase.auth.signInWithPassword({ email, password })
+      const { data, error } = await supabase.auth.signInWithPassword({ email, password })
       if (error) {
         setError(error.message)
         setLoading(false)
         return
       }
+      console.log('[AuthForm] session after login:', data.session)
       // Hard reload so the browser sends the new auth cookies to the middleware.
       // router.push() does client-side navigation and the middleware may not see
       // the fresh cookies in time, causing a redirect loop back to /login.
-      window.location.href = '/'
+      window.location.href = '/rfqs'
     } else {
       const { error } = await supabase.auth.signUp({ email, password })
       if (error) {

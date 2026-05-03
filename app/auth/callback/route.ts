@@ -12,6 +12,12 @@ export async function GET(request: NextRequest) {
 
   const response = NextResponse.redirect(`${origin}${next}`)
 
+  // On localhost (HTTP) browsers silently drop Secure cookies, so we must
+  // derive the secure flag from the actual origin rather than hardcoding it.
+  const isLocalhost =
+    origin.startsWith('http://localhost') ||
+    origin.startsWith('http://127.0.0.1')
+
   const supabase = createServerClient(
     process.env.NEXT_PUBLIC_SUPABASE_URL!,
     process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!,
@@ -19,12 +25,11 @@ export async function GET(request: NextRequest) {
       cookies: {
         getAll: () => request.cookies.getAll(),
         setAll: (cookiesToSet) => {
-          // Use Supabase's own options — do NOT override secure/sameSite.
-          // Hardcoding secure:true breaks localhost (HTTP) because browsers
-          // silently drop Secure cookies on non-HTTPS connections, leaving
-          // the middleware with no session and causing a /login redirect loop.
           cookiesToSet.forEach(({ name, value, options }) => {
-            response.cookies.set(name, value, options)
+            response.cookies.set(name, value, {
+              ...options,
+              secure: !isLocalhost,
+            })
           })
         },
       },
@@ -34,7 +39,10 @@ export async function GET(request: NextRequest) {
   const { error } = await supabase.auth.exchangeCodeForSession(code)
 
   if (error) {
-    return NextResponse.redirect(`${origin}/login?error=exchange_failed`)
+    console.error('[auth/callback] exchangeCodeForSession error:', error.message)
+    return NextResponse.redirect(
+      `${origin}/login?error=${encodeURIComponent(error.message)}`
+    )
   }
 
   return response
