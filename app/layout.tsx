@@ -3,6 +3,7 @@ import type { ReactNode } from 'react'
 import { Inter } from 'next/font/google'
 import './globals.css'
 import { Sidebar } from '@/components/Sidebar'
+import { ToastContainer } from '@/components/Toast'
 
 const inter = Inter({ subsets: ['latin'], variable: '--font-sans' })
 
@@ -26,6 +27,7 @@ export default function RootLayout({ children }: { children: ReactNode }) {
             <p className="text-xs text-gray-700 text-center">© 2024 SIRAJ. All rights reserved.</p>
           </footer>
         </div>
+        <ToastContainer />
       </body>
     </html>
   )

@@ -80,3 +80,27 @@ export interface RFQFormData {
   fields: RFQField[]
   suppliers: Supplier[]
 }
+
+// ── Notifications ─────────────────────────────────────────────────────────────
+
+export type NotificationType = 'rfq' | 'contract' | 'system'
+
+export interface NotificationItem {
+  id:         string
+  user_id:    string
+  title:      string
+  message:    string
+  type:       NotificationType
+  read:       boolean
+  created_at: string
+}
+
+// ── Profile ───────────────────────────────────────────────────────────────────
+
+export interface Profile {
+  id:         string
+  full_name:  string | null
+  company:    string | null
+  role:       string | null
+  updated_at: string | null
+}
