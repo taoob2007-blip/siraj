@@ -78,9 +78,18 @@ export async function middleware(req: NextRequest) {
       .eq('id', user.id)
       .single()
 
+    console.log('[middleware] PROFILE:', profile)
+
+    // No profile row yet (e.g. trigger hasn't run, or race condition on signup).
+    // Let the user through — the trigger/SQL fix will create the row shortly.
+    if (!profile) {
+      console.log('[middleware] No profile found → allowing access temporarily')
+      return res
+    }
+
     const { allowed } = checkAccess(profile)
 
-    console.log(`[middleware] ${pathname} | USER: ${user.id} | allowed: ${allowed} | status: ${profile?.subscription_status ?? 'none'}`)
+    console.log(`[middleware] ${pathname} | USER: ${user.id} | allowed: ${allowed} | status: ${profile.subscription_status ?? 'none'}`)
 
     if (!allowed) {
       const url = req.nextUrl.clone()
