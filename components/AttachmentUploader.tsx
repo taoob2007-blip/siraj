@@ -4,7 +4,7 @@ import { useRef, useState, useEffect } from 'react'
 import { supabaseBrowserClient as supabase } from '@/lib/supabase/client'
 import {
   UploadCloud, X, FileText, AlertCircle, Loader2,
-  CheckCircle2, Image as ImageIcon, ShieldAlert,
+  CheckCircle2, Image as ImageIcon, ShieldAlert, Download,
 } from 'lucide-react'
 import type { Attachment } from '@/lib/types'
 
@@ -22,20 +22,22 @@ interface LocalFile {
   name:      string
   size:      number
   type:      string
-  objectUrl: string
+  objectUrl: string   // blob URL for instant preview before upload completes
   status:    'uploading' | 'done' | 'error'
   path?:     string
+  signedUrl?: string  // short-lived URL generated after successful upload
   error?:    string
 }
 
 interface Props {
   onChange:  (attachments: Attachment[]) => void
+  rfqId?:    string   // scopes storage path to rfq folder; omit for draft/generic uploads
   disabled?: boolean
 }
 
 // ── Helpers ────────────────────────────────────────────────────────────────────
 
-function fmtSize(bytes: number): string {
+export function fmtSize(bytes: number): string {
   if (bytes < 1024)         return `${bytes} B`
   if (bytes < 1024 * 1024)  return `${(bytes / 1024).toFixed(0)} KB`
   return `${(bytes / (1024 * 1024)).toFixed(1)} MB`
@@ -51,14 +53,25 @@ function validate(file: File): string | null {
   return null
 }
 
-function buildPath(userId: string, file: File): string {
+// Path: {userId}/rfq/{rfqId}/{file} when rfqId given; {userId}/{file} otherwise.
+function buildPath(userId: string, file: File, rfqId?: string): string {
   const sanitized = file.name.replace(/[^a-zA-Z0-9._-]/g, '_')
-  return `${userId}/${sanitized}`
+  return rfqId
+    ? `${userId}/rfq/${rfqId}/${sanitized}`
+    : `${userId}/${sanitized}`
+}
+
+async function generateSignedUrl(path: string): Promise<string | null> {
+  const { data, error } = await supabase.storage
+    .from(BUCKET)
+    .createSignedUrl(path, 60)
+  if (error || !data?.signedUrl) return null
+  return data.signedUrl
 }
 
 // ── Component ──────────────────────────────────────────────────────────────────
 
-export function AttachmentUploader({ onChange, disabled }: Props) {
+export function AttachmentUploader({ onChange, rfqId, disabled }: Props) {
   const inputRef    = useRef<HTMLInputElement>(null)
   const [files, setFiles] = useState<LocalFile[]>([])
   const [authError, setAuthError] = useState<string | null>(null)
@@ -91,11 +104,7 @@ export function AttachmentUploader({ onChange, disabled }: Props) {
   async function processFiles(fileList: FileList) {
     setAuthError(null)
 
-    // getSession() reads from localStorage and populates the in-memory token
-    // cache that the Storage client uses for the Authorization header.
     const { data: { session } } = await supabase.auth.getSession()
-    console.log('SESSION', session)
-
     const user = session?.user ?? null
 
     if (!user) {
@@ -117,8 +126,7 @@ export function AttachmentUploader({ onChange, disabled }: Props) {
       }
 
       const objectUrl = file.type.startsWith('image/') ? URL.createObjectURL(file) : ''
-      const path = buildPath(user.id, file)
-      console.log('UPLOAD PATH', path)
+      const path = buildPath(user.id, file, rfqId)
 
       setFiles((prev) => [...prev, {
         id, name: file.name, size: file.size, type: file.type,
@@ -128,27 +136,22 @@ export function AttachmentUploader({ onChange, disabled }: Props) {
       void supabase.storage
         .from(BUCKET)
         .upload(path, file, { cacheControl: '3600', upsert: false })
-        .then(({ data, error: uploadErr }: { data: { path: string } | null; error: { message: string; statusCode?: string } | null }) => {
+        .then(async ({ data, error: uploadErr }: { data: { path: string } | null; error: { message: string; statusCode?: string } | null }) => {
           if (uploadErr) {
             console.error('[AttachmentUploader] upload failed', {
-              bucket:      BUCKET,
-              path,
-              userId:      user.id,
+              bucket: BUCKET, path,
               errorMessage: uploadErr.message,
               errorStatus:  uploadErr.statusCode,
             })
+            setFiles((prev) => prev.map((f) =>
+              f.id !== id ? f : { ...f, status: 'error' as const, error: friendlyError(uploadErr.message, uploadErr.statusCode) }
+            ))
           } else {
-            console.log('[AttachmentUploader] upload ok', { path: data?.path })
+            const signedUrl = await generateSignedUrl(data?.path ?? path)
+            setFiles((prev) => prev.map((f) =>
+              f.id !== id ? f : { ...f, status: 'done' as const, path, signedUrl: signedUrl ?? undefined }
+            ))
           }
-
-          setFiles((prev) =>
-            prev.map((f) =>
-              f.id !== id ? f
-                : uploadErr
-                  ? { ...f, status: 'error' as const, error: friendlyError(uploadErr.message, uploadErr.statusCode) }
-                  : { ...f, status: 'done'  as const, path },
-            ),
-          )
         })
     }
   }
@@ -164,7 +167,7 @@ export function AttachmentUploader({ onChange, disabled }: Props) {
     setFiles((prev) => prev.filter((f) => f.id !== id))
   }
 
-  // ── Drag-and-drop ─────────────────────────────────────────────────────────────
+  // ── Drag-and-drop ──────────────────────────────────────────────────────────────
 
   const [dragging, setDragging] = useState(false)
 
@@ -182,7 +185,6 @@ export function AttachmentUploader({ onChange, disabled }: Props) {
   return (
     <div className="space-y-3">
 
-      {/* Auth error banner */}
       {authError && (
         <div className="flex items-center gap-2.5 rounded-lg border border-red-500/25 bg-red-500/[0.06] px-3 py-2.5">
           <ShieldAlert className="h-4 w-4 text-red-400 shrink-0" />
@@ -190,7 +192,6 @@ export function AttachmentUploader({ onChange, disabled }: Props) {
         </div>
       )}
 
-      {/* Drop zone */}
       <div
         onDragOver={onDragOver}
         onDragLeave={onDragLeave}
@@ -228,7 +229,6 @@ export function AttachmentUploader({ onChange, disabled }: Props) {
         />
       </div>
 
-      {/* File list */}
       {files.length > 0 && (
         <div className="space-y-2">
           {files.map((f) => (
@@ -244,13 +244,10 @@ export function AttachmentUploader({ onChange, disabled }: Props) {
 
 function friendlyError(raw: string, statusCode?: string): string {
   const msg = raw.toLowerCase()
-  if (msg.includes('bucket not found')) {
-    // statusCode 404 = bucket doesn't exist in Supabase Storage dashboard
-    // statusCode 400/403 = bucket exists but RLS INSERT policy is missing
+  if (msg.includes('bucket not found'))
     return statusCode === '404'
       ? 'Bucket not found — create an "attachments" bucket in Supabase Storage'
       : 'Upload not permitted — INSERT policy missing on "attachments" bucket'
-  }
   if (msg.includes('duplicate') || msg.includes('already exists'))
     return 'File already uploaded'
   if (msg.includes('payload too large') || msg.includes('entity too large'))
@@ -267,6 +264,7 @@ function FileRow({
 }: { file: LocalFile; disabled?: boolean; onRemove: () => void }) {
   const isImage = file.type.startsWith('image/') || /\.(png|jpg|jpeg|webp)$/i.test(file.name)
   const isPDF   = file.type === 'application/pdf' || file.name.endsWith('.pdf')
+  const previewUrl = file.objectUrl || file.signedUrl
 
   return (
     <div className={[
@@ -276,10 +274,11 @@ function FileRow({
         : 'border-white/[0.07] bg-[#111827]',
     ].join(' ')}>
 
+      {/* Thumbnail */}
       <div className="shrink-0 w-9 h-9 rounded-lg overflow-hidden border border-white/[0.08] flex items-center justify-center bg-white/[0.03]">
-        {isImage && file.objectUrl ? (
+        {isImage && previewUrl ? (
           // eslint-disable-next-line @next/next/no-img-element
-          <img src={file.objectUrl} alt={file.name} className="w-full h-full object-cover" />
+          <img src={previewUrl} alt={file.name} className="w-full h-full object-cover" />
         ) : isPDF ? (
           <FileText  className="h-4 w-4 text-red-400"  />
         ) : (
@@ -287,11 +286,11 @@ function FileRow({
         )}
       </div>
 
+      {/* Info */}
       <div className="flex-1 min-w-0">
         <p className="text-xs font-medium text-gray-200 truncate">{file.name}</p>
         <div className="flex items-center gap-2 mt-0.5">
           <span className="text-[11px] text-gray-600">{fmtSize(file.size)}</span>
-
           {file.status === 'uploading' && (
             <span className="inline-flex items-center gap-1 text-[11px] text-blue-400">
               <Loader2 className="h-2.5 w-2.5 animate-spin" />Uploading…
@@ -310,6 +309,22 @@ function FileRow({
         </div>
       </div>
 
+      {/* Download (only when done) */}
+      {file.status === 'done' && file.signedUrl && (
+        <a
+          href={file.signedUrl}
+          download={file.name}
+          target="_blank"
+          rel="noopener noreferrer"
+          onClick={(e) => e.stopPropagation()}
+          className="shrink-0 p-1.5 rounded-lg text-gray-600 hover:text-blue-400 hover:bg-white/[0.07] transition-all"
+          aria-label="Download file"
+        >
+          <Download className="h-3.5 w-3.5" />
+        </a>
+      )}
+
+      {/* Remove */}
       <button
         type="button"
         onClick={onRemove}
