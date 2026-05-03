@@ -5,8 +5,18 @@ export async function GET(request: NextRequest) {
   const requestUrl = new URL(request.url)
   const origin = requestUrl.origin
 
-  const code = requestUrl.searchParams.get('code')
+  // Supabase sends errors as query params when the OAuth flow fails server-side
+  // (e.g. database trigger failure during user creation).
+  const supabaseError = requestUrl.searchParams.get('error_description')
+    || requestUrl.searchParams.get('error')
+  if (supabaseError) {
+    console.error('[auth/callback] Supabase error:', supabaseError)
+    return NextResponse.redirect(
+      `${origin}/login?error=${encodeURIComponent(supabaseError)}`
+    )
+  }
 
+  const code = requestUrl.searchParams.get('code')
   if (!code) {
     return NextResponse.redirect(`${origin}/login?error=no_code`)
   }
