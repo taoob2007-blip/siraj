@@ -145,7 +145,7 @@ export function AttachmentUploader({ onChange, disabled }: Props) {
             prev.map((f) =>
               f.id !== id ? f
                 : uploadErr
-                  ? { ...f, status: 'error' as const, error: friendlyError(uploadErr.message) }
+                  ? { ...f, status: 'error' as const, error: friendlyError(uploadErr.message, uploadErr.statusCode) }
                   : { ...f, status: 'done'  as const, path },
             ),
           )
@@ -242,10 +242,15 @@ export function AttachmentUploader({ onChange, disabled }: Props) {
 
 // ── Error message translation ──────────────────────────────────────────────────
 
-function friendlyError(raw: string): string {
+function friendlyError(raw: string, statusCode?: string): string {
   const msg = raw.toLowerCase()
-  if (msg.includes('bucket not found'))
-    return 'Upload not permitted — bucket missing or no INSERT policy'
+  if (msg.includes('bucket not found')) {
+    // statusCode 404 = bucket doesn't exist in Supabase Storage dashboard
+    // statusCode 400/403 = bucket exists but RLS INSERT policy is missing
+    return statusCode === '404'
+      ? 'Bucket not found — create an "attachments" bucket in Supabase Storage'
+      : 'Upload not permitted — INSERT policy missing on "attachments" bucket'
+  }
   if (msg.includes('duplicate') || msg.includes('already exists'))
     return 'File already uploaded'
   if (msg.includes('payload too large') || msg.includes('entity too large'))
