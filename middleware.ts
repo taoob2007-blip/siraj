@@ -29,7 +29,9 @@ export async function middleware(request: NextRequest) {
   const { pathname } = request.nextUrl
 
   // ── 1. Auth: routes that need a session ────────────────────────────────────
-  const isAuthPage = pathname.startsWith('/login') || pathname.startsWith('/signup')
+  // /login, /signup, /pricing are fully public — no session required
+  const isAuthPage   = pathname.startsWith('/login') || pathname.startsWith('/signup')
+  const isPublicPage = isAuthPage || pathname.startsWith('/pricing')
 
   const isAuthRequired =
     pathname === '/' ||
@@ -53,6 +55,7 @@ export async function middleware(request: NextRequest) {
     return NextResponse.redirect(url)
   }
 
+  // Logged-in users visiting /login or /signup → send to dashboard
   if (session && isAuthPage) {
     const url = request.nextUrl.clone()
     url.pathname = '/'
@@ -60,8 +63,8 @@ export async function middleware(request: NextRequest) {
   }
 
   // ── 2. Subscription gate: feature routes need active/trial access ──────────
-  // /billing and /settings are always reachable (so expired users can pay/update)
-  // /admin is role-gated at page level, not subscription-gated
+  // /billing, /settings, /pricing, /admin are always reachable regardless of plan.
+  // /admin role check happens at the page level, not here.
   const isSubscriptionGated =
     pathname === '/' ||
     pathname.startsWith('/rfqs') ||
@@ -84,9 +87,8 @@ export async function middleware(request: NextRequest) {
 
     if (!allowed) {
       const url = request.nextUrl.clone()
-      url.pathname = '/billing'
-      // Avoid redirect loop
-      if (pathname !== '/billing') return NextResponse.redirect(url)
+      url.pathname = '/pricing'
+      if (!isPublicPage) return NextResponse.redirect(url)
     }
   }
 

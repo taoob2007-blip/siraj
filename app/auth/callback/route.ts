@@ -19,13 +19,12 @@ export async function GET(request: NextRequest) {
       cookies: {
         getAll: () => request.cookies.getAll(),
         setAll: (cookiesToSet) => {
+          // Use Supabase's own options — do NOT override secure/sameSite.
+          // Hardcoding secure:true breaks localhost (HTTP) because browsers
+          // silently drop Secure cookies on non-HTTPS connections, leaving
+          // the middleware with no session and causing a /login redirect loop.
           cookiesToSet.forEach(({ name, value, options }) => {
-            response.cookies.set(name, value, {
-              ...options,
-              path: '/',
-              sameSite: 'lax',
-              secure: true,
-            })
+            response.cookies.set(name, value, options)
           })
         },
       },
