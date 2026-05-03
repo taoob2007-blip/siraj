@@ -6,11 +6,21 @@ import { Button } from '@/components/ui/button'
 import { Plus, FileText, AlertCircle } from 'lucide-react'
 import Link from 'next/link'
 import { consumePendingRFQ, type RFQItem } from '@/lib/rfqStore'
+import { supabaseBrowserClient as supabase } from '@/lib/supabase/client'
 
 export default function RFQsPage() {
   const [rfqs, setRfqs]       = useState<RFQItem[]>([])
   const [loading, setLoading] = useState(true)
   const [error, setError]     = useState<string | null>(null)
+
+  // Client-side session guard — belt-and-suspenders alongside middleware protection
+  useEffect(() => {
+    supabase.auth.getSession().then(({ data: { session } }) => {
+      if (!session) {
+        window.location.href = '/login'
+      }
+    })
+  }, [])
 
   useEffect(() => {
     // Step 1 — inject optimistic RFQ immediately (before server responds)
