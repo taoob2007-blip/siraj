@@ -2,8 +2,6 @@
 
 import { useState, type FormEvent } from 'react'
 import { supabaseBrowserClient as supabase } from '@/lib/supabase/client'
-import { useRouter } from 'next/navigation'
-
 interface AuthFormProps {
   mode: 'login' | 'signup'
 }
@@ -20,7 +18,6 @@ function GoogleIcon() {
 }
 
 export function AuthForm({ mode }: AuthFormProps) {
-  const router = useRouter()
   const [email, setEmail]           = useState('')
   const [password, setPassword]     = useState('')
   const [loading, setLoading]       = useState(false)
@@ -41,8 +38,10 @@ export function AuthForm({ mode }: AuthFormProps) {
         setLoading(false)
         return
       }
-      router.refresh()
-      router.push('/')
+      // Hard reload so the browser sends the new auth cookies to the middleware.
+      // router.push() does client-side navigation and the middleware may not see
+      // the fresh cookies in time, causing a redirect loop back to /login.
+      window.location.href = '/'
     } else {
       const { error } = await supabase.auth.signUp({ email, password })
       if (error) {

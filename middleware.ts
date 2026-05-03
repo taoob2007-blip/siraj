@@ -2,7 +2,9 @@ import { createServerClient } from '@supabase/ssr'
 import { NextRequest, NextResponse } from 'next/server'
 
 export async function middleware(request: NextRequest) {
-  const response = NextResponse.next()
+  let response = NextResponse.next({
+    request: { headers: request.headers },
+  })
 
   const supabase = createServerClient(
     process.env.NEXT_PUBLIC_SUPABASE_URL!,
@@ -13,15 +15,25 @@ export async function middleware(request: NextRequest) {
           return request.cookies.getAll()
         },
         setAll(cookiesToSet) {
-          cookiesToSet.forEach(({ name, value, options }) => {
-            response.cookies.set(name, value, options)
+          // Write refreshed tokens back to the request so that getSession()
+          // and any subsequent reads within the same request see updated values.
+          cookiesToSet.forEach(({ name, value }) =>
+            request.cookies.set(name, value)
+          )
+          // Rebuild response so the Set-Cookie headers reach the browser.
+          response = NextResponse.next({
+            request: { headers: request.headers },
           })
+          cookiesToSet.forEach(({ name, value, options }) =>
+            response.cookies.set(name, value, options)
+          )
         },
       },
     }
   )
 
-  // ⚠️ أهم شيء: هذا اللي يحدث session
+  // Always call getSession() — this refreshes expired access tokens and
+  // writes the refreshed cookies via setAll above.
   const { data: { session } } = await supabase.auth.getSession()
 
   const { pathname } = request.nextUrl
@@ -38,9 +50,9 @@ export async function middleware(request: NextRequest) {
     pathname.startsWith('/comparisons') ||
     pathname.startsWith('/contracts') ||
     pathname.startsWith('/messages') ||
-    pathname.startsWith('/categories')
+    pathname.startsWith('/categories') ||
+    pathname === '/'
 
-  // ❌ لو ما فيه session → يروح login
   if (!session && isProtected) {
     const loginUrl = request.nextUrl.clone()
     loginUrl.pathname = '/login'
@@ -48,10 +60,9 @@ export async function middleware(request: NextRequest) {
     return NextResponse.redirect(loginUrl)
   }
 
-  // ❌ لو فيه session → لا يرجع login
   if (session && isAuthPage) {
     const url = request.nextUrl.clone()
-    url.pathname = '/rfqs'
+    url.pathname = '/'
     return NextResponse.redirect(url)
   }
 
