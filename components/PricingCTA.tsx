@@ -2,19 +2,19 @@
 
 import { useState, useTransition } from 'react'
 import { useRouter } from 'next/navigation'
-import { MessageCircle, Loader2, ArrowRight, CheckCircle2, Zap } from 'lucide-react'
+import { MessageCircle, Loader2, CheckCircle2, Send, RefreshCw } from 'lucide-react'
 import { toast } from '@/components/Toast'
 import { submitPaymentRequest } from '@/app/billing/actions'
 
 const WA_NUMBER = '966552488556'
 
 function buildWaLink(email: string) {
-  const msg = `I have paid. Email: ${email}`
+  const msg = `السلام عليكم، أبغى الاشتراك في SIRAJ Pro.\nالإيميل: ${email}`
   return `https://wa.me/${WA_NUMBER}?text=${encodeURIComponent(msg)}`
 }
 
 interface Props {
-  email: string | null   // null = not logged in
+  email: string | null
 }
 
 export function PricingCTA({ email }: Props) {
@@ -23,77 +23,87 @@ export function PricingCTA({ email }: Props) {
   const [submitting, setSubmitting] = useState(false)
   const [done, setDone]             = useState(false)
 
-  function handleClick() {
-    // Not logged in → send to login, then back to /pricing after auth
-    if (!email) {
-      router.push('/login?next=/pricing')
-      return
-    }
+  // ── WhatsApp-only button (no DB — just opens chat) ──────────────────────────
+  function handleWhatsApp() {
+    if (!email) { router.push('/login?next=/pricing'); return }
+    window.open(buildWaLink(email), '_blank', 'noopener,noreferrer')
+  }
 
-    // Open WhatsApp immediately (must be synchronous to avoid popup blockers)
+  // ── "I sent the transfer" button — inserts payment request + opens WA ───────
+  function handleSentTransfer() {
+    if (!email) { router.push('/login?next=/pricing'); return }
+
+    // Open WhatsApp synchronously first (popup blockers fire on async calls)
     window.open(buildWaLink(email), '_blank', 'noopener,noreferrer')
 
-    if (done) return   // already submitted — WhatsApp open is enough
+    if (done) return
 
     setSubmitting(true)
     startTransition(async () => {
       const result = await submitPaymentRequest()
       if (result.ok) {
         setDone(true)
-        toast.success('Payment request sent. Waiting for admin approval.')
+        toast.success('تم إرسال طلب الدفع. سيتم التفعيل خلال دقائق.')
       } else if (result.error?.toLowerCase().includes('pending')) {
-        // Duplicate — silently mark as done
         setDone(true)
       } else {
-        toast.error(result.error)
+        toast.error(result.error ?? 'حدث خطأ، حاول مرة أخرى.')
       }
       setSubmitting(false)
     })
   }
 
+  // ── Post-submit state ────────────────────────────────────────────────────────
   if (done) {
     return (
       <div className="space-y-4">
-        <div className="flex items-start gap-3 rounded-xl border border-emerald-500/25 bg-emerald-500/[0.06] px-4 py-3.5">
-          <CheckCircle2 className="h-4 w-4 text-emerald-400 shrink-0 mt-0.5" />
+        <div className="flex items-start gap-3 rounded-2xl border border-emerald-500/25 bg-emerald-500/[0.07] px-4 py-4">
+          <CheckCircle2 className="h-5 w-5 text-emerald-400 shrink-0 mt-0.5" />
           <div>
-            <p className="text-sm font-semibold text-emerald-300">Request submitted!</p>
-            <p className="text-xs text-emerald-400/70 mt-0.5">
-              Your payment request has been logged. We&apos;ll activate your account after confirming your transfer — usually within 2 hours.
+            <p className="text-sm font-bold text-emerald-300">تم استلام طلبك ✓</p>
+            <p className="text-xs text-emerald-400/80 mt-1 leading-relaxed">
+              سيتحقق فريقنا من التحويل ويفعّل حسابك خلال دقائق معدودة.
+              إذا لم تتلقَّ تأكيداً خلال ساعة، تواصل معنا عبر واتساب.
             </p>
           </div>
         </div>
-
-        {/* Let them re-open WhatsApp in case they closed it */}
         <button
-          onClick={handleClick}
-          className="inline-flex items-center gap-2 text-sm text-emerald-400 hover:text-emerald-300 font-medium transition-colors"
+          onClick={handleWhatsApp}
+          className="w-full inline-flex items-center justify-center gap-2 py-3 rounded-xl border border-emerald-500/20 bg-emerald-500/[0.05] text-emerald-400 hover:bg-emerald-500/[0.10] text-sm font-semibold transition-all"
         >
-          <MessageCircle className="h-4 w-4" />
-          Re-open WhatsApp chat
+          <RefreshCw className="h-4 w-4" />
+          فتح واتساب مجدداً
         </button>
       </div>
     )
   }
 
+  // ── Default CTA ──────────────────────────────────────────────────────────────
   return (
     <div className="space-y-3">
+      {/* Primary: WhatsApp subscribe */}
       <button
-        onClick={handleClick}
-        disabled={submitting}
-        className="w-full inline-flex items-center justify-center gap-2.5 px-6 py-3.5 rounded-xl bg-gradient-to-r from-emerald-600 to-emerald-500 hover:from-emerald-500 hover:to-emerald-400 active:scale-[0.98] text-white text-sm font-semibold transition-all disabled:opacity-60 shadow-lg shadow-emerald-600/20"
+        onClick={handleWhatsApp}
+        className="w-full inline-flex items-center justify-center gap-2.5 px-6 py-4 rounded-2xl bg-[#25D366] hover:bg-[#20bd5a] active:scale-[0.98] text-white text-base font-bold transition-all shadow-lg shadow-[#25D366]/25"
       >
-        {submitting
-          ? <Loader2 className="h-4 w-4 animate-spin" />
-          : <MessageCircle className="h-4 w-4" />}
-        {email ? 'I have paid — Contact via WhatsApp' : 'Sign in to subscribe'}
-        {!submitting && <ArrowRight className="h-3.5 w-3.5" />}
+        <MessageCircle className="h-5 w-5" />
+        {email ? 'اشترك الآن عبر واتساب' : 'سجّل دخولك للاشتراك'}
       </button>
 
-      <div className="flex items-center justify-center gap-1.5 text-xs text-gray-500">
-        <Zap className="h-3 w-3 text-amber-400" />
-        Fastest approval via WhatsApp — most users activated in under 2 hours
-      </div>
+      {/* Secondary: I sent the transfer */}
+      {email && (
+        <button
+          onClick={handleSentTransfer}
+          disabled={submitting}
+          className="w-full inline-flex items-center justify-center gap-2.5 px-6 py-3.5 rounded-2xl border border-white/[0.10] bg-white/[0.04] hover:bg-white/[0.07] active:scale-[0.98] text-white text-sm font-semibold transition-all disabled:opacity-50"
+        >
+          {submitting
+            ? <Loader2 className="h-4 w-4 animate-spin" />
+            : <Send className="h-4 w-4" />
+          }
+          {submitting ? 'جارٍ الإرسال…' : 'أرسلت التحويل'}
+        </button>
+      )}
     </div>
   )
 }
