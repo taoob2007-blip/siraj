@@ -3,42 +3,46 @@ import { NextRequest, NextResponse } from 'next/server'
 import { checkAccess } from '@/lib/subscription'
 
 // ── Route classification ───────────────────────────────────────────────────────
-// Public: no session required, never redirect away from these.
-const PUBLIC_PATHS = ['/login', '/signup', '/auth', '/pricing']
 
-// Subscription-gated: session required AND active/trial plan required.
-const SUBSCRIPTION_GATED_PREFIXES = [
-  '/rfqs', '/suppliers', '/categories', '/analytics',
-  '/comparisons', '/contracts', '/messages', '/reports',
-]
-
+// Public routes (مهم جداً تضمين auth/callback)
 function isPublicPath(pathname: string) {
-  return PUBLIC_PATHS.some(p => pathname === p || pathname.startsWith(p + '/') || pathname.startsWith(p + '?'))
-    || pathname === '/'   // landing page — public
+  return (
+    pathname === '/' ||
+    pathname.startsWith('/login') ||
+    pathname.startsWith('/signup') ||
+    pathname.startsWith('/auth') || // يشمل /auth/callback
+    pathname.startsWith('/pricing')
+  )
 }
 
+// Subscription protected routes
+const SUBSCRIPTION_GATED_PREFIXES = [
+  '/rfqs',
+  '/suppliers',
+  '/categories',
+  '/analytics',
+  '/comparisons',
+  '/contracts',
+  '/messages',
+  '/reports',
+]
+
 function isSubscriptionGated(pathname: string) {
-  return SUBSCRIPTION_GATED_PREFIXES.some(p => pathname === p || pathname.startsWith(p + '/'))
+  return SUBSCRIPTION_GATED_PREFIXES.some(
+    (p) => pathname === p || pathname.startsWith(p + '/')
+  )
 }
 
 // ── Middleware ─────────────────────────────────────────────────────────────────
+
 export async function middleware(request: NextRequest) {
   const { pathname } = request.nextUrl
 
-  // ── 0. Canonical domain: www → non-www (production only) ──────────────────
-  const host = request.headers.get('host') ?? ''
-  if (host.startsWith('www.')) {
-    const url = request.nextUrl.clone()
-    url.host = host.slice(4)
-    url.protocol = 'https:'
-    return NextResponse.redirect(url, { status: 301 })
-  }
+  // ⚠️ لا تستخدم redirect www هنا (يسبب مشاكل OAuth)
 
-  // ── Build Supabase SSR client ──────────────────────────────────────────────
-  // `response` may be replaced inside setAll when Supabase refreshes tokens.
-  // Always return the local `response` at the end, never a freshly constructed
-  // NextResponse.next(), so that Set-Cookie headers are preserved.
-  let response = NextResponse.next({ request: { headers: request.headers } })
+  let response = NextResponse.next({
+    request: { headers: request.headers },
+  })
 
   const supabase = createServerClient(
     process.env.NEXT_PUBLIC_SUPABASE_URL!,
@@ -47,10 +51,12 @@ export async function middleware(request: NextRequest) {
       cookies: {
         getAll: () => request.cookies.getAll(),
         setAll: (cookiesToSet) => {
-          // Write into the request so the rest of this middleware invocation
-          // can read the refreshed values, then persist into the response.
-          cookiesToSet.forEach(({ name, value }) => request.cookies.set(name, value))
-          response = NextResponse.next({ request: { headers: request.headers } })
+          cookiesToSet.forEach(({ name, value }) =>
+            request.cookies.set(name, value)
+          )
+          response = NextResponse.next({
+            request: { headers: request.headers },
+          })
           cookiesToSet.forEach(({ name, value, options }) =>
             response.cookies.set(name, value, options)
           )
@@ -59,38 +65,36 @@ export async function middleware(request: NextRequest) {
     }
   )
 
-  // getSession() is safe in middleware because it reads the JWT from the cookie
-  // without a network call. getUser() would verify with the Supabase server on
-  // every request — too slow for middleware on every route.
-  const { data: { session } } = await supabase.auth.getSession()
+  const {
+    data: { session },
+  } = await supabase.auth.getSession()
+
   const user = session?.user ?? null
 
-  console.log(`[middleware] PATH: ${pathname}  USER: ${user?.id ?? 'none'}`)
+  console.log(`[middleware] PATH: ${pathname} USER: ${user?.id ?? 'none'}`)
 
-  // ── 1. No session ──────────────────────────────────────────────────────────
+  // ── 1. إذا ما فيه تسجيل دخول ───────────────────────────────────────────────
   if (!user) {
-    // Public routes are always allowed without a session.
-    if (isPublicPath(pathname)) return response
+    if (isPublicPath(pathname)) {
+      return response
+    }
 
-    // Everything else requires a login. Preserve the intended destination so
-    // AuthForm / the callback can redirect back after successful sign-in.
     const loginUrl = request.nextUrl.clone()
     loginUrl.pathname = '/login'
     loginUrl.searchParams.set('next', pathname)
+
     return NextResponse.redirect(loginUrl)
   }
 
-  // ── 2. Session exists ──────────────────────────────────────────────────────
-
-  // Never let a logged-in user land on /login or /signup — send to dashboard.
-  if (pathname === '/login' || pathname === '/signup') {
+  // ── 2. إذا مسجل ويحاول يدخل login ─────────────────────────────────────────
+  if (pathname.startsWith('/login') || pathname.startsWith('/signup')) {
     const url = request.nextUrl.clone()
     url.pathname = '/rfqs'
     url.search = ''
     return NextResponse.redirect(url)
   }
 
-  // ── 3. Admin gate ──────────────────────────────────────────────────────────
+  // ── 3. حماية admin ─────────────────────────────────────────────────────────
   if (pathname.startsWith('/admin')) {
     const { data: profile } = await supabase
       .from('profiles')
@@ -101,20 +105,19 @@ export async function middleware(request: NextRequest) {
     if (profile?.role !== 'admin') {
       const url = request.nextUrl.clone()
       url.pathname = '/rfqs'
-      url.search = ''
       return NextResponse.redirect(url)
     }
 
-    // Admins bypass subscription checks — fall through to response.
     return response
   }
 
-  // ── 4. Subscription gate ───────────────────────────────────────────────────
-  // Only applies to feature routes; billing/settings/pricing/admin stay open.
+  // ── 4. حماية الاشتراك ──────────────────────────────────────────────────────
   if (isSubscriptionGated(pathname)) {
     const { data: profile } = await supabase
       .from('profiles')
-      .select('subscription_status, trial_ends_at, subscription_ends_at')
+      .select(
+        'subscription_status, trial_ends_at, subscription_ends_at'
+      )
       .eq('id', user.id)
       .single()
 
@@ -123,17 +126,14 @@ export async function middleware(request: NextRequest) {
     if (!allowed) {
       const url = request.nextUrl.clone()
       url.pathname = '/pricing'
-      url.search = ''
       return NextResponse.redirect(url)
     }
   }
 
-  // ── 5. All checks passed ───────────────────────────────────────────────────
+  // ── 5. كل شيء تمام ─────────────────────────────────────────────────────────
   return response
 }
 
 export const config = {
-  // Skip Next.js internals, static assets, and API routes.
-  // API routes handle their own auth; static files don't need session checks.
   matcher: ['/((?!_next/static|_next/image|favicon.ico|api/).*)'],
 }
