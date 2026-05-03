@@ -132,6 +132,7 @@ export type PaymentStatus = 'pending' | 'approved' | 'rejected'
 export interface PaymentRequest {
   id:         string
   user_id:    string
+  amount:     number | null
   status:     PaymentStatus
   notes:      string | null
   created_at: string

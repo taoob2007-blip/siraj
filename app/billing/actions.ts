@@ -27,7 +27,7 @@ export async function submitPaymentRequest(): Promise<ActionResult> {
 
     const { error } = await supabase
       .from('payment_requests')
-      .insert({ user_id: user.id, status: 'pending' })
+      .insert({ user_id: user.id, amount: 299, status: 'pending' })
 
     if (error) throw new Error(error.message)
 

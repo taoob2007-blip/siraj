@@ -66,8 +66,13 @@ function RequestRow({
         </div>
       </div>
 
-      {/* Date */}
-      <p className="text-xs text-gray-600 shrink-0">{fmtDate(req.created_at)}</p>
+      {/* Amount + Date */}
+      <div className="text-right shrink-0">
+        {req.amount != null && (
+          <p className="text-xs font-semibold text-white">{req.amount} SAR</p>
+        )}
+        <p className="text-[11px] text-gray-600">{fmtDate(req.created_at)}</p>
+      </div>
 
       {/* Actions — only for pending */}
       {req.status === 'pending' && (

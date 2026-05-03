@@ -47,12 +47,12 @@ async function getAdminData(): Promise<{
       .order('updated_at', { ascending: false, nullsFirst: false }),
     supabase
       .from('payment_requests')
-      .select('id, user_id, status, notes, created_at')
+      .select('id, user_id, amount, status, notes, created_at')
       .order('created_at', { ascending: false })
       .limit(100),
   ])
 
-  const profiles = (profilesRes.data ?? []) as AdminProfile[]
+  const rawProfiles = (profilesRes.data ?? []) as AdminProfile[]
   const rawRequests = paymentReqRes.data ?? []
 
   // Build user email map via auth admin API
@@ -62,12 +62,19 @@ async function getAdminData(): Promise<{
     emailMap = Object.fromEntries(users.map((u) => [u.id, u.email ?? '']))
   } catch { /* non-critical — emails will be empty */ }
 
-  // Build profile lookup for names/companies
+  // Merge email into every profile row so AdminTable can display it
+  const profiles: AdminProfile[] = rawProfiles.map((p) => ({
+    ...p,
+    email: emailMap[p.id] ?? null,
+  }))
+
+  // Build profile lookup for payment requests
   const profileMap = Object.fromEntries(profiles.map((p) => [p.id, p]))
 
   const paymentRequests: PaymentRequestWithUser[] = rawRequests.map((r) => ({
     id:         r.id,
     user_id:    r.user_id,
+    amount:     r.amount  ?? null,
     status:     r.status,
     notes:      r.notes,
     created_at: r.created_at,

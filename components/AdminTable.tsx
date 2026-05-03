@@ -1,11 +1,9 @@
-﻿'use client'
+'use client'
 
-import { useState, useMemo, useTransition } from 'react'
+import { useState, useTransition } from 'react'
 import {
-  Users, CheckCircle2, Clock, XCircle, Loader2,
-  Search, RefreshCw, Shield, Zap, Ban,
-  ChevronDown, ChevronUp, ChevronsUpDown,
-  Crown, Building2, Calendar, MoreHorizontal,
+  Users, CheckCircle2, Clock, XCircle,
+  Loader2, Search, Zap, Crown, Ban, Shield,
 } from 'lucide-react'
 import { toast } from '@/components/Toast'
 import {
@@ -15,194 +13,67 @@ import {
 } from '@/app/admin/actions'
 import type { AdminProfile, SubscriptionStatus } from '@/lib/types'
 
-// ── Types ─────────────────────────────────────────────────────────────────────
-
-type Filter = 'all' | SubscriptionStatus
-type SortKey = 'name' | 'company' | 'status' | 'updated_at'
-type SortDir = 'asc' | 'desc'
-
 // ── Helpers ───────────────────────────────────────────────────────────────────
 
-function fmtDate(iso: string | null): string {
-  if (!iso) return '—'
-  return new Date(iso).toLocaleDateString('en-US', {
-    month: 'short', day: 'numeric', year: 'numeric',
-  })
-}
-
-function isExpired(iso: string | null): boolean {
-  if (!iso) return false
-  return new Date(iso) < new Date()
-}
-
-function planLabel(profile: AdminProfile): SubscriptionStatus {
-  const { subscription_status: s, trial_ends_at, subscription_ends_at } = profile
-  if (s === 'active'  && subscription_ends_at && isExpired(subscription_ends_at)) return 'expired'
-  if (s === 'trial'   && trial_ends_at        && isExpired(trial_ends_at))        return 'expired'
+function planLabel(p: AdminProfile): SubscriptionStatus {
+  const s = p.subscription_status
+  const now = new Date()
+  if (s === 'active' && p.subscription_ends_at && new Date(p.subscription_ends_at) < now) return 'expired'
+  if (s === 'trial'  && p.trial_ends_at        && new Date(p.trial_ends_at)        < now) return 'expired'
   return s
 }
 
-const PLAN_STYLE: Record<SubscriptionStatus, { bg: string; text: string; border: string; icon: React.ElementType; label: string }> = {
+const BADGE: Record<SubscriptionStatus, { bg: string; text: string; border: string; icon: React.ElementType; label: string }> = {
   free:    { bg: 'bg-gray-500/10',    text: 'text-gray-400',    border: 'border-gray-500/20',    icon: Shield,       label: 'Free' },
   trial:   { bg: 'bg-amber-500/10',   text: 'text-amber-400',   border: 'border-amber-500/20',   icon: Clock,        label: 'Trial' },
   active:  { bg: 'bg-emerald-500/10', text: 'text-emerald-400', border: 'border-emerald-500/20', icon: CheckCircle2, label: 'Active' },
   expired: { bg: 'bg-red-500/10',     text: 'text-red-400',     border: 'border-red-500/20',     icon: XCircle,      label: 'Expired' },
 }
 
-function PlanBadge({ profile }: { profile: AdminProfile }) {
+function StatusBadge({ profile }: { profile: AdminProfile }) {
   const status = planLabel(profile)
-  const s = PLAN_STYLE[status]
-  const Icon = s.icon
+  const b = BADGE[status]
+  const Icon = b.icon
   return (
-    <span className={`inline-flex items-center gap-1 text-[10px] font-bold uppercase tracking-wide px-2 py-1 rounded-md border ${s.bg} ${s.text} ${s.border}`}>
+    <span className={`inline-flex items-center gap-1 text-[10px] font-bold uppercase tracking-wide px-2 py-1 rounded-md border ${b.bg} ${b.text} ${b.border}`}>
       <Icon className="h-2.5 w-2.5" />
-      {s.label}
+      {b.label}
     </span>
   )
 }
 
-// ── Stat card ─────────────────────────────────────────────────────────────────
+// ── Main ──────────────────────────────────────────────────────────────────────
 
-function StatCard({
-  label, value, icon: Icon, iconCls, onClick, active,
-}: {
-  label: string; value: number; icon: React.ElementType
-  iconCls: string; onClick: () => void; active: boolean
-}) {
-  return (
-    <button
-      onClick={onClick}
-      className={[
-        'flex items-center gap-3 rounded-xl border p-4 text-left transition-all cursor-pointer',
-        active
-          ? 'border-blue-500/30 bg-blue-500/[0.06] shadow-sm shadow-blue-500/10'
-          : 'border-white/[0.07] bg-white/[0.02] hover:border-white/[0.12] hover:bg-white/[0.04]',
-      ].join(' ')}
-    >
-      <div className={`p-2 rounded-lg border shrink-0 ${iconCls}`}>
-        <Icon className="h-4 w-4" />
-      </div>
-      <div>
-        <p className="text-2xl font-bold text-white tabular-nums">{value}</p>
-        <p className="text-xs text-gray-500">{label}</p>
-      </div>
-    </button>
-  )
-}
-
-// ── Sort header ───────────────────────────────────────────────────────────────
-
-function SortHeader({
-  label, sortKey, current, dir, onSort,
-}: {
-  label: string; sortKey: SortKey
-  current: SortKey; dir: SortDir
-  onSort: (k: SortKey) => void
-}) {
-  const active = current === sortKey
-  const Icon   = active ? (dir === 'asc' ? ChevronUp : ChevronDown) : ChevronsUpDown
-  return (
-    <button
-      onClick={() => onSort(sortKey)}
-      className="flex items-center gap-1 text-xs font-semibold text-gray-400 hover:text-white uppercase tracking-wider transition-colors"
-    >
-      {label}
-      <Icon className={`h-3 w-3 ${active ? 'text-blue-400' : 'text-gray-700'}`} />
-    </button>
-  )
-}
-
-// ── Row action button ─────────────────────────────────────────────────────────
-
-function ActionBtn({
-  label, icon: Icon, onClick, loading, variant = 'default',
-}: {
-  label: string; icon: React.ElementType
-  onClick: () => void; loading: boolean; variant?: 'default' | 'danger' | 'accent'
-}) {
-  const cls = {
-    default: 'text-gray-400 hover:text-white hover:bg-white/[0.07] border-transparent',
-    accent:  'text-emerald-400 hover:text-white hover:bg-emerald-500/[0.12] border-transparent',
-    danger:  'text-red-400 hover:text-white hover:bg-red-500/[0.10] border-transparent',
-  }[variant]
-
-  return (
-    <button
-      onClick={onClick}
-      disabled={loading}
-      title={label}
-      className={`flex items-center gap-1.5 px-2.5 py-1.5 rounded-lg border text-xs font-medium transition-all disabled:opacity-40 disabled:cursor-not-allowed ${cls}`}
-    >
-      {loading
-        ? <Loader2 className="h-3.5 w-3.5 animate-spin" />
-        : <Icon className="h-3.5 w-3.5" />
-      }
-      {label}
-    </button>
-  )
-}
-
-// ── Main component ────────────────────────────────────────────────────────────
-
-interface Props {
-  initialProfiles: AdminProfile[]
-}
+interface Props { initialProfiles: AdminProfile[] }
 
 export function AdminTable({ initialProfiles }: Props) {
-  const [profiles, setProfiles] = useState<AdminProfile[]>(initialProfiles)
-  const [filter, setFilter]     = useState<Filter>('all')
-  const [search, setSearch]     = useState('')
-  const [sortKey, setSortKey]   = useState<SortKey>('updated_at')
-  const [sortDir, setSortDir]   = useState<SortDir>('desc')
+  const [profiles, setProfiles]     = useState<AdminProfile[]>(initialProfiles)
+  const [search, setSearch]         = useState('')
   const [loadingIds, setLoadingIds] = useState<Set<string>>(new Set())
-  const [, startTransition] = useTransition()
-
-  // ── Actions ────────────────────────────────────────────────────────────────
+  const [, startTrans]              = useTransition()
 
   function setLoading(id: string, on: boolean) {
-    setLoadingIds((prev) => {
-      const next = new Set(prev)
-      on ? next.add(id) : next.delete(id)
-      return next
-    })
+    setLoadingIds(prev => { const s = new Set(prev); on ? s.add(id) : s.delete(id); return s })
   }
 
-  function patchProfile(id: string, patch: Partial<AdminProfile>) {
-    setProfiles((prev) => prev.map((p) => p.id === id ? { ...p, ...patch } : p))
+  function patch(id: string, update: Partial<AdminProfile>) {
+    setProfiles(prev => prev.map(p => p.id === id ? { ...p, ...update } : p))
   }
 
   function handleActivate(profile: AdminProfile) {
     setLoading(profile.id, true)
-    startTransition(async () => {
-      const result = await activateSubscription(profile.id)
-      if (result.ok) {
-        const endsAt = new Date(Date.now() + 30 * 24 * 60 * 60 * 1000).toISOString()
-        patchProfile(profile.id, {
+    startTrans(async () => {
+      const res = await activateSubscription(profile.id)
+      if (res.ok) {
+        patch(profile.id, {
           subscription_status:  'active',
-          subscription_ends_at: endsAt,
+          subscription_ends_at: new Date(Date.now() + 30 * 86_400_000).toISOString(),
           trial_ends_at:        null,
           updated_at:           new Date().toISOString(),
         })
-        toast.success('Subscription activated')
+        toast.success('Subscription activated — 30 days.')
       } else {
-        toast.error(result.error)
-      }
-      setLoading(profile.id, false)
-    })
-  }
-
-  function handleExpire(profile: AdminProfile) {
-    setLoading(profile.id, true)
-    startTransition(async () => {
-      const result = await expireSubscription(profile.id)
-      if (result.ok) {
-        patchProfile(profile.id, {
-          subscription_status: 'expired',
-          updated_at:          new Date().toISOString(),
-        })
-        toast.success('User expired')
-      } else {
-        toast.error(result.error)
+        toast.error(res.error ?? 'Failed to activate')
       }
       setLoading(profile.id, false)
     })
@@ -210,283 +81,181 @@ export function AdminTable({ initialProfiles }: Props) {
 
   function handleTrial(profile: AdminProfile) {
     setLoading(profile.id, true)
-    startTransition(async () => {
-      const result = await startTrial(profile.id)
-      if (result.ok) {
-        const endsAt = new Date(Date.now() + 14 * 24 * 60 * 60 * 1000).toISOString()
-        patchProfile(profile.id, {
+    startTrans(async () => {
+      const res = await startTrial(profile.id)
+      if (res.ok) {
+        patch(profile.id, {
           subscription_status:  'trial',
-          trial_ends_at:        endsAt,
+          trial_ends_at:        new Date(Date.now() + 14 * 86_400_000).toISOString(),
           subscription_ends_at: null,
           updated_at:           new Date().toISOString(),
         })
-        toast.success('Trial activated')
+        toast.success('Trial started — 14 days.')
       } else {
-        toast.error(result.error)
+        toast.error(res.error ?? 'Failed to start trial')
       }
       setLoading(profile.id, false)
     })
   }
 
-  // ── Sort ───────────────────────────────────────────────────────────────────
-
-  function handleSort(key: SortKey) {
-    if (sortKey === key) {
-      setSortDir((d) => (d === 'asc' ? 'desc' : 'asc'))
-    } else {
-      setSortKey(key)
-      setSortDir('asc')
-    }
+  function handleExpire(profile: AdminProfile) {
+    setLoading(profile.id, true)
+    startTrans(async () => {
+      const res = await expireSubscription(profile.id)
+      if (res.ok) {
+        patch(profile.id, {
+          subscription_status: 'expired',
+          updated_at:          new Date().toISOString(),
+        })
+        toast.success('User expired.')
+      } else {
+        toast.error(res.error ?? 'Failed to expire')
+      }
+      setLoading(profile.id, false)
+    })
   }
 
-  // ── Derived data ───────────────────────────────────────────────────────────
+  const filtered = profiles.filter(p => {
+    const q = search.toLowerCase()
+    return !q
+      || p.email?.toLowerCase().includes(q)
+      || p.full_name?.toLowerCase().includes(q)
+      || p.company?.toLowerCase().includes(q)
+  })
 
-  const counts = useMemo(() => ({
-    all:     profiles.length,
-    free:    profiles.filter((p) => planLabel(p) === 'free').length,
-    trial:   profiles.filter((p) => planLabel(p) === 'trial').length,
-    active:  profiles.filter((p) => planLabel(p) === 'active').length,
-    expired: profiles.filter((p) => planLabel(p) === 'expired').length,
-  }), [profiles])
-
-  const visible = useMemo(() => {
-    let rows = profiles
-
-    // Filter by status
-    if (filter !== 'all') rows = rows.filter((p) => planLabel(p) === filter)
-
-    // Search
-    if (search.trim()) {
-      const q = search.toLowerCase()
-      rows = rows.filter(
-        (p) =>
-          p.full_name?.toLowerCase().includes(q) ||
-          p.company?.toLowerCase().includes(q) ||
-          p.id.toLowerCase().includes(q)
-      )
-    }
-
-    // Sort
-    rows = [...rows].sort((a, b) => {
-      let av: string, bv: string
-      if (sortKey === 'name')       { av = a.full_name ?? ''; bv = b.full_name ?? '' }
-      else if (sortKey === 'company') { av = a.company ?? ''; bv = b.company ?? '' }
-      else if (sortKey === 'status') { av = planLabel(a); bv = planLabel(b) }
-      else                          { av = a.updated_at ?? ''; bv = b.updated_at ?? '' }
-      const cmp = av.localeCompare(bv)
-      return sortDir === 'asc' ? cmp : -cmp
-    })
-
-    return rows
-  }, [profiles, filter, search, sortKey, sortDir])
-
-  const FILTER_TABS: { key: Filter; label: string }[] = [
-    { key: 'all',     label: 'All' },
-    { key: 'trial',   label: 'Trial' },
-    { key: 'active',  label: 'Active' },
-    { key: 'expired', label: 'Expired' },
-    { key: 'free',    label: 'Free' },
-  ]
-
-  // ── Render ─────────────────────────────────────────────────────────────────
+  const counts = {
+    total:   profiles.length,
+    active:  profiles.filter(p => planLabel(p) === 'active').length,
+    trial:   profiles.filter(p => planLabel(p) === 'trial').length,
+    expired: profiles.filter(p => planLabel(p) === 'expired').length,
+  }
 
   return (
-    <div className="space-y-6">
+    <div className="space-y-4">
 
-      {/* ── Stats ── */}
-      <div className="grid grid-cols-2 sm:grid-cols-4 gap-3">
-        <StatCard label="Total Users"  value={counts.all}     icon={Users}       iconCls="bg-blue-500/10 border-blue-500/20 text-blue-400"     onClick={() => setFilter('all')}     active={filter === 'all'} />
-        <StatCard label="On Trial"     value={counts.trial}   icon={Clock}       iconCls="bg-amber-500/10 border-amber-500/20 text-amber-400"   onClick={() => setFilter('trial')}   active={filter === 'trial'} />
-        <StatCard label="Active"       value={counts.active}  icon={CheckCircle2} iconCls="bg-emerald-500/10 border-emerald-500/20 text-emerald-400" onClick={() => setFilter('active')}  active={filter === 'active'} />
-        <StatCard label="Expired"      value={counts.expired} icon={XCircle}     iconCls="bg-red-500/10 border-red-500/20 text-red-400"         onClick={() => setFilter('expired')} active={filter === 'expired'} />
+      {/* Stats row */}
+      <div className="grid grid-cols-4 gap-3">
+        {[
+          { label: 'Total',   value: counts.total,   icon: Users,       cls: 'text-blue-400    bg-blue-500/10    border-blue-500/20' },
+          { label: 'Active',  value: counts.active,  icon: CheckCircle2, cls: 'text-emerald-400 bg-emerald-500/10 border-emerald-500/20' },
+          { label: 'Trial',   value: counts.trial,   icon: Clock,       cls: 'text-amber-400   bg-amber-500/10   border-amber-500/20' },
+          { label: 'Expired', value: counts.expired, icon: XCircle,     cls: 'text-red-400     bg-red-500/10     border-red-500/20' },
+        ].map(({ label, value, icon: Icon, cls }) => (
+          <div key={label} className="flex items-center gap-3 rounded-xl border border-white/[0.07] bg-white/[0.02] p-4">
+            <div className={`p-2 rounded-lg border shrink-0 ${cls}`}>
+              <Icon className="h-4 w-4" />
+            </div>
+            <div>
+              <p className="text-2xl font-bold text-white tabular-nums">{value}</p>
+              <p className="text-xs text-gray-500">{label}</p>
+            </div>
+          </div>
+        ))}
       </div>
 
-      {/* ── Toolbar ── */}
-      <div className="flex flex-col sm:flex-row gap-3 items-start sm:items-center justify-between">
-
-        {/* Filter tabs */}
-        <div className="flex items-center gap-1 bg-white/[0.04] border border-white/[0.08] rounded-lg p-1">
-          {FILTER_TABS.map(({ key, label }) => (
-            <button
-              key={key}
-              onClick={() => setFilter(key)}
-              className={[
-                'px-3 py-1 rounded-md text-xs font-semibold transition-all',
-                filter === key
-                  ? 'bg-blue-600 text-white shadow'
-                  : 'text-gray-500 hover:text-gray-200',
-              ].join(' ')}
-            >
-              {label}
-              {key !== 'all' && (
-                <span className={`ml-1.5 ${filter === key ? 'text-blue-200' : 'text-gray-700'}`}>
-                  {counts[key as keyof typeof counts]}
-                </span>
-              )}
-            </button>
-          ))}
-        </div>
-
-        {/* Search */}
-        <div className="relative">
-          <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-3.5 w-3.5 text-gray-600 pointer-events-none" />
-          <input
-            type="text"
-            placeholder="Search name or company…"
-            value={search}
-            onChange={(e) => setSearch(e.target.value)}
-            className="w-64 bg-white/[0.03] border border-white/[0.08] rounded-xl pl-9 pr-3 py-2 text-xs text-gray-200 placeholder-gray-700 focus:outline-none focus:border-blue-500/50 transition-all"
-          />
-        </div>
+      {/* Search */}
+      <div className="relative">
+        <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-3.5 w-3.5 text-gray-600 pointer-events-none" />
+        <input
+          type="text"
+          placeholder="Search by email, name, or company…"
+          value={search}
+          onChange={e => setSearch(e.target.value)}
+          className="w-full sm:w-80 bg-white/[0.03] border border-white/[0.08] rounded-xl pl-9 pr-3 py-2 text-xs text-gray-200 placeholder-gray-600 focus:outline-none focus:border-blue-500/50 transition-all"
+        />
       </div>
 
-      {/* ── Table ── */}
+      {/* Table */}
       <div className="rounded-2xl border border-white/[0.07] overflow-hidden">
         <div className="overflow-x-auto">
           <table className="w-full text-sm">
             <thead>
               <tr className="border-b border-white/[0.06] bg-white/[0.02]">
-                <th className="px-4 py-3 text-left">
-                  <SortHeader label="Name"    sortKey="name"       current={sortKey} dir={sortDir} onSort={handleSort} />
-                </th>
-                <th className="px-4 py-3 text-left">
-                  <SortHeader label="Company" sortKey="company"    current={sortKey} dir={sortDir} onSort={handleSort} />
-                </th>
-                <th className="px-4 py-3 text-left">
-                  <SortHeader label="Plan"    sortKey="status"     current={sortKey} dir={sortDir} onSort={handleSort} />
-                </th>
-                <th className="px-4 py-3 text-left">
-                  <span className="text-xs font-semibold text-gray-400 uppercase tracking-wider">Trial Ends</span>
-                </th>
-                <th className="px-4 py-3 text-left">
-                  <span className="text-xs font-semibold text-gray-400 uppercase tracking-wider">Sub. Ends</span>
-                </th>
-                <th className="px-4 py-3 text-left">
-                  <SortHeader label="Updated" sortKey="updated_at" current={sortKey} dir={sortDir} onSort={handleSort} />
-                </th>
-                <th className="px-4 py-3 text-right">
-                  <span className="text-xs font-semibold text-gray-400 uppercase tracking-wider">Actions</span>
-                </th>
+                <th className="px-4 py-3 text-left text-xs font-semibold text-gray-400 uppercase tracking-wider">User</th>
+                <th className="px-4 py-3 text-left text-xs font-semibold text-gray-400 uppercase tracking-wider">Status</th>
+                <th className="px-4 py-3 text-right text-xs font-semibold text-gray-400 uppercase tracking-wider">Actions</th>
               </tr>
             </thead>
             <tbody className="divide-y divide-white/[0.04]">
-              {visible.length === 0 ? (
+              {filtered.length === 0 ? (
                 <tr>
-                  <td colSpan={7} className="px-4 py-16 text-center">
-                    <div className="flex flex-col items-center gap-3">
-                      <Users className="h-8 w-8 text-gray-700" />
-                      <p className="text-sm text-gray-500">
-                        {search ? 'No users match your search' : 'No users in this filter'}
-                      </p>
-                    </div>
+                  <td colSpan={3} className="px-4 py-16 text-center text-sm text-gray-600">
+                    {search ? 'No users match your search.' : 'No users found.'}
                   </td>
                 </tr>
               ) : (
-                visible.map((profile) => {
-                  const loading = loadingIds.has(profile.id)
-                  const plan    = planLabel(profile)
-                  const initials = profile.full_name
-                    ? profile.full_name.split(' ').map((w) => w[0]).slice(0, 2).join('').toUpperCase()
-                    : profile.id.slice(0, 2).toUpperCase()
+                filtered.map(profile => {
+                  const busy    = loadingIds.has(profile.id)
+                  const status  = planLabel(profile)
+                  const initials = (profile.full_name ?? profile.email ?? 'U')
+                    .split(' ').map(w => w[0]).slice(0, 2).join('').toUpperCase()
 
                   return (
-                    <tr
-                      key={profile.id}
-                      className={`transition-colors hover:bg-white/[0.02] ${loading ? 'opacity-60' : ''}`}
-                    >
-                      {/* Name */}
+                    <tr key={profile.id} className={`transition-colors hover:bg-white/[0.02] ${busy ? 'opacity-60' : ''}`}>
+
+                      {/* User */}
                       <td className="px-4 py-3">
-                        <div className="flex items-center gap-2.5">
+                        <div className="flex items-center gap-3">
                           <div className="h-8 w-8 rounded-full bg-gradient-to-br from-blue-500 to-violet-600 flex items-center justify-center text-[11px] font-bold text-white shrink-0">
                             {initials}
                           </div>
                           <div className="min-w-0">
-                            <p className="text-xs font-semibold text-gray-200 truncate max-w-[140px]">
+                            <p className="text-xs font-semibold text-gray-200 truncate">
                               {profile.full_name ?? <span className="text-gray-600 italic">No name</span>}
                             </p>
-                            {profile.role === 'admin' && (
-                              <span className="text-[9px] font-bold uppercase tracking-widest text-violet-400">
-                                Admin
-                              </span>
+                            <p className="text-[11px] text-gray-500 truncate">
+                              {profile.email ?? profile.id.slice(0, 16) + '…'}
+                            </p>
+                            {profile.company && (
+                              <p className="text-[10px] text-gray-600 truncate">{profile.company}</p>
                             )}
                           </div>
                         </div>
                       </td>
 
-                      {/* Company */}
+                      {/* Status */}
                       <td className="px-4 py-3">
-                        <div className="flex items-center gap-1.5 text-xs text-gray-400">
-                          {profile.company
-                            ? <><Building2 className="h-3 w-3 text-gray-600 shrink-0" />{profile.company}</>
-                            : <span className="text-gray-700 italic">—</span>
-                          }
-                        </div>
-                      </td>
-
-                      {/* Plan */}
-                      <td className="px-4 py-3">
-                        <PlanBadge profile={profile} />
-                      </td>
-
-                      {/* Trial Ends */}
-                      <td className="px-4 py-3">
-                        <div className={`flex items-center gap-1 text-xs ${
-                          profile.trial_ends_at && isExpired(profile.trial_ends_at)
-                            ? 'text-red-400' : 'text-gray-400'
-                        }`}>
-                          {profile.trial_ends_at && (
-                            <Calendar className="h-3 w-3 shrink-0 text-gray-600" />
-                          )}
-                          {fmtDate(profile.trial_ends_at)}
-                        </div>
-                      </td>
-
-                      {/* Sub Ends */}
-                      <td className="px-4 py-3">
-                        <div className={`flex items-center gap-1 text-xs ${
-                          profile.subscription_ends_at && isExpired(profile.subscription_ends_at)
-                            ? 'text-red-400' : 'text-gray-400'
-                        }`}>
-                          {profile.subscription_ends_at && (
-                            <Calendar className="h-3 w-3 shrink-0 text-gray-600" />
-                          )}
-                          {fmtDate(profile.subscription_ends_at)}
-                        </div>
-                      </td>
-
-                      {/* Updated */}
-                      <td className="px-4 py-3">
-                        <span className="text-xs text-gray-600">{fmtDate(profile.updated_at)}</span>
+                        <StatusBadge profile={profile} />
                       </td>
 
                       {/* Actions */}
                       <td className="px-4 py-3">
-                        <div className="flex items-center gap-1.5 justify-end">
-                          <ActionBtn
-                            label="Activate (30d)"
-                            icon={Zap}
+                        <div className="flex items-center gap-2 justify-end">
+
+                          {/* Activate — always available */}
+                          <button
                             onClick={() => handleActivate(profile)}
-                            loading={loading}
-                            variant="accent"
-                          />
-                          {plan !== 'trial' && (
-                            <ActionBtn
-                              label="Trial (14d)"
-                              icon={Crown}
+                            disabled={busy}
+                            className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-semibold transition-all disabled:opacity-40 disabled:cursor-not-allowed bg-emerald-600 hover:bg-emerald-500 active:scale-95 text-white"
+                          >
+                            {busy ? <Loader2 className="h-3 w-3 animate-spin" /> : <Zap className="h-3 w-3" />}
+                            Activate 30d
+                          </button>
+
+                          {/* Trial — hide if already on trial */}
+                          {status !== 'trial' && (
+                            <button
                               onClick={() => handleTrial(profile)}
-                              loading={loading}
-                              variant="default"
-                            />
+                              disabled={busy}
+                              className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-semibold transition-all disabled:opacity-40 disabled:cursor-not-allowed bg-amber-500 hover:bg-amber-400 active:scale-95 text-white"
+                            >
+                              {busy ? <Loader2 className="h-3 w-3 animate-spin" /> : <Crown className="h-3 w-3" />}
+                              Trial 14d
+                            </button>
                           )}
-                          {plan !== 'expired' && plan !== 'free' && (
-                            <ActionBtn
-                              label="Expire"
-                              icon={Ban}
+
+                          {/* Expire — only for active or trial */}
+                          {(status === 'active' || status === 'trial') && (
+                            <button
                               onClick={() => handleExpire(profile)}
-                              loading={loading}
-                              variant="danger"
-                            />
+                              disabled={busy}
+                              className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-semibold transition-all disabled:opacity-40 disabled:cursor-not-allowed border border-red-500/30 bg-red-500/10 hover:bg-red-500/20 active:scale-95 text-red-400"
+                            >
+                              {busy ? <Loader2 className="h-3 w-3 animate-spin" /> : <Ban className="h-3 w-3" />}
+                              Expire
+                            </button>
                           )}
+
                         </div>
                       </td>
                     </tr>
@@ -497,15 +266,12 @@ export function AdminTable({ initialProfiles }: Props) {
           </table>
         </div>
 
-        {/* Table footer */}
-        {visible.length > 0 && (
-          <div className="px-4 py-3 border-t border-white/[0.04] bg-white/[0.01] flex items-center justify-between">
+        {/* Footer */}
+        {filtered.length > 0 && (
+          <div className="px-4 py-3 border-t border-white/[0.04] bg-white/[0.01]">
             <p className="text-xs text-gray-600">
-              Showing <span className="text-gray-400 font-medium">{visible.length}</span> of{' '}
+              Showing <span className="text-gray-400 font-medium">{filtered.length}</span> of{' '}
               <span className="text-gray-400 font-medium">{profiles.length}</span> users
-            </p>
-            <p className="text-xs text-gray-700">
-              Last refreshed: {new Date().toLocaleTimeString('en-US', { hour: '2-digit', minute: '2-digit' })}
             </p>
           </div>
         )}
