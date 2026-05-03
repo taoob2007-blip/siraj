@@ -1,17 +1,28 @@
 ﻿// ── SQL to run in Supabase SQL Editor ──────────────────────────────────────────
 //
+// -- Add new columns
 // ALTER TABLE public.profiles
-//   ADD COLUMN IF NOT EXISTS subscription_status TEXT NOT NULL DEFAULT 'free'
-//   CHECK (subscription_status IN ('free', 'pro'));
+//   ADD COLUMN IF NOT EXISTS trial_ends_at        TIMESTAMPTZ,
+//   ADD COLUMN IF NOT EXISTS subscription_ends_at  TIMESTAMPTZ;
+//
+// -- Drop old constraint and re-add with full status set
+// ALTER TABLE public.profiles
+//   DROP CONSTRAINT IF EXISTS profiles_subscription_status_check;
+// ALTER TABLE public.profiles
+//   ADD CONSTRAINT profiles_subscription_status_check
+//   CHECK (subscription_status IN ('free', 'trial', 'active', 'expired'));
+//
+// -- Grant admin role to yourself:
+// UPDATE public.profiles SET role = 'admin' WHERE id = '<your-user-id>';
 //
 // ─────────────────────────────────────────────────────────────────────────────
 
 import { getServerSupabaseClient } from '@/lib/supabase/server'
+import type { SubscriptionStatus } from '@/lib/types'
 
-export type SubscriptionStatus = 'free' | 'pro'
-
-/** Returns the current user's subscription tier. Falls back to 'free' on any error. */
-export async function getUserSubscription(): Promise<SubscriptionStatus> {
+/** Returns 'pro' (access granted) or 'free' (no access).
+ *  Treats active + valid trial as pro-equivalent. */
+export async function getUserSubscription(): Promise<'free' | 'pro'> {
   try {
     const supabase = await getServerSupabaseClient()
     const { data: { user } } = await supabase.auth.getUser()
@@ -19,23 +30,26 @@ export async function getUserSubscription(): Promise<SubscriptionStatus> {
 
     const { data: profile } = await supabase
       .from('profiles')
-      .select('subscription_status')
+      .select('subscription_status, trial_ends_at, subscription_ends_at')
       .eq('id', user.id)
       .single()
 
-    return profile?.subscription_status === 'pro' ? 'pro' : 'free'
+    if (!profile) return 'free'
+    const status = profile.subscription_status as SubscriptionStatus
+    const now    = new Date()
+
+    if (status === 'active') {
+      // active with a future end date, or no end date = unlimited
+      if (!profile.subscription_ends_at) return 'pro'
+      return new Date(profile.subscription_ends_at) > now ? 'pro' : 'free'
+    }
+    if (status === 'trial') {
+      if (!profile.trial_ends_at) return 'pro'
+      return new Date(profile.trial_ends_at) > now ? 'pro' : 'free'
+    }
+
+    return 'free'
   } catch {
     return 'free'
   }
-}
-
-/** Server action — upgrade a user to pro (used in tests / admin). */
-export async function setUserSubscription(
-  userId: string,
-  status: SubscriptionStatus,
-): Promise<void> {
-  const supabase = await getServerSupabaseClient()
-  await supabase
-    .from('profiles')
-    .upsert({ id: userId, subscription_status: status, updated_at: new Date().toISOString() })
 }

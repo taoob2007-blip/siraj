@@ -7,7 +7,7 @@ import { useEffect, useState } from 'react'
 import {
   LayoutDashboard, FileText, Users, BarChart2,
   GitCompare, FileSignature, MessageSquare, PieChart,
-  Bell, Settings, Sparkles, Crown, Layers,
+  Bell, Settings, Sparkles, Crown, Layers, Shield,
 } from 'lucide-react'
 import { LogoutButton } from '@/components/LogoutButton'
 import { supabaseBrowserClient as supabase } from '@/lib/supabase/client'
@@ -33,6 +33,7 @@ export function Sidebar() {
   const [userEmail, setUserEmail] = useState('')
   const [userRole, setUserRole]   = useState('')
   const [isPro, setIsPro]         = useState(false)
+  const [isAdmin, setIsAdmin]     = useState(false)
 
   useEffect(() => {
     supabase.auth.getSession().then(({ data: { session } }) => {
@@ -46,7 +47,8 @@ export function Sidebar() {
           if (!data) return
           setUserName(data.profile?.full_name ?? '')
           setUserRole(data.profile?.role ?? '')
-          setIsPro(data.profile?.subscription_status === 'pro')
+          setIsPro(data.profile?.subscription_status === 'active' || data.profile?.subscription_status === 'trial')
+          setIsAdmin(data.profile?.role === 'admin')
         })
         .catch(() => {})
 
@@ -109,6 +111,28 @@ export function Sidebar() {
             </Link>
           )
         })}
+
+        {/* Admin link — only visible to admin users */}
+        {isAdmin && (
+          <>
+            <div className="mx-1 my-1 h-px bg-white/[0.05]" />
+            <Link
+              href="/admin"
+              className={[
+                'flex items-center gap-3 px-3 py-2 rounded-lg transition-all duration-150 group',
+                pathname.startsWith('/admin')
+                  ? 'bg-violet-500/10 text-violet-400 border border-violet-500/20'
+                  : 'text-gray-500 hover:text-violet-300 hover:bg-violet-500/[0.06]',
+              ].join(' ')}
+            >
+              <Shield className={`h-4 w-4 shrink-0 ${pathname.startsWith('/admin') ? 'text-violet-400' : 'text-gray-600 group-hover:text-violet-400'} transition-colors`} />
+              <span className="text-sm flex-1">Admin</span>
+              <span className="text-[9px] font-bold uppercase tracking-widest text-violet-500 bg-violet-500/10 border border-violet-500/20 px-1.5 py-0.5 rounded-full">
+                Staff
+              </span>
+            </Link>
+          </>
+        )}
       </nav>
 
       {/* Upgrade CTA (free) / Pro badge (pro) */}

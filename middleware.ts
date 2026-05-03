@@ -53,6 +53,7 @@ export async function middleware(request: NextRequest) {
     pathname.startsWith('/categories') ||
     pathname.startsWith('/notifications') ||
     pathname.startsWith('/settings') ||
+    pathname.startsWith('/admin') ||
     pathname === '/'
 
   if (!session && isProtected) {

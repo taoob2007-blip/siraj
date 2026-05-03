@@ -97,13 +97,29 @@ export interface NotificationItem {
 
 // ── Profile ───────────────────────────────────────────────────────────────────
 
-export type SubscriptionStatus = 'free' | 'pro'
+export type SubscriptionStatus = 'free' | 'trial' | 'active' | 'expired'
 
 export interface Profile {
-  id:                  string
-  full_name:           string | null
-  company:             string | null
-  role:                string | null
-  updated_at:          string | null
-  subscription_status: SubscriptionStatus
+  id:                   string
+  full_name:            string | null
+  company:              string | null
+  role:                 string | null
+  updated_at:           string | null
+  subscription_status:  SubscriptionStatus
+  trial_ends_at:        string | null
+  subscription_ends_at: string | null
+}
+
+// ── Admin ─────────────────────────────────────────────────────────────────────
+
+export interface AdminProfile {
+  id:                   string
+  full_name:            string | null
+  company:              string | null
+  role:                 string | null
+  subscription_status:  SubscriptionStatus
+  trial_ends_at:        string | null
+  subscription_ends_at: string | null
+  updated_at:           string | null
+  email?:               string | null
 }
