@@ -111,6 +111,16 @@ export function AttachmentUploader({ onChange, disabled }: Props) {
     // a clear error message instead of the misleading storage 400.
     const { data: { user }, error: authErr } = await supabase.auth.getUser()
 
+    // ── TEMPORARY DEBUG — remove before shipping ──────────────────────────────
+    console.log("AUTH DEBUG USER:", user)
+    console.log("AUTH DEBUG ERROR:", authErr)
+    if (!user) {
+      alert("USER IS NULL — NOT AUTHENTICATED")
+    } else {
+      alert("USER OK: " + user.id)
+    }
+    // ── END DEBUG ─────────────────────────────────────────────────────────────
+
     if (authErr || !user) {
       console.error('[AttachmentUploader] not authenticated:', authErr)
       setAuthError('You must be signed in to upload files.')
