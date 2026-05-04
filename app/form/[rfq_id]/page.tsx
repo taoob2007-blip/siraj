@@ -95,16 +95,14 @@ export default async function SupplierFormPage({ params, searchParams }: FormPag
           <p className="text-gray-400">Please provide your quotation details below.</p>
         </div>
 
-        <div className="max-w-2xl">
-          <SupplierFormPageClient
-            rfqId={rfqId}
-            rfqTitle={rfqData.title}
-            rfqDescription={rfqData.description}
-            supplierEmail={inviteData.supplier_email}
-            token={token}
-            fields={fields}
-          />
-        </div>
+        <SupplierFormPageClient
+          rfqId={rfqId}
+          rfqTitle={rfqData.title}
+          rfqDescription={rfqData.description}
+          supplierEmail={inviteData.supplier_email}
+          token={token}
+          fields={fields}
+        />
       </div>
     )
   } catch (error) {

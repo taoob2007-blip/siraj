@@ -1,6 +1,7 @@
 import type { Metadata } from 'next'
 import type { ReactNode } from 'react'
 import { Inter } from 'next/font/google'
+import { headers } from 'next/headers'
 import './globals.css'
 import { Sidebar } from '@/components/Sidebar'
 import { ToastContainer } from '@/components/Toast'
@@ -13,7 +14,26 @@ export const metadata: Metadata = {
   description: 'Make smarter procurement decisions with AI-powered supplier analysis and scoring.',
 }
 
-export default function RootLayout({ children }: { children: ReactNode }) {
+export default async function RootLayout({ children }: { children: ReactNode }) {
+  const headersList = await headers()
+  const pathname    = headersList.get('x-pathname') ?? ''
+  const isFormPage  = pathname.startsWith('/form')
+
+  if (isFormPage) {
+    return (
+      <html lang="en" className={`font-sans ${inter.variable}`}>
+        <body className="min-h-screen bg-[#080c14] text-gray-50 antialiased">
+          <main className="min-h-screen flex items-start justify-center px-4 py-12">
+            <div className="w-full max-w-2xl">
+              {children}
+            </div>
+          </main>
+          <ToastContainer />
+        </body>
+      </html>
+    )
+  }
+
   return (
     <html lang="en" className={`font-sans ${inter.variable}`}>
       <body className="flex min-h-screen bg-[#080c14] text-gray-50 antialiased">
