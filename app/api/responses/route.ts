@@ -1,5 +1,5 @@
 import { NextRequest, NextResponse } from 'next/server'
-import { getServerSupabaseClient } from '@/lib/supabase/server'
+import { getServiceSupabaseClient } from '@/lib/supabase/server'
 import type { RFQField } from '@/lib/types'
 import { parsePrice, parseDelivery } from '@/lib/parseSupplierInput'
 
@@ -16,7 +16,8 @@ export async function POST(req: NextRequest) {
       return NextResponse.json({ error: 'Answers are required' }, { status: 400 })
     }
 
-    const supabase = await getServerSupabaseClient()
+    // Service role client — suppliers are unauthenticated; token validates their access
+    const supabase = getServiceSupabaseClient()
 
     // 1. Validate token and find invite
     const { data: inviteData, error: inviteError } = await supabase
