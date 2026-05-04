@@ -78,14 +78,14 @@ export function Sidebar() {
     <aside className="w-56 shrink-0 flex flex-col min-h-screen sticky top-0 h-screen bg-[#0a0f1a] border-r border-white/[0.06] z-30">
 
       {/* Logo */}
-      <div className="px-4 py-4 border-b border-white/[0.06]">
+      <div className="px-5 py-4 border-b border-white/[0.06]">
         <Image
           src="/logo.png"
           alt="SIRAJ"
-          width={160}
-          height={56}
+          width={120}
+          height={32}
           priority
-          className="w-full h-auto object-contain"
+          className="h-7 w-auto object-contain object-left"
         />
       </div>
 
