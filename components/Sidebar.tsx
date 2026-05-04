@@ -2,12 +2,13 @@
 
 import type { ElementType } from 'react'
 import Link from 'next/link'
+import Image from 'next/image'
 import { usePathname } from 'next/navigation'
 import { useEffect, useState } from 'react'
 import {
   LayoutDashboard, FileText, Users, BarChart2,
   GitCompare, FileSignature, MessageSquare, PieChart,
-  Bell, Settings, Sparkles, Crown, Layers, Shield,
+  Bell, Settings, Crown, Layers, Shield,
 } from 'lucide-react'
 import { LogoutButton } from '@/components/LogoutButton'
 import { supabaseBrowserClient as supabase } from '@/lib/supabase/client'
@@ -77,13 +78,15 @@ export function Sidebar() {
     <aside className="w-56 shrink-0 flex flex-col min-h-screen sticky top-0 h-screen bg-[#0a0f1a] border-r border-white/[0.06] z-30">
 
       {/* Logo */}
-      <div className="px-5 py-5 border-b border-white/[0.06]">
-        <div className="flex items-center gap-2.5">
-          <div className="h-8 w-8 rounded-xl bg-gradient-to-br from-blue-500 to-violet-600 flex items-center justify-center shadow-lg shadow-blue-500/30">
-            <Sparkles className="h-4 w-4 text-white" />
-          </div>
-          <span className="text-lg font-bold tracking-tight text-white">SIRAJ</span>
-        </div>
+      <div className="px-4 py-4 border-b border-white/[0.06]">
+        <Image
+          src="/logo.png"
+          alt="SIRAJ"
+          width={160}
+          height={56}
+          priority
+          className="w-full h-auto object-contain"
+        />
       </div>
 
       {/* Nav */}
