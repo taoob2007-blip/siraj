@@ -1,6 +1,6 @@
 'use client'
 
-import { useEffect, useRef, useState } from 'react'
+import { useEffect, useState } from 'react'
 import Link from 'next/link'
 import { Plus, ArrowRight, Brain, Sparkles } from 'lucide-react'
 import { CountUp, ShimmerSweep } from '@/components/DashboardShell'
@@ -106,7 +106,7 @@ export function HeroBanner({
           <TextIn delay={80}>
             <div className="badge-pulse inline-flex items-center gap-2 px-3 py-1.5 rounded-full border border-blue-500/30 bg-blue-500/10 text-sm text-blue-300 font-medium w-fit">
               <Sparkles className="h-3 w-3 animate-live-pulse" />
-              AI-Powered Procurement Platform
+              منصة ذكية لإدارة المشتريات
             </div>
           </TextIn>
 
@@ -114,20 +114,16 @@ export function HeroBanner({
           <TextIn delay={160}>
             <div>
               <h1 className="text-4xl md:text-5xl font-semibold text-white leading-tight tracking-tight">
-                AI-Powered<br />
-                <span className="shimmer-text">Procurement</span>
+                اتخذ قرارات الشراء<br />
+                <span className="shimmer-text">خلال دقائق</span>
               </h1>
-              <p className="text-lg text-gray-300 mt-2">
-                Smarter. Faster. Better.
-              </p>
             </div>
           </TextIn>
 
           {/* subtitle */}
           <TextIn delay={240}>
             <p className="text-sm text-gray-400 max-w-md leading-relaxed">
-              Let AI analyze supplier quotes and surface the best decision instantly —
-              no spreadsheets, no guesswork.
+              قارن العروض، اختر الأفضل، ووفّر التكاليف — بدون تعقيد
             </p>
           </TextIn>
 
@@ -137,12 +133,12 @@ export function HeroBanner({
               <Link href="/rfqs/new">
                 <button className="btn-primary inline-flex items-center gap-2 px-5 py-2.5 rounded-xl bg-blue-600 hover:bg-blue-500 text-white text-sm font-semibold shadow-lg shadow-blue-600/30">
                   <Plus className="h-4 w-4" />
-                  Create New RFQ
+                  ابدأ الآن مجاناً
                 </button>
               </Link>
               <Link href="/rfqs">
                 <button className="btn-ghost inline-flex items-center gap-2 px-5 py-2.5 rounded-xl border border-white/[0.10] bg-white/[0.04] hover:bg-white/[0.08] text-gray-300 text-sm font-medium">
-                  View RFQs
+                  بدون بطاقة ائتمانية
                   <ArrowRight className="h-4 w-4" />
                 </button>
               </Link>
@@ -155,17 +151,17 @@ export function HeroBanner({
               <div className="flex items-center gap-5 pt-2 border-t border-white/[0.05]">
                 <div>
                   <p className="text-xl font-bold text-white tabular-nums"><CountUp value={total} /></p>
-                  <p className="text-xs text-gray-500">RFQs total</p>
+                  <p className="text-xs text-gray-500">إجمالي الطلبات</p>
                 </div>
                 <div className="w-px h-8 bg-white/[0.07]" />
                 <div>
                   <p className="text-xl font-bold text-emerald-400 tabular-nums"><CountUp value={active} /></p>
-                  <p className="text-xs text-gray-500">Active now</p>
+                  <p className="text-xs text-gray-500">نشطة الآن</p>
                 </div>
                 <div className="w-px h-8 bg-white/[0.07]" />
                 <div>
                   <p className="text-xl font-bold text-violet-400 tabular-nums"><CountUp value={resCount} /></p>
-                  <p className="text-xs text-gray-500">Quotes received</p>
+                  <p className="text-xs text-gray-500">عروض مستلمة</p>
                 </div>
               </div>
             </TextIn>
