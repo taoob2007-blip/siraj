@@ -101,20 +101,20 @@ export function HeroBanner({
 
         {/* ── Left ─────────────────────────────────────────── */}
         <div
-          className="flex-1 max-w-[600px] flex flex-col"
+          className="flex-1 max-w-[580px] flex flex-col items-center text-center"
           dir="rtl"
           style={{ fontFamily: 'var(--font-arabic), var(--font-sans)' }}
         >
 
           {/* badge */}
           <TextIn delay={80}>
-            <div className="badge-pulse inline-flex items-center gap-2 px-4 py-2 rounded-full border border-blue-500/25 bg-blue-500/[0.08] text-[13px] text-blue-300 font-medium w-fit">
+            <div className="badge-pulse inline-flex items-center gap-2 px-4 py-2 rounded-full border border-blue-500/25 bg-blue-500/[0.08] text-[13px] text-blue-300 font-medium">
               <Sparkles className="h-3 w-3 animate-live-pulse flex-shrink-0" />
               منصة ذكية لإدارة المشتريات
             </div>
           </TextIn>
 
-          {/* title — tight gap from badge */}
+          {/* title */}
           <TextIn delay={160} className="mt-5">
             <h1
               className="font-bold text-white"
@@ -130,24 +130,24 @@ export function HeroBanner({
             </h1>
           </TextIn>
 
-          {/* subtitle — tight gap from title */}
+          {/* subtitle */}
           <TextIn delay={240} className="mt-4">
-            <p className="text-[15px] text-gray-400 leading-[1.75]" style={{ maxWidth: '42ch' }}>
+            <p className="text-[15px] text-gray-400 leading-[1.75] max-w-[38ch] mx-auto">
               قارن العروض، اختر الأفضل، ووفّر التكاليف — بسهولة
             </p>
           </TextIn>
 
-          {/* buttons — medium gap */}
+          {/* buttons */}
           <TextIn delay={320} className="mt-8">
-            <div className="flex items-center gap-3">
+            <div className="flex items-center justify-center gap-3">
               <Link href="/rfqs/new">
-                <button className="btn-primary inline-flex items-center justify-center gap-2 px-7 py-[11px] rounded-xl bg-blue-600 hover:bg-blue-500 text-white text-[14.5px] font-semibold shadow-lg shadow-blue-600/20 min-w-[148px]">
+                <button className="btn-primary inline-flex items-center justify-center gap-2 px-7 py-[11px] rounded-xl bg-blue-600 hover:bg-blue-500 text-white text-[14.5px] font-semibold shadow-lg shadow-blue-600/20 w-[148px]">
                   <Plus className="h-4 w-4 flex-shrink-0" />
                   إنشاء طلب
                 </button>
               </Link>
               <Link href="/rfqs">
-                <button className="btn-ghost inline-flex items-center justify-center gap-2 px-7 py-[11px] rounded-xl border border-white/[0.10] bg-white/[0.03] hover:bg-white/[0.07] text-gray-300 text-[14.5px] font-medium min-w-[148px]">
+                <button className="btn-ghost inline-flex items-center justify-center gap-2 px-7 py-[11px] rounded-xl border border-white/[0.10] bg-white/[0.03] hover:bg-white/[0.07] text-gray-300 text-[14.5px] font-medium w-[148px]">
                   عرض الطلبات
                   <ArrowRight className="h-4 w-4 flex-shrink-0" />
                 </button>
@@ -155,29 +155,29 @@ export function HeroBanner({
             </div>
           </TextIn>
 
-          {/* stats — larger gap, equal columns */}
+          {/* stats */}
           {total > 0 && (
-            <TextIn delay={400} className="mt-10">
-              <div className="flex items-stretch pt-5 border-t border-white/[0.06]">
-                <div className="flex-1 flex flex-col items-center gap-[3px]">
+            <TextIn delay={400} className="mt-10 w-full">
+              <div className="flex items-center w-full pt-5 border-t border-white/[0.06]">
+                <div className="flex-1 flex flex-col items-center gap-1">
                   <p className="text-[22px] font-bold text-white tabular-nums leading-none">
                     <CountUp value={total} />
                   </p>
-                  <p className="text-[11px] text-gray-500 tracking-wide">إجمالي الطلبات</p>
+                  <p className="text-[11px] text-gray-500 mt-0.5">إجمالي الطلبات</p>
                 </div>
-                <div className="w-px self-stretch bg-white/[0.07]" />
-                <div className="flex-1 flex flex-col items-center gap-[3px]">
+                <div className="w-px h-8 bg-white/[0.07]" />
+                <div className="flex-1 flex flex-col items-center gap-1">
                   <p className="text-[22px] font-bold text-emerald-400 tabular-nums leading-none">
                     <CountUp value={active} />
                   </p>
-                  <p className="text-[11px] text-gray-500 tracking-wide">نشطة الآن</p>
+                  <p className="text-[11px] text-gray-500 mt-0.5">نشطة الآن</p>
                 </div>
-                <div className="w-px self-stretch bg-white/[0.07]" />
-                <div className="flex-1 flex flex-col items-center gap-[3px]">
+                <div className="w-px h-8 bg-white/[0.07]" />
+                <div className="flex-1 flex flex-col items-center gap-1">
                   <p className="text-[22px] font-bold text-violet-400 tabular-nums leading-none">
                     <CountUp value={resCount} />
                   </p>
-                  <p className="text-[11px] text-gray-500 tracking-wide">عروض مستلمة</p>
+                  <p className="text-[11px] text-gray-500 mt-0.5">عروض مستلمة</p>
                 </div>
               </div>
             </TextIn>
