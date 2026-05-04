@@ -101,27 +101,27 @@ export function HeroBanner({
 
         {/* ── Left ─────────────────────────────────────────── */}
         <div
-          className="flex-1 max-w-[600px] space-y-7"
+          className="flex-1 max-w-[600px] flex flex-col"
           dir="rtl"
           style={{ fontFamily: 'var(--font-arabic), var(--font-sans)' }}
         >
 
           {/* badge */}
           <TextIn delay={80}>
-            <div className="badge-pulse inline-flex items-center gap-2 px-4 py-2 rounded-full border border-blue-500/25 bg-blue-500/[0.08] text-[13px] text-blue-300 font-medium tracking-wide w-fit">
+            <div className="badge-pulse inline-flex items-center gap-2 px-4 py-2 rounded-full border border-blue-500/25 bg-blue-500/[0.08] text-[13px] text-blue-300 font-medium w-fit">
               <Sparkles className="h-3 w-3 animate-live-pulse flex-shrink-0" />
               منصة ذكية لإدارة المشتريات
             </div>
           </TextIn>
 
-          {/* title */}
-          <TextIn delay={160}>
+          {/* title — tight gap from badge */}
+          <TextIn delay={160} className="mt-5">
             <h1
               className="font-bold text-white"
               style={{
                 fontSize: 'clamp(2.25rem, 5vw, 3.25rem)',
-                lineHeight: 1.25,
-                letterSpacing: '-0.01em',
+                lineHeight: 1.22,
+                letterSpacing: '-0.015em',
               }}
             >
               اتخذ قرارات الشراء
@@ -130,51 +130,54 @@ export function HeroBanner({
             </h1>
           </TextIn>
 
-          {/* subtitle */}
-          <TextIn delay={240}>
-            <p
-              className="text-gray-400 leading-[1.8]"
-              style={{ fontSize: '1rem', maxWidth: '440px' }}
-            >
+          {/* subtitle — tight gap from title */}
+          <TextIn delay={240} className="mt-4">
+            <p className="text-[15px] text-gray-400 leading-[1.75]" style={{ maxWidth: '42ch' }}>
               قارن العروض، اختر الأفضل، ووفّر التكاليف — بسهولة
             </p>
           </TextIn>
 
-          {/* buttons */}
-          <TextIn delay={320}>
-            <div className="flex flex-wrap items-center gap-3 pt-1">
+          {/* buttons — medium gap */}
+          <TextIn delay={320} className="mt-8">
+            <div className="flex items-center gap-3">
               <Link href="/rfqs/new">
-                <button className="btn-primary inline-flex items-center gap-2 px-6 py-3 rounded-2xl bg-blue-600 hover:bg-blue-500 text-white text-[15px] font-semibold shadow-lg shadow-blue-600/25 tracking-wide">
-                  <Plus className="h-[15px] w-[15px]" />
+                <button className="btn-primary inline-flex items-center justify-center gap-2 px-7 py-[11px] rounded-xl bg-blue-600 hover:bg-blue-500 text-white text-[14.5px] font-semibold shadow-lg shadow-blue-600/20 min-w-[148px]">
+                  <Plus className="h-4 w-4 flex-shrink-0" />
                   إنشاء طلب
                 </button>
               </Link>
               <Link href="/rfqs">
-                <button className="btn-ghost inline-flex items-center gap-2 px-6 py-3 rounded-2xl border border-white/[0.10] bg-white/[0.03] hover:bg-white/[0.07] text-gray-300 text-[15px] font-medium tracking-wide transition-colors">
+                <button className="btn-ghost inline-flex items-center justify-center gap-2 px-7 py-[11px] rounded-xl border border-white/[0.10] bg-white/[0.03] hover:bg-white/[0.07] text-gray-300 text-[14.5px] font-medium min-w-[148px]">
                   عرض الطلبات
-                  <ArrowRight className="h-[15px] w-[15px]" />
+                  <ArrowRight className="h-4 w-4 flex-shrink-0" />
                 </button>
               </Link>
             </div>
           </TextIn>
 
-          {/* micro stat strip */}
+          {/* stats — larger gap, equal columns */}
           {total > 0 && (
-            <TextIn delay={400}>
-              <div className="flex items-center gap-6 pt-3 border-t border-white/[0.06]">
-                <div>
-                  <p className="text-xl font-bold text-white tabular-nums"><CountUp value={total} /></p>
-                  <p className="text-xs text-gray-500 mt-0.5">إجمالي الطلبات</p>
+            <TextIn delay={400} className="mt-10">
+              <div className="flex items-stretch pt-5 border-t border-white/[0.06]">
+                <div className="flex-1 flex flex-col items-center gap-[3px]">
+                  <p className="text-[22px] font-bold text-white tabular-nums leading-none">
+                    <CountUp value={total} />
+                  </p>
+                  <p className="text-[11px] text-gray-500 tracking-wide">إجمالي الطلبات</p>
                 </div>
-                <div className="w-px h-9 bg-white/[0.07]" />
-                <div>
-                  <p className="text-xl font-bold text-emerald-400 tabular-nums"><CountUp value={active} /></p>
-                  <p className="text-xs text-gray-500 mt-0.5">نشطة الآن</p>
+                <div className="w-px self-stretch bg-white/[0.07]" />
+                <div className="flex-1 flex flex-col items-center gap-[3px]">
+                  <p className="text-[22px] font-bold text-emerald-400 tabular-nums leading-none">
+                    <CountUp value={active} />
+                  </p>
+                  <p className="text-[11px] text-gray-500 tracking-wide">نشطة الآن</p>
                 </div>
-                <div className="w-px h-9 bg-white/[0.07]" />
-                <div>
-                  <p className="text-xl font-bold text-violet-400 tabular-nums"><CountUp value={resCount} /></p>
-                  <p className="text-xs text-gray-500 mt-0.5">عروض مستلمة</p>
+                <div className="w-px self-stretch bg-white/[0.07]" />
+                <div className="flex-1 flex flex-col items-center gap-[3px]">
+                  <p className="text-[22px] font-bold text-violet-400 tabular-nums leading-none">
+                    <CountUp value={resCount} />
+                  </p>
+                  <p className="text-[11px] text-gray-500 tracking-wide">عروض مستلمة</p>
                 </div>
               </div>
             </TextIn>
