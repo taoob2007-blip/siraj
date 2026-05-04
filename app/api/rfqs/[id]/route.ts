@@ -1,7 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { createClient } from '@supabase/supabase-js'
 import { getServerSupabaseClient, getServiceSupabaseClient } from '@/lib/supabase/server'
-import { sendWinnerEmail, sendLoserEmail } from '@/lib/email/sendAcceptEmail'
+import { sendWinnerEmail, sendLoserEmail, sendBuyerConfirmationEmail } from '@/lib/email/sendAcceptEmail'
 import { logContractEvent } from '@/lib/contracts/audit'
 
 interface RouteParams {
@@ -249,6 +249,13 @@ export async function PATCH(req: NextRequest, { params }: RouteParams) {
           sendWinnerEmail({
             supplierEmail: body.selected_supplier,
             rfqTitle,
+            price:         supplierResponse?.price         ?? null,
+            deliveryDays:  supplierResponse?.delivery_days ?? null,
+          }),
+          sendBuyerConfirmationEmail({
+            buyerEmail:    user.email!,
+            rfqTitle,
+            supplierEmail: body.selected_supplier,
             price:         supplierResponse?.price         ?? null,
             deliveryDays:  supplierResponse?.delivery_days ?? null,
           }),

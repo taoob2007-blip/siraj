@@ -1,6 +1,8 @@
 import { NextRequest, NextResponse } from 'next/server'
-import { getServerSupabaseClient } from '@/lib/supabase/server'
+import { getServerSupabaseClient, getServiceSupabaseClient } from '@/lib/supabase/server'
 import { logContractEvent } from '@/lib/contracts/audit'
+import { sendSupplierSigningLinkEmail } from '@/lib/email/sendAcceptEmail'
+import { BASE_URL } from '@/lib/constants'
 
 export async function PATCH(req: NextRequest, { params }: { params: { id: string } }) {
   try {
@@ -82,6 +84,34 @@ export async function PATCH(req: NextRequest, { params }: { params: { id: string
       userId: user.id,
       metadata: { ip, user_agent: userAgent },
     })
+
+    // After buyer signs: send supplier the contract signing link
+    if (body.status === 'signed') {
+      const serviceClient = getServiceSupabaseClient()
+      const { data: contractDetails } = await serviceClient
+        .from('contracts')
+        .select('supplier_email, signing_token, price, delivery_days, rfq_id')
+        .eq('id', params.id)
+        .maybeSingle()
+
+      if (contractDetails) {
+        const { data: rfqDetails } = await serviceClient
+          .from('rfqs')
+          .select('title')
+          .eq('id', contractDetails.rfq_id)
+          .maybeSingle()
+
+        const signingUrl = `${BASE_URL}/contracts/sign/${contractDetails.signing_token}`
+
+        void sendSupplierSigningLinkEmail({
+          supplierEmail: contractDetails.supplier_email,
+          rfqTitle:      rfqDetails?.title ?? 'Request for Quotation',
+          signingUrl,
+          price:         contractDetails.price,
+          deliveryDays:  contractDetails.delivery_days,
+        })
+      }
+    }
 
     return NextResponse.json(data)
   } catch (err) {

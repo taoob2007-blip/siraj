@@ -70,7 +70,7 @@ export function HeroBanner({
   const parallax = useMouseParallax(6)
 
   return (
-    <div className="relative overflow-hidden rounded-3xl border border-white/[0.08] p-8 md:p-12 hero-bg-drift">
+    <div className="relative overflow-hidden rounded-3xl border border-white/[0.08] p-10 md:p-14 hero-bg-drift">
 
       {/* ── Animated gradient orbs (parallax layer) ─────────── */}
       <div
@@ -97,49 +97,62 @@ export function HeroBanner({
       {/* shimmer sweep — fires once on mount */}
       <ShimmerSweep className="rounded-3xl" />
 
-      <div className="relative flex flex-col lg:flex-row items-center gap-12">
+      <div className="relative flex flex-col lg:flex-row items-center gap-14">
 
         {/* ── Left ─────────────────────────────────────────── */}
-        <div className="flex-1 space-y-6">
+        <div
+          className="flex-1 max-w-[600px] space-y-7"
+          dir="rtl"
+          style={{ fontFamily: 'var(--font-arabic), var(--font-sans)' }}
+        >
 
           {/* badge */}
           <TextIn delay={80}>
-            <div className="badge-pulse inline-flex items-center gap-2 px-3 py-1.5 rounded-full border border-blue-500/30 bg-blue-500/10 text-sm text-blue-300 font-medium w-fit">
-              <Sparkles className="h-3 w-3 animate-live-pulse" />
+            <div className="badge-pulse inline-flex items-center gap-2 px-4 py-2 rounded-full border border-blue-500/25 bg-blue-500/[0.08] text-[13px] text-blue-300 font-medium tracking-wide w-fit">
+              <Sparkles className="h-3 w-3 animate-live-pulse flex-shrink-0" />
               منصة ذكية لإدارة المشتريات
             </div>
           </TextIn>
 
           {/* title */}
           <TextIn delay={160}>
-            <div>
-              <h1 className="text-4xl md:text-5xl font-semibold text-white leading-tight tracking-tight">
-                اتخذ قرارات الشراء<br />
-                <span className="shimmer-text">خلال دقائق</span>
-              </h1>
-            </div>
+            <h1
+              className="font-bold text-white"
+              style={{
+                fontSize: 'clamp(2.25rem, 5vw, 3.25rem)',
+                lineHeight: 1.25,
+                letterSpacing: '-0.01em',
+              }}
+            >
+              اتخذ قرارات الشراء
+              <br />
+              <span className="shimmer-text">خلال دقائق</span>
+            </h1>
           </TextIn>
 
           {/* subtitle */}
           <TextIn delay={240}>
-            <p className="text-sm text-gray-400 max-w-md leading-relaxed">
-              قارن العروض، اختر الأفضل، ووفّر التكاليف — بدون تعقيد
+            <p
+              className="text-gray-400 leading-[1.8]"
+              style={{ fontSize: '1rem', maxWidth: '440px' }}
+            >
+              قارن العروض، اختر الأفضل، ووفّر التكاليف — بسهولة
             </p>
           </TextIn>
 
           {/* buttons */}
           <TextIn delay={320}>
-            <div className="flex flex-wrap gap-3 pt-1">
+            <div className="flex flex-wrap items-center gap-3 pt-1">
               <Link href="/rfqs/new">
-                <button className="btn-primary inline-flex items-center gap-2 px-5 py-2.5 rounded-xl bg-blue-600 hover:bg-blue-500 text-white text-sm font-semibold shadow-lg shadow-blue-600/30">
-                  <Plus className="h-4 w-4" />
-                  ابدأ الآن مجاناً
+                <button className="btn-primary inline-flex items-center gap-2 px-6 py-3 rounded-2xl bg-blue-600 hover:bg-blue-500 text-white text-[15px] font-semibold shadow-lg shadow-blue-600/25 tracking-wide">
+                  <Plus className="h-[15px] w-[15px]" />
+                  إنشاء طلب
                 </button>
               </Link>
               <Link href="/rfqs">
-                <button className="btn-ghost inline-flex items-center gap-2 px-5 py-2.5 rounded-xl border border-white/[0.10] bg-white/[0.04] hover:bg-white/[0.08] text-gray-300 text-sm font-medium">
-                  بدون بطاقة ائتمانية
-                  <ArrowRight className="h-4 w-4" />
+                <button className="btn-ghost inline-flex items-center gap-2 px-6 py-3 rounded-2xl border border-white/[0.10] bg-white/[0.03] hover:bg-white/[0.07] text-gray-300 text-[15px] font-medium tracking-wide transition-colors">
+                  عرض الطلبات
+                  <ArrowRight className="h-[15px] w-[15px]" />
                 </button>
               </Link>
             </div>
@@ -148,20 +161,20 @@ export function HeroBanner({
           {/* micro stat strip */}
           {total > 0 && (
             <TextIn delay={400}>
-              <div className="flex items-center gap-5 pt-2 border-t border-white/[0.05]">
+              <div className="flex items-center gap-6 pt-3 border-t border-white/[0.06]">
                 <div>
                   <p className="text-xl font-bold text-white tabular-nums"><CountUp value={total} /></p>
-                  <p className="text-xs text-gray-500">إجمالي الطلبات</p>
+                  <p className="text-xs text-gray-500 mt-0.5">إجمالي الطلبات</p>
                 </div>
-                <div className="w-px h-8 bg-white/[0.07]" />
+                <div className="w-px h-9 bg-white/[0.07]" />
                 <div>
                   <p className="text-xl font-bold text-emerald-400 tabular-nums"><CountUp value={active} /></p>
-                  <p className="text-xs text-gray-500">نشطة الآن</p>
+                  <p className="text-xs text-gray-500 mt-0.5">نشطة الآن</p>
                 </div>
-                <div className="w-px h-8 bg-white/[0.07]" />
+                <div className="w-px h-9 bg-white/[0.07]" />
                 <div>
                   <p className="text-xl font-bold text-violet-400 tabular-nums"><CountUp value={resCount} /></p>
-                  <p className="text-xs text-gray-500">عروض مستلمة</p>
+                  <p className="text-xs text-gray-500 mt-0.5">عروض مستلمة</p>
                 </div>
               </div>
             </TextIn>

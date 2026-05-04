@@ -1,6 +1,6 @@
 import type { Metadata } from 'next'
 import type { ReactNode } from 'react'
-import { Inter } from 'next/font/google'
+import { Inter, IBM_Plex_Sans_Arabic } from 'next/font/google'
 import { headers } from 'next/headers'
 import './globals.css'
 import { Sidebar } from '@/components/Sidebar'
@@ -8,6 +8,12 @@ import { ToastContainer } from '@/components/Toast'
 import { SubscriptionBanner } from '@/components/SubscriptionBanner'
 
 const inter = Inter({ subsets: ['latin'], variable: '--font-sans' })
+const ibmPlexArabic = IBM_Plex_Sans_Arabic({
+  subsets: ['arabic'],
+  weight: ['300', '400', '500', '600', '700'],
+  variable: '--font-arabic',
+  display: 'swap',
+})
 
 export const metadata: Metadata = {
   title: 'SIRAJ — AI-Powered Procurement',
@@ -21,7 +27,7 @@ export default async function RootLayout({ children }: { children: ReactNode }) 
 
   if (isFormPage) {
     return (
-      <html lang="en" className={`font-sans ${inter.variable}`}>
+      <html lang="en" className={`font-sans ${inter.variable} ${ibmPlexArabic.variable}`}>
         <body className="min-h-screen bg-[#080c14] text-gray-50 antialiased">
           <main className="min-h-screen flex items-start justify-center px-4 py-12">
             <div className="w-full max-w-2xl">
@@ -35,7 +41,7 @@ export default async function RootLayout({ children }: { children: ReactNode }) 
   }
 
   return (
-    <html lang="en" className={`font-sans ${inter.variable}`}>
+    <html lang="en" className={`font-sans ${inter.variable} ${ibmPlexArabic.variable}`}>
       <body className="flex min-h-screen bg-[#080c14] text-gray-50 antialiased">
         <Sidebar />
         <div className="flex-1 flex flex-col min-w-0">
