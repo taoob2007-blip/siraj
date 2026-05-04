@@ -3,7 +3,7 @@ import { NextRequest, NextResponse } from 'next/server'
 import { checkAccess } from '@/lib/subscription'
 
 // Routes that need no session at all.
-const PUBLIC_PATHS = ['/login', '/signup', '/pricing', '/auth']
+const PUBLIC_PATHS = ['/login', '/signup', '/pricing', '/auth', '/form']
 
 // Routes that require a valid session but bypass the subscription gate.
 // Expired users must be able to reach /billing to pay, and admins must
