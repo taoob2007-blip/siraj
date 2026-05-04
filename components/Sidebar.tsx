@@ -80,7 +80,7 @@ export function Sidebar() {
       {/* Logo */}
       <div className="px-5 py-4 border-b border-white/[0.06] flex items-center justify-center">
         <Image
-          src="/logo.svg"
+          src="/logo.png"
           alt="SIRAJ"
           width={140}
           height={40}
