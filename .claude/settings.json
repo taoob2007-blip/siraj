@@ -1,0 +1,8 @@
+{
+  "permissions": {
+    "allow": [
+      "Bash(Get-Content \"c:\\\\Users\\\\HP\\\\Desktop\\\\Siraj\\\\.env.local\")",
+      "Bash(Select-String -Pattern \"ENABLE_EMAILS|RESEND\")"
+    ]
+  }
+}
