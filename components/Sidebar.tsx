@@ -85,7 +85,7 @@ export function Sidebar() {
           width={120}
           height={32}
           priority
-          className="h-7 w-auto object-contain object-left"
+          className="h-11 w-auto object-contain object-left"
         />
       </div>
 
