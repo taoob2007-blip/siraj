@@ -116,38 +116,60 @@ export async function PATCH(req: NextRequest, { params }: RouteParams) {
       update.status = body.status
     }
 
+    // Track whether the RFQ was already closed before this request
+    let alreadyClosed = false
+
     if (body.selected_supplier !== undefined) {
-      // Guard: reject if RFQ is already closed (prevents double-accept)
       const { data: currentRfq } = await supabase
         .from('rfqs')
-        .select('status')
+        .select('status, selected_supplier')
         .eq('id', params.id)
         .eq('user_id', user.id)
         .maybeSingle()
 
       if (currentRfq?.status === 'closed') {
-        return NextResponse.json({ error: 'RFQ already closed' }, { status: 400 })
+        if (currentRfq.selected_supplier !== body.selected_supplier) {
+          // Different supplier — genuinely can't change the accepted supplier
+          return NextResponse.json({ error: 'RFQ already closed with a different supplier' }, { status: 400 })
+        }
+        // Same supplier: RFQ is closed but contract may be missing — skip the RFQ update
+        // and fall through to the contract + email logic below.
+        alreadyClosed = true
+      } else {
+        update.selected_supplier = body.selected_supplier
+        update.status = 'closed'
       }
-
-      update.selected_supplier = body.selected_supplier
-      update.status = 'closed'
     }
 
-    if (Object.keys(update).length === 0) {
+    if (!alreadyClosed && Object.keys(update).length === 0) {
       return NextResponse.json({ error: 'Nothing to update' }, { status: 400 })
     }
 
-    const { data, error } = await supabase
-      .from('rfqs')
-      .update(update)
-      .eq('id', params.id)
-      .eq('user_id', user.id)
-      .select()
-      .single()
+    // Only run the DB update when the RFQ isn't already in the right state
+    let data: Record<string, unknown> = {}
+    if (!alreadyClosed) {
+      const { data: updatedRfq, error } = await supabase
+        .from('rfqs')
+        .update(update)
+        .eq('id', params.id)
+        .eq('user_id', user.id)
+        .select()
+        .single()
 
-    if (error) {
-      console.error('RFQ update error:', error)
-      return NextResponse.json({ error: 'Failed to update RFQ' }, { status: 500 })
+      if (error) {
+        console.error('RFQ update error:', error)
+        return NextResponse.json({ error: 'Failed to update RFQ' }, { status: 500 })
+      }
+      data = updatedRfq as Record<string, unknown>
+    } else {
+      // Re-fetch current RFQ data for use in emails below
+      const { data: existingRfq } = await supabase
+        .from('rfqs')
+        .select('title')
+        .eq('id', params.id)
+        .eq('user_id', user.id)
+        .single()
+      data = existingRfq as Record<string, unknown> ?? {}
     }
 
     // Auto-create contract + send emails when a supplier is accepted
