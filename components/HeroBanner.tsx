@@ -2,7 +2,7 @@
 
 import { useEffect, useState } from 'react'
 import Link from 'next/link'
-import { Plus, ArrowRight, Brain, Sparkles } from 'lucide-react'
+import { Plus, ArrowLeft, Brain, Sparkles } from 'lucide-react'
 import { CountUp, ShimmerSweep } from '@/components/DashboardShell'
 
 /* ── Tiny hook: tracks mouse position normalised to [-1, 1] ── */
@@ -147,9 +147,9 @@ export function HeroBanner({
                 </button>
               </Link>
               <Link href="/rfqs">
-                <button className="btn-ghost inline-flex items-center justify-center gap-2 px-7 py-[11px] rounded-xl border border-white/[0.10] bg-white/[0.03] hover:bg-white/[0.07] text-gray-300 text-[14.5px] font-medium w-[148px]">
+                <button className="btn-ghost inline-flex items-center justify-center gap-2 px-7 py-[11px] rounded-xl border border-white/[0.10] bg-white/[0.03] hover:bg-white/[0.07] text-gray-300 text-[14.5px] font-medium whitespace-nowrap">
                   عرض الطلبات
-                  <ArrowRight className="h-4 w-4 flex-shrink-0" />
+                  <ArrowLeft className="h-4 w-4 flex-shrink-0" />
                 </button>
               </Link>
             </div>
