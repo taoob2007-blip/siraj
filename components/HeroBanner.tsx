@@ -39,23 +39,14 @@ function Stat({ value, label, colorCls }: any) {
 
 export function HeroBanner({ total, active, resCount }: any) {
   return (
-    <div className="relative overflow-hidden rounded-3xl border border-white/[0.06]">
+    <div className="relative overflow-hidden rounded-3xl border border-white/[0.06] bg-[#0A0F1B]">
 
-      {/* 🔥 BACKGROUND IMAGE */}
-      <div
-        className="absolute inset-0"
-        style={{
-          backgroundImage: 'url(/hero-bg.png)',
-          backgroundSize: 'cover',
-          backgroundPosition: 'center',
-          opacity: 0.35,
-        }}
-      />
+      {/* 🔥 BACKGROUND (بدون صورة) */}
+      <div className="absolute inset-0 pointer-events-none">
+        <div className="absolute w-[600px] h-[600px] bg-cyan-500/10 blur-[120px] rounded-full left-1/2 -translate-x-1/2 top-10" />
+        <div className="absolute w-[500px] h-[500px] bg-indigo-500/10 blur-[120px] rounded-full right-[-150px] bottom-[-150px]" />
+      </div>
 
-      {/* Overlay */}
-      <div className="absolute inset-0 bg-[#0A0F1B]/80 backdrop-blur-[2px]" />
-
-      {/* Content */}
       <div className="relative px-6 py-24 flex flex-col items-center text-center" dir="rtl">
 
         {/* LOGO */}
@@ -65,11 +56,13 @@ export function HeroBanner({ total, active, resCount }: any) {
             alt="SIRAJ"
             width={500}
             height={200}
+            priority
             className="
               w-[420px] md:w-[520px]
               object-contain
               mix-blend-screen
               brightness-125
+              contrast-110
               drop-shadow-[0_0_25px_rgba(34,211,238,0.25)]
             "
           />
@@ -112,6 +105,7 @@ export function HeroBanner({ total, active, resCount }: any) {
                 font-semibold
                 hover:scale-[1.05]
                 transition
+                shadow-lg shadow-cyan-400/20
               ">
                 + إنشاء طلب
               </button>
