@@ -2,6 +2,7 @@
 
 import { useEffect, useState } from 'react'
 import Link from 'next/link'
+import Image from 'next/image'
 import { Plus, ArrowLeft } from 'lucide-react'
 import { CountUp, ShimmerSweep } from '@/components/DashboardShell'
 
@@ -127,27 +128,17 @@ export function HeroBanner({
       {/* ── Content ─────────────────────────────────────────── */}
       <div className="relative flex flex-col items-center text-center gap-6" dir="rtl">
 
-        {/* Logo — dir="ltr" so Latin letters never flip in RTL context */}
+        {/* Logo — exact brand asset, no recreation */}
         <TextIn delay={0}>
-          <div className="flex items-end gap-0 select-none" aria-label="SIRAJ" dir="ltr">
-            {['S', 'I', 'R', 'A', 'J'].map((letter) => (
-              <div key={letter} className="relative px-[0.12em]">
-                <span
-                  className="block text-[2.6rem] md:text-[3.4rem] font-black text-white leading-none"
-                  style={{
-                    letterSpacing: '0.05em',
-                    fontFamily: 'var(--font-sans)',
-                    fontStretch: 'expanded',
-                  }}
-                >
-                  {letter}
-                </span>
-                {letter === 'A' && (
-                  <span className="absolute left-1/2 -translate-x-1/2 -bottom-2.5 w-[7px] h-[7px] rounded-full bg-cyan-400 shadow-[0_0_10px_3px_rgba(34,211,238,0.5)]" />
-                )}
-              </div>
-            ))}
-          </div>
+          <Image
+            src="/logo.png"
+            alt="SIRAJ"
+            width={340}
+            height={100}
+            priority
+            className="w-[220px] md:w-[300px] lg:w-[340px] h-auto object-contain select-none"
+            draggable={false}
+          />
         </TextIn>
 
         {/* Headline ────────────────────────────────────────── */}
