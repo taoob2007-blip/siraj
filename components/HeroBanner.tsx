@@ -171,7 +171,7 @@ export function HeroBanner({
         {/* Subtext ─────────────────────────────────────────── */}
         <TextIn delay={230} className="mt-1">
           <p
-            className="text-[15px] md:text-base text-gray-300 leading-[1.8] mx-auto"
+            className="text-[15px] md:text-base text-slate-200 leading-[1.8] mx-auto"
             style={{ maxWidth: '42ch' }}
           >
             قارن العروض، اختر الأفضل، ووفّر التكاليف — بدون تعقيد
