@@ -3,7 +3,7 @@
 import type { ElementType } from 'react'
 import Link from 'next/link'
 import { usePathname } from 'next/navigation'
-import { useEffect, useState } from 'react'
+import { useEffect, useState, useRef } from 'react'
 import {
   LayoutDashboard, FileText, Users, BarChart2,
   GitCompare, FileSignature, MessageSquare, PieChart,
@@ -30,9 +30,21 @@ export function Sidebar() {
   const pathname = usePathname()
 
   const [collapsed, setCollapsed] = useState(false)
+  const [activeIndex, setActiveIndex] = useState(0)
+  const containerRef = useRef<HTMLDivElement>(null)
+
   const [userName, setUserName] = useState('')
   const [userEmail, setUserEmail] = useState('')
   const [isPro, setIsPro] = useState(false)
+
+  useEffect(() => {
+    const index = NAV.findIndex(item =>
+      item.href === '/'
+        ? pathname === '/'
+        : pathname.startsWith(item.href)
+    )
+    setActiveIndex(index === -1 ? 0 : index)
+  }, [pathname])
 
   useEffect(() => {
     supabase.auth.getSession().then(({ data: { session } }) => {
@@ -54,13 +66,14 @@ export function Sidebar() {
     <aside className={`
       ${collapsed ? 'w-20' : 'w-64'}
       transition-all duration-300
-      min-h-screen bg-[#0b1220] border-r border-white/[0.05] flex flex-col
+      min-h-screen bg-[#0a0f1a]
+      border-r border-white/[0.05]
+      flex flex-col relative
     `}>
 
       {/* 🔥 HEADER */}
       <div className="px-4 py-5 border-b border-white/[0.05] flex flex-col items-center relative">
 
-        {/* Collapse Button */}
         <button
           onClick={() => setCollapsed(!collapsed)}
           className="absolute left-3 top-5 text-gray-500 hover:text-white"
@@ -68,26 +81,31 @@ export function Sidebar() {
           <ChevronLeft className={`transition ${collapsed ? 'rotate-180' : ''}`} />
         </button>
 
-        {/* Logo */}
         <img
           src="/logo-raw.png"
-          className={`transition-all ${collapsed ? 'w-8' : 'w-[140px]'}`}
+          className={`transition-all duration-300 ${collapsed ? 'w-8' : 'w-[140px]'}`}
         />
 
-        {/* Glow dot */}
         {!collapsed && (
-          <div className="w-2 h-2 bg-cyan-400 mt-2 rounded-full shadow-[0_0_15px_rgba(34,211,238,0.8)]" />
+          <div className="w-2 h-2 bg-cyan-400 mt-2 rounded-full shadow-[0_0_20px_rgba(34,211,238,0.8)]" />
         )}
+
       </div>
 
       {/* NAV */}
-      <nav className="flex-1 px-2 py-4 space-y-1">
+      <div ref={containerRef} className="relative flex-1 px-2 py-4 space-y-1">
 
-        {NAV.map(({ href, label, icon: Icon, proOnly }) => {
-          const active = href === '/'
-            ? pathname === '/'
-            : pathname.startsWith(href)
+        {/* 🎯 Animated Indicator */}
+        <div
+          className="absolute left-0 w-[3px] bg-cyan-400 rounded-full transition-all duration-300"
+          style={{
+            top: `${activeIndex * 44 + 12}px`,
+            height: '24px'
+          }}
+        />
 
+        {NAV.map(({ href, label, icon: Icon, proOnly }, i) => {
+          const active = i === activeIndex
           const locked = proOnly && !isPro
 
           return (
@@ -107,19 +125,12 @@ export function Sidebar() {
               `}
             >
 
-              {/* Active Line */}
-              {active && (
-                <span className="absolute left-0 top-1/2 -translate-y-1/2 w-[3px] h-5 bg-cyan-400 rounded-full" />
-              )}
-
-              {/* Background hover */}
-              <div className={`
-                absolute inset-0 rounded-xl
-                ${active
-                  ? 'bg-cyan-400/10'
-                  : 'group-hover:bg-white/[0.04]'
-                }
-              `} />
+              {/* Glow hover */}
+              <div className="
+                absolute inset-0 rounded-xl opacity-0 group-hover:opacity-100
+                bg-gradient-to-r from-cyan-400/10 to-transparent
+                transition
+              " />
 
               <Icon className="relative h-4 w-4" />
 
@@ -137,7 +148,7 @@ export function Sidebar() {
           )
         })}
 
-      </nav>
+      </div>
 
       {/* USER */}
       {!collapsed && (
