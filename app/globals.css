@@ -265,23 +265,3 @@ html {
   transform-origin: center;
 }
 
-/* ── Hero CTA — cyan primary button ────────────────────────── */
-.btn-cyan {
-  transition: transform 180ms ease, box-shadow 180ms ease, background 180ms ease;
-}
-.btn-cyan:hover {
-  transform: scale(1.04);
-  box-shadow: 0 0 36px rgba(34,211,238,0.55), 0 6px 20px rgba(34,211,238,0.28);
-  background-color: #67e8f9; /* cyan-300 */
-}
-.btn-cyan:active { transform: scale(0.97); }
-
-/* ── Hero CTA — ghost secondary button ─────────────────────── */
-.btn-ghost-hero {
-  transition: transform 150ms ease, background 150ms ease, border-color 150ms ease;
-}
-.btn-ghost-hero:hover {
-  transform: scale(1.02);
-  border-color: rgba(255,255,255,0.22);
-}
-.btn-ghost-hero:active { transform: scale(0.97); }

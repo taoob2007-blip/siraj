@@ -4,32 +4,10 @@ import { useEffect, useState } from 'react'
 import Link from 'next/link'
 import Image from 'next/image'
 import { Plus, ArrowLeft } from 'lucide-react'
-import { CountUp, ShimmerSweep } from '@/components/DashboardShell'
+import { CountUp } from '@/components/DashboardShell'
 
-/* ── Mouse parallax ─────────────────────────────────────────── */
-function useMouseParallax(strength = 6) {
-  const [offset, setOffset] = useState({ x: 0, y: 0 })
-  useEffect(() => {
-    let frame: number
-    const onMove = (e: MouseEvent) => {
-      cancelAnimationFrame(frame)
-      frame = requestAnimationFrame(() => {
-        const cx = window.innerWidth  / 2
-        const cy = window.innerHeight / 2
-        setOffset({
-          x: ((e.clientX - cx) / cx) * strength,
-          y: ((e.clientY - cy) / cy) * strength,
-        })
-      })
-    }
-    window.addEventListener('mousemove', onMove, { passive: true })
-    return () => { window.removeEventListener('mousemove', onMove); cancelAnimationFrame(frame) }
-  }, [strength])
-  return offset
-}
-
-/* ── Staggered fade-up ──────────────────────────────────────── */
-function TextIn({
+/* ── Fade-up on mount ───────────────────────────────────────── */
+function FadeUp({
   children,
   delay = 0,
   className = '',
@@ -49,8 +27,8 @@ function TextIn({
       className={className}
       style={{
         opacity:    vis ? 1 : 0,
-        transform:  vis ? 'translateY(0)' : 'translateY(14px)',
-        transition: 'opacity 560ms cubic-bezier(.4,0,.2,1), transform 560ms cubic-bezier(.4,0,.2,1)',
+        transform:  vis ? 'translateY(0)' : 'translateY(12px)',
+        transition: 'opacity 500ms ease, transform 500ms ease',
       }}
     >
       {children}
@@ -58,22 +36,14 @@ function TextIn({
   )
 }
 
-/* ── Stat pill ──────────────────────────────────────────────── */
-function StatPill({
-  value,
-  label,
-  colorCls,
-}: {
-  value: number
-  label: string
-  colorCls: string
-}) {
+/* ── Stat item ──────────────────────────────────────────────── */
+function Stat({ value, label, colorCls }: { value: number; label: string; colorCls: string }) {
   return (
-    <div className="flex flex-col items-center gap-1">
-      <p className={`text-2xl md:text-3xl font-bold tabular-nums leading-none ${colorCls}`}>
+    <div className="flex flex-col items-center gap-1.5">
+      <span className={`text-2xl md:text-3xl font-bold tabular-nums leading-none ${colorCls}`}>
         <CountUp value={value} />
-      </p>
-      <p className="text-[11px] text-gray-500 mt-0.5 whitespace-nowrap">{label}</p>
+      </span>
+      <span className="text-[11px] text-gray-500 whitespace-nowrap">{label}</span>
     </div>
   )
 }
@@ -88,121 +58,125 @@ export function HeroBanner({
   active: number
   resCount: number
 }) {
-  const parallax = useMouseParallax(5)
-
   return (
-    <div className="relative overflow-hidden rounded-3xl border border-white/[0.08] px-8 py-14 md:py-20 hero-bg-drift">
+    <div
+      className="relative overflow-hidden rounded-3xl border border-white/[0.07] px-6 py-16 md:py-24"
+      style={{ background: '#0A0F1B' }}
+    >
 
-      {/* ── Ambient orbs ────────────────────────────────────── */}
-      <div
-        className="pointer-events-none absolute inset-0"
-        style={{
-          transform: `translate(${parallax.x * 0.35}px, ${parallax.y * 0.35}px)`,
-          transition: 'transform 140ms linear',
-        }}
-      >
-        {/* top-left blue */}
-        <div className="absolute -top-32 -left-32 h-96 w-96 rounded-full bg-blue-600/8 blur-3xl hero-orb-drift" />
-        {/* bottom-right violet */}
-        <div className="absolute -bottom-32 -right-32 h-96 w-96 rounded-full bg-violet-600/8 blur-3xl hero-orb-drift-reverse" />
-        {/* center cyan pulse — the signature glow */}
-        <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 h-[420px] w-[420px] rounded-full bg-cyan-500/5 blur-3xl hero-orb-drift-slow" />
+      {/* ── Subtle background glow — barely perceptible ──────── */}
+      <div className="pointer-events-none absolute inset-0">
+        {/* top-left */}
+        <div className="absolute -top-40 -left-40 h-[420px] w-[420px] rounded-full bg-blue-700/[0.06] blur-3xl" />
+        {/* bottom-right */}
+        <div className="absolute -bottom-40 -right-40 h-[420px] w-[420px] rounded-full bg-indigo-700/[0.06] blur-3xl" />
+        {/* center — very faint cyan */}
+        <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 h-[360px] w-[360px] rounded-full bg-cyan-600/[0.04] blur-3xl" />
       </div>
 
-      {/* ── Top edge highlight ───────────────────────────────── */}
-      <div className="pointer-events-none absolute top-0 left-12 right-12 h-px bg-gradient-to-r from-transparent via-cyan-400/25 to-transparent" />
-
-      {/* ── Grid texture ────────────────────────────────────── */}
-      <div
-        className="pointer-events-none absolute inset-0 opacity-[0.018]"
-        style={{
-          backgroundImage:
-            'linear-gradient(rgba(255,255,255,0.2) 1px,transparent 1px),linear-gradient(90deg,rgba(255,255,255,0.2) 1px,transparent 1px)',
-          backgroundSize: '52px 52px',
-        }}
-      />
-
-      {/* ── Shimmer sweep (once on mount) ───────────────────── */}
-      <ShimmerSweep className="rounded-3xl" />
+      {/* ── Top edge line ────────────────────────────────────── */}
+      <div className="pointer-events-none absolute top-0 left-16 right-16 h-px bg-gradient-to-r from-transparent via-white/[0.08] to-transparent" />
 
       {/* ── Content ─────────────────────────────────────────── */}
-      <div className="relative flex flex-col items-center text-center gap-6" dir="rtl">
+      <div className="relative flex flex-col items-center text-center gap-0" dir="rtl">
 
-        {/* Logo — exact brand asset, no recreation */}
-        <TextIn delay={0}>
+        {/* Logo ────────────────────────────────────────────── */}
+        <FadeUp delay={0}>
           <Image
             src="/logo.png"
             alt="SIRAJ"
-            width={340}
-            height={100}
+            width={380}
+            height={110}
             priority
-            className="w-[220px] md:w-[300px] lg:w-[340px] h-auto object-contain select-none"
             draggable={false}
+            className="w-[200px] md:w-[270px] lg:w-[320px] h-auto object-contain select-none"
           />
-        </TextIn>
+        </FadeUp>
 
-        {/* Headline ────────────────────────────────────────── */}
-        <TextIn delay={130} className="mt-3">
+        {/* Headline ───────────────────────────────────────── */}
+        <FadeUp delay={120} className="mt-10">
           <h1
             className="font-bold text-white"
             style={{
-              fontSize: 'clamp(1.75rem, 4.5vw, 3rem)',
-              lineHeight: 1.25,
+              fontSize:      'clamp(1.7rem, 4.2vw, 2.9rem)',
+              lineHeight:    1.3,
               letterSpacing: '-0.01em',
             }}
           >
             اتخذ قرارات الشراء
             <br />
-            <span className="text-cyan-400 drop-shadow-[0_0_24px_rgba(34,211,238,0.35)]">
-              خلال دقائق بدل أيام
-            </span>
+            <span className="text-cyan-400">خلال دقائق بدل أيام</span>
           </h1>
-        </TextIn>
+        </FadeUp>
 
-        {/* Subtext ─────────────────────────────────────────── */}
-        <TextIn delay={230} className="mt-1">
+        {/* Subtext ────────────────────────────────────────── */}
+        <FadeUp delay={220} className="mt-5">
           <p
-            className="text-[15px] md:text-base text-slate-200 leading-[1.8] mx-auto"
-            style={{ maxWidth: '42ch' }}
+            className="text-[15px] md:text-[16px] text-gray-300 leading-relaxed mx-auto"
+            style={{ maxWidth: '40ch' }}
           >
             قارن العروض، اختر الأفضل، ووفّر التكاليف — بدون تعقيد
           </p>
-        </TextIn>
+        </FadeUp>
 
-        {/* CTA Buttons ─────────────────────────────────────── */}
-        <TextIn delay={330} className="mt-4">
+        {/* CTA ────────────────────────────────────────────── */}
+        <FadeUp delay={320} className="mt-9">
           <div className="flex items-center justify-center gap-3 flex-wrap">
+
+            {/* Primary — solid cyan, clean hover */}
             <Link href="/rfqs/new">
-              <button className="btn-cyan inline-flex items-center gap-2 px-7 py-[13px] rounded-xl bg-cyan-400 text-[#0A0F1B] text-[14.5px] font-bold shadow-[0_4px_24px_rgba(34,211,238,0.3)] w-[152px] justify-center">
+              <button
+                className="
+                  inline-flex items-center justify-center gap-2
+                  px-7 py-3 rounded-xl
+                  bg-cyan-400 hover:bg-cyan-300
+                  text-[#0A0F1B] text-[14.5px] font-semibold
+                  transition-transform duration-200 hover:scale-[1.03] active:scale-[0.97]
+                  w-[148px]
+                "
+              >
                 <Plus className="h-4 w-4 flex-shrink-0" />
                 إنشاء طلب
               </button>
             </Link>
+
+            {/* Secondary — ghost border */}
             <Link href="/rfqs">
-              <button className="btn-ghost-hero inline-flex items-center gap-2 px-7 py-[13px] rounded-xl border border-white/[0.15] bg-white/[0.03] hover:bg-white/[0.07] text-gray-300 text-[14.5px] font-medium whitespace-nowrap justify-center">
+              <button
+                className="
+                  inline-flex items-center justify-center gap-2
+                  px-7 py-3 rounded-xl
+                  border border-white/[0.14] bg-white/[0.03]
+                  hover:bg-white/[0.06] hover:border-white/[0.22]
+                  text-gray-300 text-[14.5px] font-medium
+                  transition-all duration-200 hover:scale-[1.02] active:scale-[0.97]
+                  whitespace-nowrap
+                "
+              >
                 عرض الطلبات
                 <ArrowLeft className="h-4 w-4 flex-shrink-0" />
               </button>
             </Link>
-          </div>
-        </TextIn>
 
-        {/* Stats ───────────────────────────────────────────── */}
-        <TextIn delay={440} className="mt-6 w-full max-w-sm">
-          <div className="flex items-center justify-center gap-0 pt-6 border-t border-white/[0.06]">
+          </div>
+        </FadeUp>
+
+        {/* Stats ──────────────────────────────────────────── */}
+        <FadeUp delay={420} className="mt-10 w-full max-w-xs">
+          <div className="flex items-center justify-center pt-7 border-t border-white/[0.06]">
             <div className="flex-1">
-              <StatPill value={total}    label="إجمالي الطلبات" colorCls="text-white" />
+              <Stat value={total}    label="إجمالي الطلبات" colorCls="text-white" />
             </div>
-            <div className="w-px h-10 bg-white/[0.08] flex-shrink-0" />
+            <div className="w-px h-9 bg-white/[0.07] flex-shrink-0" />
             <div className="flex-1">
-              <StatPill value={active}   label="نشطة الآن"      colorCls="text-cyan-400" />
+              <Stat value={active}   label="نشطة الآن"      colorCls="text-cyan-400" />
             </div>
-            <div className="w-px h-10 bg-white/[0.08] flex-shrink-0" />
+            <div className="w-px h-9 bg-white/[0.07] flex-shrink-0" />
             <div className="flex-1">
-              <StatPill value={resCount} label="عروض مستلمة"    colorCls="text-violet-400" />
+              <Stat value={resCount} label="عروض مستلمة"    colorCls="text-violet-400" />
             </div>
           </div>
-        </TextIn>
+        </FadeUp>
 
       </div>
     </div>
