@@ -2,7 +2,7 @@
 
 import Image from 'next/image'
 
-export default function HeroBanner() {
+export function HeroBanner() {
   return (
     <section className="relative overflow-hidden">
 
