@@ -24,8 +24,8 @@ function FadeUp({
       className={className}
       style={{
         opacity: vis ? 1 : 0,
-        transform: vis ? 'translateY(0)' : 'translateY(18px)',
-        transition: 'opacity 700ms ease, transform 700ms ease',
+        transform: vis ? 'translateY(20px)' : 'translateY(40px)',
+        transition: 'all 700ms ease',
       }}
     >
       {children}
@@ -35,11 +35,11 @@ function FadeUp({
 
 function Stat({ value, label, colorCls }: { value: number; label: string; colorCls: string }) {
   return (
-    <div className="flex flex-col items-center gap-1.5">
-      <span className={`text-2xl md:text-3xl font-bold tabular-nums leading-none ${colorCls}`}>
+    <div className="flex flex-col items-center gap-1">
+      <span className={`text-2xl md:text-3xl font-bold ${colorCls}`}>
         <CountUp value={value} />
       </span>
-      <span className="text-[11px] text-gray-400 whitespace-nowrap">{label}</span>
+      <span className="text-[11px] text-gray-400">{label}</span>
     </div>
   )
 }
@@ -54,9 +54,9 @@ export function HeroBanner({
   resCount: number
 }) {
   return (
-    <div className="relative overflow-hidden rounded-3xl border border-white/[0.06] px-6 py-24 md:py-32">
+    <div className="relative overflow-hidden rounded-3xl border border-white/[0.06] px-6 py-28 md:py-36">
 
-      {/* 🔥 Background */}
+      {/* Background */}
       <div className="absolute inset-0">
         <img
           src="/hero-banner.jpg"
@@ -65,55 +65,64 @@ export function HeroBanner({
         />
       </div>
 
-      {/* ✨ Gradient (ذكي مو قاتل) */}
-      <div className="absolute inset-0 bg-gradient-to-b from-[#0A0F1B]/10 via-[#0A0F1B]/30 to-[#0A0F1B]/85" />
+      {/* Overlay */}
+      <div className="absolute inset-0 bg-gradient-to-b from-[#0A0F1B]/20 via-[#0A0F1B]/50 to-[#0A0F1B]/90" />
 
-      {/* ✨ Light Glow Dynamic */}
-      <div className="pointer-events-none absolute inset-0">
-        <div className="absolute top-[-120px] left-[-120px] w-[500px] h-[500px] bg-cyan-400/10 blur-3xl rounded-full animate-pulse" />
-        <div className="absolute bottom-[-120px] right-[-100px] w-[400px] h-[400px] bg-indigo-500/10 blur-3xl rounded-full animate-pulse" />
+      {/* Glow */}
+      <div className="absolute inset-0 pointer-events-none">
+        <div className="absolute top-[-150px] left-[-150px] w-[500px] h-[500px] bg-cyan-500/10 blur-3xl rounded-full" />
+        <div className="absolute bottom-[-120px] right-[-100px] w-[400px] h-[400px] bg-indigo-500/10 blur-3xl rounded-full" />
       </div>
 
-      {/* ✨ Noise subtle (احترافية) */}
-      <div className="absolute inset-0 opacity-[0.04] mix-blend-overlay pointer-events-none"
-           style={{ backgroundImage: 'url("https://grainy-gradients.vercel.app/noise.svg")' }} />
+      <div className="relative z-10 flex flex-col items-center text-center" dir="rtl">
 
-      {/* CONTENT */}
-      <div className="relative z-10 flex flex-col items-center text-center pt-16 md:pt-20" dir="rtl">
-
-        {/* Headline */}
-        <FadeUp delay={100}>
-          <h1
-            className="font-bold text-white"
-            style={{
-              fontSize: 'clamp(1.6rem, 3.5vw, 2.7rem)',
-              lineHeight: 1.35,
-              letterSpacing: '-0.01em',
-              textShadow: '0 10px 40px rgba(0,0,0,0.6)',
-            }}
-          >
-            اتخذ قرارات الشراء
-            <br />
-            <span className="text-cyan-400">خلال دقائق بدل أيام</span>
-          </h1>
+        {/* LOGO */}
+        <FadeUp delay={0}>
+          <img
+            src="/hero-logo.png"
+            alt="SIRAJ"
+            className="w-[360px] md:w-[520px] object-contain mb-14"
+          />
         </FadeUp>
 
-        {/* Subtext */}
-        <FadeUp delay={200} className="mt-6">
-          <p className="text-[15px] md:text-[16px] text-gray-200 max-w-[42ch]"
-             style={{ textShadow: '0 4px 20px rgba(0,0,0,0.5)' }}>
-            قارن العروض، اختر الأفضل، ووفّر التكاليف — بدون تعقيد
+        {/* 🔥 MICRO TEXT (احترافي جداً) */}
+        <FadeUp delay={100}>
+          <p className="text-cyan-400 text-sm tracking-wide mb-3">
+            منصة إدارة المشتريات الذكية
           </p>
         </FadeUp>
 
-        {/* Buttons */}
-        <FadeUp delay={300} className="mt-10">
-          <div className="flex items-center justify-center gap-4 flex-wrap">
+        {/* 🔥 HEADLINE */}
+        <FadeUp delay={200}>
+          <h1
+            className="text-white font-bold"
+            style={{
+              fontSize: 'clamp(1.8rem, 3.5vw, 3rem)',
+              lineHeight: 1.3,
+            }}
+          >
+            قرارات أسرع، نتائج أفضل
+            <br />
+            <span className="text-cyan-400">بدون تعقيد أو تأخير</span>
+          </h1>
+        </FadeUp>
+
+        {/* 🔥 VALUE PROPOSITION */}
+        <FadeUp delay={300} className="mt-6">
+          <p className="text-gray-300 max-w-[48ch] leading-relaxed text-[15px] md:text-[16px]">
+            قارن العروض من عدة موردين، اختر الأنسب خلال دقائق،
+            وخل الذكاء الاصطناعي يساعدك توفّر وقتك وتكاليفك.
+          </p>
+        </FadeUp>
+
+        {/* 🔥 CTA ZONE */}
+        <FadeUp delay={400} className="mt-10">
+          <div className="flex gap-4 flex-wrap justify-center">
 
             <Link href="/rfqs/new">
               <button className="px-8 py-3.5 rounded-xl bg-cyan-400 text-[#0A0F1B] font-semibold 
-              shadow-[0_10px_40px_rgba(34,211,238,0.25)] 
-              hover:scale-[1.06] hover:bg-cyan-300 transition-all duration-200">
+              shadow-[0_10px_40px_rgba(34,211,238,0.3)] 
+              hover:scale-[1.07] hover:bg-cyan-300 transition">
                 + إنشاء طلب
               </button>
             </Link>
@@ -128,20 +137,15 @@ export function HeroBanner({
           </div>
         </FadeUp>
 
-        {/* Stats */}
-        <FadeUp delay={400} className="mt-14 w-full max-w-sm">
-          <div className="flex items-center justify-center pt-6 border-t border-white/[0.08] backdrop-blur-sm bg-white/[0.02] rounded-xl">
-            <div className="flex-1">
-              <Stat value={total} label="إجمالي الطلبات" colorCls="text-white" />
-            </div>
-            <div className="w-px h-10 bg-white/[0.08]" />
-            <div className="flex-1">
-              <Stat value={active} label="نشطة الآن" colorCls="text-cyan-400" />
-            </div>
-            <div className="w-px h-10 bg-white/[0.08]" />
-            <div className="flex-1">
-              <Stat value={resCount} label="عروض مستلمة" colorCls="text-violet-400" />
-            </div>
+        {/* 🔥 STATS (صارت بلوك مستقل فخم) */}
+        <FadeUp delay={500} className="mt-16 w-full max-w-md">
+          <div className="flex justify-between items-center px-6 py-5 rounded-2xl 
+          bg-white/[0.04] backdrop-blur-md border border-white/[0.08]">
+
+            <Stat value={total} label="إجمالي الطلبات" colorCls="text-white" />
+            <Stat value={active} label="نشطة الآن" colorCls="text-cyan-400" />
+            <Stat value={resCount} label="عروض مستلمة" colorCls="text-violet-400" />
+
           </div>
         </FadeUp>
 
