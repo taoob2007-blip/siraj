@@ -1,87 +1,78 @@
 'use client'
 
 import Link from 'next/link'
-import Image from 'next/image'
 import { CountUp } from '@/components/DashboardShell'
 
-export function HeroBanner({ total, active, resCount }: any) {
+function Stat({ value, label, colorCls }: { value: number; label: string; colorCls: string }) {
   return (
-    <div className="relative overflow-hidden rounded-3xl border border-white/[0.06] bg-[#0A0F1B]">
+    <div className="flex flex-col items-center gap-1">
+      <span className={`text-3xl font-bold ${colorCls}`}>
+        <CountUp value={value} />
+      </span>
+      <span className="text-xs text-gray-500">{label}</span>
+    </div>
+  )
+}
 
-      {/* 🔥 GLOW BACKGROUND */}
-      <div className="absolute inset-0 pointer-events-none">
-        <div className="absolute w-[700px] h-[700px] bg-cyan-500/10 blur-[140px] rounded-full left-1/2 -translate-x-1/2 top-[-200px]" />
-        <div className="absolute w-[600px] h-[600px] bg-indigo-500/10 blur-[140px] rounded-full right-[-200px] bottom-[-200px]" />
+export function HeroBanner({
+  total,
+  active,
+  resCount,
+}: {
+  total: number
+  active: number
+  resCount: number
+}) {
+  return (
+    <div className="relative overflow-hidden rounded-3xl border border-white/[0.05] px-6 py-20">
+
+      {/* 🔥 BACKGROUND */}
+      <div className="absolute inset-0 bg-[#050A14]" />
+
+      {/* Glow */}
+      <div className="absolute inset-0">
+        <div className="absolute top-[-120px] left-1/2 -translate-x-1/2 w-[700px] h-[700px] bg-cyan-500/10 blur-[160px]" />
+        <div className="absolute bottom-[-200px] left-1/2 -translate-x-1/2 w-[900px] h-[500px] bg-blue-600/10 blur-[140px]" />
       </div>
 
       {/* CONTENT */}
-      <div className="relative px-6 py-24 flex flex-col items-center text-center" dir="rtl">
+      <div className="relative flex flex-col items-center text-center" dir="rtl">
 
-        {/* 🔥 LOGO FULL BANNER */}
-        <div className="relative w-full flex justify-center">
+        {/* 🔥 LOGO */}
+        <img
+          src="/logo-clean.png"
+          alt="SIRAJ"
+          className="w-[380px] md:w-[520px] mb-10 drop-shadow-[0_0_25px_rgba(0,255,255,0.25)]"
+        />
 
-          <Image
-            src="/logo-raw.png"
-            alt="SIRAJ"
-            width={1000}
-            height={400}
-            priority
-            className="
-              w-[90%] max-w-[900px]
-              object-contain
+        {/* SMALL TAG */}
+        <span className="text-cyan-400 text-sm mb-3 tracking-wide">
+          منصة إدارة المشتريات الذكية
+        </span>
 
-              mix-blend-screen
-              brightness-150
-              contrast-110
+        {/* HEADLINE */}
+        <h1 className="text-white font-bold text-4xl md:text-5xl leading-tight">
+          قرارات أسرع، نتائج أفضل
+          <br />
+          <span className="text-cyan-400">بدون تعقيد أو تأخير</span>
+        </h1>
 
-              drop-shadow-[0_0_60px_rgba(34,211,238,0.45)]
-            "
-          />
+        {/* DESC */}
+        <p className="text-gray-400 mt-5 max-w-md text-sm leading-relaxed">
+          قارن العروض من عدة موردين، اختر الأفضل خلال دقائق، واترك الذكاء الاصطناعي يختصر عليك الوقت والتكاليف.
+        </p>
 
-        </div>
-
-        {/* TEXT */}
-        <div className="mt-10">
-
-          <h1 className="text-white font-extrabold text-[clamp(2rem,4vw,3rem)] leading-tight">
-            قرارات أسرع، نتائج أفضل
-            <br />
-            <span className="text-cyan-400">
-              بدون تعقيد أو تأخير
-            </span>
-          </h1>
-
-          <p className="mt-5 text-gray-300 max-w-[520px] text-[15px] leading-relaxed">
-            قارن العروض من عدة موردين، اختر الأفضل خلال دقائق،
-            ووفّر وقتك وتكاليفك بسهولة.
-          </p>
-
-        </div>
-
-        {/* BUTTONS */}
-        <div className="mt-10 flex gap-4 flex-wrap justify-center">
+        {/* CTA */}
+        <div className="flex gap-3 mt-8 flex-wrap justify-center">
 
           <Link href="/rfqs/new">
-            <button className="
-              px-8 py-3 rounded-xl
-              bg-cyan-400 text-[#0A0F1B]
-              font-semibold
-              hover:scale-[1.05]
-              transition
-              shadow-[0_10px_40px_rgba(34,211,238,0.4)]
-            ">
+            <button className="px-8 py-3 rounded-xl bg-cyan-400 text-black font-semibold hover:bg-cyan-300 transition">
               + إنشاء طلب
             </button>
           </Link>
 
           <Link href="/rfqs">
-            <button className="
-              px-8 py-3 rounded-xl
-              border border-white/20
-              text-gray-300
-              hover:bg-white/5
-              transition
-            ">
+            <button className="px-8 py-3 rounded-xl border border-white/20 text-white hover:bg-white/10 transition">
               عرض الطلبات ←
             </button>
           </Link>
@@ -89,7 +80,7 @@ export function HeroBanner({ total, active, resCount }: any) {
         </div>
 
         {/* STATS */}
-        <div className="mt-14 w-full max-w-md flex justify-between border-t border-white/10 pt-6">
+        <div className="mt-12 flex gap-8 border-t border-white/10 pt-6">
 
           <Stat value={total} label="إجمالي الطلبات" colorCls="text-white" />
           <Stat value={active} label="نشطة الآن" colorCls="text-cyan-400" />
@@ -98,17 +89,6 @@ export function HeroBanner({ total, active, resCount }: any) {
         </div>
 
       </div>
-    </div>
-  )
-}
-
-function Stat({ value, label, colorCls }: any) {
-  return (
-    <div className="flex flex-col items-center gap-1">
-      <span className={`text-2xl md:text-3xl font-bold ${colorCls}`}>
-        <CountUp value={value} />
-      </span>
-      <span className="text-xs text-gray-400">{label}</span>
     </div>
   )
 }
