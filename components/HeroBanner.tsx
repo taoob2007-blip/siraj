@@ -1,133 +1,126 @@
 'use client'
 
-import { useEffect, useState } from 'react'
 import Link from 'next/link'
+import Image from 'next/image'
 import { CountUp } from '@/components/DashboardShell'
 
-function Fade({ children, delay = 0 }: any) {
-  const [show, setShow] = useState(false)
-
-  useEffect(() => {
-    const t = setTimeout(() => setShow(true), delay)
-    return () => clearTimeout(t)
-  }, [delay])
-
+export function HeroBanner({
+  total,
+  active,
+  resCount,
+}: {
+  total: number
+  active: number
+  resCount: number
+}) {
   return (
-    <div
-      style={{
-        opacity: show ? 1 : 0,
-        transform: show ? 'translateY(0)' : 'translateY(25px)',
-        transition: 'all 800ms cubic-bezier(0.16,1,0.3,1)',
-      }}
-    >
-      {children}
-    </div>
-  )
-}
+    <div className="relative overflow-hidden rounded-3xl border border-white/[0.06] px-8 py-16 md:py-20">
 
-function Stat({ value, label }: any) {
-  return (
-    <div className="flex flex-col items-center px-6">
-      <span className="text-3xl font-bold text-white">
-        <CountUp value={value} />
-      </span>
-      <span className="text-xs text-gray-400 mt-1">{label}</span>
-    </div>
-  )
-}
+      {/* ✨ Background هادي */}
+      <div className="absolute inset-0 bg-gradient-to-br from-[#0B0F19] via-[#0E1322] to-[#0B0F19]" />
 
-export function HeroBanner({ total, active, resCount }: any) {
-  return (
-    <div className="relative overflow-hidden rounded-3xl border border-white/[0.06] py-20 px-6 md:px-10">
-
-      {/* 🔥 خلفية هادئة جداً */}
-      <div className="absolute inset-0 bg-[#0a0f1a]" />
-
-      {/* ✨ Glow ناعم */}
-      <div className="absolute inset-0">
-        <div className="absolute top-[-200px] left-1/2 -translate-x-1/2 w-[500px] h-[500px] bg-cyan-400/10 blur-3xl rounded-full" />
-      </div>
-
-      {/* ✨ خط ضوء خفيف */}
+      {/* ✨ Glow خفيف جدًا */}
       <div className="absolute inset-0 pointer-events-none">
-        <div className="absolute w-full h-[1px] bg-gradient-to-r from-transparent via-white/20 to-transparent top-1/2" />
+        <div className="absolute right-[-120px] top-[-120px] w-[400px] h-[400px] bg-cyan-400/10 blur-3xl rounded-full" />
+        <div className="absolute left-[-120px] bottom-[-120px] w-[400px] h-[400px] bg-indigo-500/10 blur-3xl rounded-full" />
       </div>
 
       {/* CONTENT */}
-      <div className="relative z-10 flex flex-col items-center text-center" dir="rtl">
+      <div className="relative z-10 grid md:grid-cols-2 gap-10 items-center" dir="rtl">
 
-        {/* 🔥 LOGO */}
-        <Fade delay={100}>
-          <img
-            src="/logo-raw.png"
-            className="w-[260px] mb-8 opacity-95"
-          />
-        </Fade>
+        {/* RIGHT (TEXT) */}
+        <div className="flex flex-col gap-6 text-right">
 
-        {/* 🔥 TITLE */}
-        <Fade delay={200}>
-          <h1 className="text-3xl md:text-5xl font-bold text-white leading-[1.4] max-w-3xl">
-            قرارات أسرع، نتائج أفضل
+          {/* Logo */}
+          <div className="flex justify-end">
+            <Image
+              src="/logo-clean1.png"
+              alt="SIRAJ"
+              width={180}
+              height={60}
+              className="opacity-90"
+            />
+          </div>
+
+          {/* Headline */}
+          <h1 className="font-bold text-white leading-snug"
+              style={{ fontSize: 'clamp(1.8rem, 3vw, 2.6rem)' }}>
+            قرارات أسرع، نتائج أدق
             <br />
-            <span className="text-cyan-400">
-              بدون تعقيد أو تأخير
-            </span>
+            <span className="text-cyan-400">بدون تعقيد أو تأخير</span>
           </h1>
-        </Fade>
 
-        {/* 🔥 SUBTEXT */}
-        <Fade delay={300}>
-          <p className="text-gray-400 mt-6 max-w-xl">
-            قارن عروض الموردين خلال دقائق، واختر الأفضل بثقة.
-            منصة ذكية تختصر الوقت والتكاليف وتمنحك رؤية أوضح.
+          {/* Subtext */}
+          <p className="text-gray-400 max-w-[38ch] text-sm md:text-base">
+            قارن عروض الموردين خلال دقائق، اختر الأفضل بثقة،
+            واترك الذكاء الاصطناعي يوفر عليك الوقت والتكاليف.
           </p>
-        </Fade>
 
-        {/* 🔥 CTA */}
-        <Fade delay={400}>
-          <div className="flex gap-4 mt-10 flex-wrap justify-center">
+        </div>
+
+        {/* LEFT (CTA + STATS) */}
+        <div className="flex flex-col items-start gap-8">
+
+          {/* Buttons */}
+          <div className="flex gap-4 flex-wrap">
 
             <Link href="/rfqs/new">
-              <button className="
-                px-8 py-3 rounded-xl font-semibold text-black
-                bg-gradient-to-r from-cyan-400 to-cyan-300
-                shadow-[0_10px_40px_rgba(34,211,238,0.25)]
-                hover:scale-105 transition
-              ">
+              <button className="px-7 py-3 rounded-xl bg-cyan-400 text-black font-semibold
+              hover:bg-cyan-300 hover:scale-[1.05]
+              transition-all duration-200 shadow-lg shadow-cyan-400/20">
                 + إنشاء طلب
               </button>
             </Link>
 
             <Link href="/rfqs">
-              <button className="
-                px-8 py-3 rounded-xl border border-white/20 text-white
-                hover:bg-white/10 transition
-              ">
-                عرض الطلبات
+              <button className="px-7 py-3 rounded-xl border border-white/10 text-white
+              hover:bg-white/[0.06] transition">
+                عرض الطلبات ←
               </button>
             </Link>
 
           </div>
-        </Fade>
 
-        {/* 🔥 STATS */}
-        <Fade delay={500}>
-          <div className="
-            flex gap-6 mt-14 px-6 py-4 rounded-2xl
-            bg-white/[0.03] border border-white/[0.08]
-            backdrop-blur-md
-          ">
+          {/* Stats */}
+          <div className="flex items-center gap-8 bg-white/[0.03] border border-white/[0.05] rounded-2xl px-6 py-4 backdrop-blur-sm">
 
             <Stat value={total} label="إجمالي الطلبات" />
-            <div className="w-px bg-white/10" />
-            <Stat value={active} label="نشطة الآن" />
-            <div className="w-px bg-white/10" />
+            <Divider />
+            <Stat value={active} label="نشطة الآن" highlight />
+            <Divider />
             <Stat value={resCount} label="عروض مستلمة" />
 
           </div>
-        </Fade>
+
+        </div>
 
       </div>
     </div>
   )
+}
+
+/* ===== Components ===== */
+
+function Stat({
+  value,
+  label,
+  highlight,
+}: {
+  value: number
+  label: string
+  highlight?: boolean
+}) {
+  return (
+    <div className="flex flex-col items-center">
+      <span className={`text-2xl font-bold tabular-nums
+        ${highlight ? 'text-cyan-400' : 'text-white'}`}>
+        <CountUp value={value} />
+      </span>
+      <span className="text-xs text-gray-500 mt-1">{label}</span>
+    </div>
+  )
+}
+
+function Divider() {
+  return <div className="w-px h-8 bg-white/[0.08]" />
 }
