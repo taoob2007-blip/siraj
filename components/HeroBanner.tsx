@@ -14,22 +14,30 @@ export function HeroBanner({
   resCount: number
 }) {
   const glowRef = useRef<HTMLDivElement>(null)
+  const logoRef = useRef<HTMLDivElement>(null)
   const [hoverSide, setHoverSide] = useState<'left' | 'right' | null>(null)
 
-  // Mouse glow
   useEffect(() => {
     const move = (e: MouseEvent) => {
-      if (!glowRef.current) return
-      const rect = glowRef.current.getBoundingClientRect()
+      if (!glowRef.current || !logoRef.current) return
 
+      const rect = glowRef.current.getBoundingClientRect()
       const x = e.clientX - rect.left
       const y = e.clientY - rect.top
 
       glowRef.current.style.background = `
-        radial-gradient(500px circle at ${x}px ${y}px,
-        rgba(34,211,238,0.12),
-        transparent 50%)
+        radial-gradient(600px circle at ${x}px ${y}px,
+        rgba(34,211,238,0.15),
+        transparent 55%)
       `
+
+      const centerX = rect.width / 2
+      const centerY = rect.height / 2
+
+      const moveX = (x - centerX) / 40
+      const moveY = (y - centerY) / 40
+
+      logoRef.current.style.transform = `translate(${moveX}px, ${moveY}px)`
     }
 
     window.addEventListener('mousemove', move)
@@ -39,75 +47,51 @@ export function HeroBanner({
   return (
     <div className="relative overflow-hidden rounded-[34px] border border-white/[0.05] px-8 py-20">
 
-      {/* Base */}
       <div className="absolute inset-0 bg-[#0A0F18]" />
+      <div ref={glowRef} className="absolute inset-0 pointer-events-none" />
 
-      {/* Mouse Glow */}
-      <div ref={glowRef} className="absolute inset-0 pointer-events-none transition duration-200" />
-
-      {/* Premium light beams */}
-      <div className="absolute inset-0 pointer-events-none opacity-30">
-        <div className="absolute -top-32 right-1/3 w-[600px] h-[600px] bg-cyan-400/10 blur-3xl rounded-full" />
-        <div className="absolute bottom-[-200px] left-1/4 w-[600px] h-[600px] bg-violet-500/10 blur-3xl rounded-full" />
+      {/* Lights */}
+      <div className="absolute inset-0 pointer-events-none opacity-40">
+        <div className="absolute -top-32 right-1/3 w-[700px] h-[700px] bg-cyan-400/10 blur-3xl rounded-full" />
+        <div className="absolute bottom-[-200px] left-1/4 w-[700px] h-[700px] bg-violet-500/10 blur-3xl rounded-full" />
       </div>
 
-      {/* Grain */}
-      <div
-        className="absolute inset-0 opacity-[0.03] mix-blend-overlay"
-        style={{ backgroundImage: 'url("https://grainy-gradients.vercel.app/noise.svg")' }}
-      />
-
+      {/* Content */}
       <div className="relative z-10 flex flex-col gap-16" dir="rtl">
 
-        {/* ===== LOGO SECTION (FIXED) ===== */}
+        {/* LOGO */}
         <div className="flex justify-center relative">
 
-          {/* Glow behind logo */}
-          <div className="absolute w-[380px] h-[160px] bg-cyan-400/10 blur-3xl rounded-full" />
+          <div className="absolute w-[500px] h-[200px] bg-gradient-to-r from-cyan-400/20 via-teal-400/10 to-violet-500/20 blur-[120px] rounded-full" />
 
-          {/* Glass plate */}
-          <div className="
-            absolute w-[420px] h-[140px]
-            bg-white/[0.03]
-            border border-white/[0.06]
-            backdrop-blur-xl
-            rounded-2xl
-          " />
+          <div className="absolute w-[460px] h-[160px] bg-white/[0.03] border border-white/[0.05] backdrop-blur-2xl rounded-2xl" />
 
-          {/* Logo */}
-          <img
-            src="/logo-hero.png"
-            className="
-              relative z-10
-              w-[360px] md:w-[440px]
-              object-contain
-              drop-shadow-[0_40px_80px_rgba(34,211,238,0.35)]
-              contrast-125 brightness-110
-            "
-          />
+          <div ref={logoRef} className="relative z-10 transition-transform duration-300">
+            <img
+              src="/logo-hero.png"
+              className="w-[360px] md:w-[460px] object-contain mix-blend-lighten brightness-110 contrast-125 saturate-130 drop-shadow-[0_40px_100px_rgba(34,211,238,0.45)]"
+            />
+          </div>
         </div>
 
-        {/* ===== MAIN LAYOUT ===== */}
+        {/* Layout */}
         <div className="grid md:grid-cols-[1fr_auto_1fr] gap-12 items-center">
 
           {/* RIGHT */}
           <div
             onMouseEnter={() => setHoverSide('right')}
             onMouseLeave={() => setHoverSide(null)}
-            className={`text-right flex flex-col gap-6 transition duration-300 ${
+            className={`text-right flex flex-col gap-6 ${
               hoverSide === 'left' ? 'opacity-40' : 'opacity-100'
             }`}
           >
-            <h1
-              className="text-white font-semibold leading-[1.25]"
-              style={{ fontSize: 'clamp(2rem, 3vw, 2.9rem)' }}
-            >
+            <h1 className="text-white font-semibold leading-[1.25] text-3xl">
               سيطرة كاملة على مشترياتك
               <br />
               <span className="text-cyan-400">بسرعة وذكاء</span>
             </h1>
 
-            <p className="text-gray-400 max-w-[420px] text-[15px] leading-relaxed">
+            <p className="text-gray-400 max-w-[420px] text-sm">
               قارن الموردين، حلّل العروض، واتخذ قرارات دقيقة خلال دقائق —
               بدون تعقيد أو تشتت.
             </p>
@@ -115,71 +99,40 @@ export function HeroBanner({
 
           {/* DIVIDER */}
           <div className="hidden md:flex justify-center">
-            <div className="relative w-[2px] h-44">
-
-              <div className={`
-                absolute inset-0
-                bg-gradient-to-b from-transparent via-cyan-400 to-transparent
-                transition-all duration-300
-                ${hoverSide ? 'opacity-100 blur-[1px]' : 'opacity-40'}
-              `} />
-
-              {/* glow pulse */}
-              <div className="absolute inset-0 bg-cyan-400/20 blur-md animate-pulse opacity-40" />
-
-            </div>
+            <div className="w-[2px] h-44 bg-gradient-to-b from-transparent via-cyan-400 to-transparent opacity-60" />
           </div>
 
           {/* LEFT */}
           <div
             onMouseEnter={() => setHoverSide('left')}
             onMouseLeave={() => setHoverSide(null)}
-            className={`flex flex-col items-start gap-8 transition duration-300 ${
+            className={`flex flex-col items-start gap-8 ${
               hoverSide === 'right' ? 'opacity-40' : 'opacity-100'
             }`}
           >
-            {/* Buttons */}
+
             <div className="flex gap-4">
 
               <Link href="/rfqs/new">
-                <button className="
-                  px-7 py-3.5 rounded-xl
-                  bg-cyan-400 text-black font-semibold
-                  hover:bg-cyan-300
-                  active:scale-95
-                  transition-all duration-200
-                  shadow-[0_10px_50px_rgba(34,211,238,0.35)]
-                ">
+                <button className="px-7 py-3 rounded-xl bg-cyan-400 text-black font-semibold hover:bg-cyan-300 transition">
                   + إنشاء طلب
                 </button>
               </Link>
 
               <Link href="/rfqs">
-                <button className="
-                  px-7 py-3.5 rounded-xl
-                  border border-white/[0.1]
-                  text-white
-                  hover:bg-white/[0.05]
-                  transition
-                ">
+                <button className="px-7 py-3 rounded-xl border border-white/[0.1] text-white hover:bg-white/[0.05]">
                   عرض الطلبات →
                 </button>
               </Link>
 
             </div>
 
-            {/* Stats */}
-            <div className="
-              bg-white/[0.03]
-              border border-white/[0.06]
-              rounded-2xl px-6 py-5
-              backdrop-blur-xl
-              flex gap-10
-              transition hover:bg-white/[0.05]
-            ">
+            <div className="bg-white/[0.03] border border-white/[0.06] rounded-2xl px-6 py-5 flex gap-10">
+
               <Stat value={total} label="إجمالي الطلبات" />
               <Stat value={active} label="نشطة الآن" highlight />
               <Stat value={resCount} label="عروض مستلمة" />
+
             </div>
           </div>
 
@@ -201,14 +154,14 @@ function Stat({
 }) {
   return (
     <div className="flex flex-col items-center gap-1">
-      <span className={`text-2xl font-semibold ${
-        highlight ? 'text-cyan-400 animate-pulse' : 'text-white'
-      }`}>
+      <span
+        className={`text-2xl font-semibold ${
+          highlight ? 'text-cyan-400' : 'text-white'
+        }`}
+      >
         <CountUp value={value} />
       </span>
-      <span className="text-[11px] text-gray-500 whitespace-nowrap">
-        {label}
-      </span>
+      <span className="text-xs text-gray-500">{label}</span>
     </div>
   )
 }
