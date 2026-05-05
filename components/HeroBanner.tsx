@@ -66,11 +66,67 @@ export function HeroBanner({
 
           <div className="absolute w-[460px] h-[160px] bg-white/[0.03] border border-white/[0.05] backdrop-blur-2xl rounded-2xl" />
 
+          {/* SVG LOGO بدل الصورة */}
           <div ref={logoRef} className="relative z-10 transition-transform duration-300">
-            <img
-              src="/logo-hero.png"
-              className="w-[360px] md:w-[460px] object-contain mix-blend-lighten brightness-110 contrast-125 saturate-130 drop-shadow-[0_40px_100px_rgba(34,211,238,0.45)]"
-            />
+
+            <svg
+              viewBox="0 0 900 240"
+              className="w-[360px] md:w-[460px]"
+            >
+              <defs>
+                <linearGradient id="gradMain" x1="0%" y1="0%" x2="100%">
+                  <stop offset="0%" stopColor="#e5e7eb" />
+                  <stop offset="100%" stopColor="#ffffff" />
+                </linearGradient>
+
+                <linearGradient id="gradAccent" x1="0%" y1="0%" x2="100%">
+                  <stop offset="0%" stopColor="#7c3aed" />
+                  <stop offset="100%" stopColor="#22d3ee" />
+                </linearGradient>
+
+                <filter id="glow">
+                  <feGaussianBlur stdDeviation="6" result="coloredBlur"/>
+                  <feMerge>
+                    <feMergeNode in="coloredBlur"/>
+                    <feMergeNode in="SourceGraphic"/>
+                  </feMerge>
+                </filter>
+              </defs>
+
+              {/* SIRAJ */}
+              <text x="40" y="120" fontSize="90" fill="url(#gradMain)">S</text>
+              <text x="180" y="120" fontSize="90" fill="url(#gradMain)">I</text>
+              <text x="260" y="120" fontSize="90" fill="url(#gradMain)">R</text>
+              <text x="390" y="120" fontSize="90" fill="url(#gradMain)">A</text>
+
+              {/* Animated dot */}
+              <circle cx="455" cy="105" r="7" fill="#22d3ee" filter="url(#glow)">
+                <animate
+                  attributeName="r"
+                  values="6;9;6"
+                  dur="1.6s"
+                  repeatCount="indefinite"
+                />
+              </circle>
+
+              <text x="520" y="120" fontSize="90" fill="url(#gradMain)">J</text>
+
+              {/* Arabic */}
+              <text
+                x="450"
+                y="185"
+                textAnchor="middle"
+                fontSize="28"
+                fill="#d1d5db"
+              >
+                إدارة الطلبات و الموردين بذكاء
+              </text>
+
+              {/* Lines */}
+              <rect x="140" y="175" width="80" height="3" fill="url(#gradAccent)" rx="2" />
+              <rect x="680" y="175" width="80" height="3" fill="url(#gradAccent)" rx="2" />
+            </svg>
+
           </div>
         </div>
 
@@ -81,9 +137,7 @@ export function HeroBanner({
           <div
             onMouseEnter={() => setHoverSide('right')}
             onMouseLeave={() => setHoverSide(null)}
-            className={`text-right flex flex-col gap-6 ${
-              hoverSide === 'left' ? 'opacity-40' : 'opacity-100'
-            }`}
+            className={`${hoverSide === 'left' ? 'opacity-40' : 'opacity-100'} text-right flex flex-col gap-6`}
           >
             <h1 className="text-white font-semibold leading-[1.25] text-3xl">
               سيطرة كاملة على مشترياتك
@@ -106,9 +160,7 @@ export function HeroBanner({
           <div
             onMouseEnter={() => setHoverSide('left')}
             onMouseLeave={() => setHoverSide(null)}
-            className={`flex flex-col items-start gap-8 ${
-              hoverSide === 'right' ? 'opacity-40' : 'opacity-100'
-            }`}
+            className={`${hoverSide === 'right' ? 'opacity-40' : 'opacity-100'} flex flex-col items-start gap-8`}
           >
 
             <div className="flex gap-4">
@@ -154,11 +206,7 @@ function Stat({
 }) {
   return (
     <div className="flex flex-col items-center gap-1">
-      <span
-        className={`text-2xl font-semibold ${
-          highlight ? 'text-cyan-400' : 'text-white'
-        }`}
-      >
+      <span className={`text-2xl font-semibold ${highlight ? 'text-cyan-400' : 'text-white'}`}>
         <CountUp value={value} />
       </span>
       <span className="text-xs text-gray-500">{label}</span>
