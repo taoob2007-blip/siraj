@@ -56,7 +56,6 @@ export function Sidebar() {
           if (!data) return
           setUserName(data.profile?.full_name ?? '')
           setUserRole(data.profile?.role ?? '')
-
           const status = data.profile?.subscription_status
           setIsPro(status === 'active' || status === 'trial')
         })
@@ -92,15 +91,52 @@ export function Sidebar() {
         <ChevronLeft className={`w-4 h-4 text-white transition ${collapsed ? 'rotate-180' : ''}`} />
       </button>
 
-      {/* Logo */}
-      <div className="px-4 py-5 border-b border-white/[0.05] flex justify-center">
-        <Image
-          src="/logo-clean1.png"
-          alt="logo"
-          width={collapsed ? 28 : 120}
-          height={40}
-          className="transition-all duration-300"
-        />
+      {/* ===== LOGO (v20) ===== */}
+      <div className="px-4 py-6 border-b border-white/[0.05] flex justify-center">
+
+        <div className="relative group flex items-center justify-center">
+
+          {/* subtle hover aura */}
+          <div className="
+            absolute w-[140px] h-[60px]
+            bg-cyan-400/5 blur-2xl rounded-full
+            opacity-0 group-hover:opacity-100
+            transition duration-300
+          " />
+
+          {/* Full Logo */}
+          <Image
+            src="/logo-bar.png"
+            alt="logo"
+            width={140}
+            height={40}
+            priority
+            className={`
+              object-contain
+              transition-all duration-300
+              brightness-110 contrast-125 saturate-110
+              mix-blend-lighten
+              ${collapsed ? 'scale-0 opacity-0 absolute' : 'scale-100 opacity-90'}
+            `}
+          />
+
+          {/* Icon version (collapsed) */}
+          <Image
+            src="/logo-bar.png"
+            alt="logo-mini"
+            width={34}
+            height={34}
+            priority
+            className={`
+              object-contain
+              transition-all duration-300
+              brightness-110 contrast-125
+              mix-blend-lighten
+              ${collapsed ? 'scale-100 opacity-90' : 'scale-0 opacity-0 absolute'}
+            `}
+          />
+
+        </div>
       </div>
 
       {/* Quick Action */}
@@ -119,7 +155,6 @@ export function Sidebar() {
       {/* NAV */}
       <div className="flex-1 overflow-y-auto px-2 py-4 relative">
 
-        {/* Active Glow */}
         <div
           className="absolute left-2 right-2 rounded-xl bg-cyan-400/10 blur-xl transition-all duration-300"
           style={{ top: pill.top, height: pill.height }}
@@ -141,7 +176,6 @@ export function Sidebar() {
                 ? 'text-gray-600'
                 : 'text-gray-400 hover:text-white hover:bg-white/[0.05]'}`}
             >
-              {/* Active line */}
               {active && (
                 <span className="absolute left-0 w-[3px] h-6 bg-cyan-400 rounded-r-full" />
               )}
@@ -160,7 +194,7 @@ export function Sidebar() {
         })}
       </div>
 
-      {/* USER (ثابت وما يختفي) */}
+      {/* USER */}
       <div className="px-3 py-3 border-t border-white/[0.05] sticky bottom-0 bg-[#0B0F19]">
         <div
           onClick={() => setOpenUser(!openUser)}
@@ -178,13 +212,9 @@ export function Sidebar() {
           )}
         </div>
 
-        {/* Dropdown */}
         {openUser && !collapsed && (
           <div className="mt-3 bg-[#111827] border border-white/10 rounded-xl p-2 animate-in fade-in">
-            <Link
-              href="/settings"
-              className="block px-3 py-2 text-sm text-gray-300 hover:bg-white/5 rounded"
-            >
+            <Link href="/settings" className="block px-3 py-2 text-sm text-gray-300 hover:bg-white/5 rounded">
               الإعدادات
             </Link>
 
