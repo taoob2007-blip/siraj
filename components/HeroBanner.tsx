@@ -1,7 +1,7 @@
 'use client'
 
+import { useEffect, useRef } from 'react'
 import Link from 'next/link'
-import Image from 'next/image'
 import { CountUp } from '@/components/DashboardShell'
 
 export function HeroBanner({
@@ -13,19 +13,49 @@ export function HeroBanner({
   active: number
   resCount: number
 }) {
-  return (
-    <div className="relative overflow-hidden rounded-[30px] border border-white/[0.06] px-8 py-20">
+  const glowRef = useRef<HTMLDivElement>(null)
 
-      {/* 🎯 خلفية هادئة جدًا */}
+  // 🎯 Mouse glow effect
+  useEffect(() => {
+    const move = (e: MouseEvent) => {
+      if (!glowRef.current) return
+      const rect = glowRef.current.getBoundingClientRect()
+
+      const x = e.clientX - rect.left
+      const y = e.clientY - rect.top
+
+      glowRef.current.style.background = `
+        radial-gradient(
+          400px circle at ${x}px ${y}px,
+          rgba(34,211,238,0.12),
+          transparent 40%
+        )
+      `
+    }
+
+    window.addEventListener('mousemove', move)
+    return () => window.removeEventListener('mousemove', move)
+  }, [])
+
+  return (
+    <div className="relative overflow-hidden rounded-[32px] border border-white/[0.05] px-8 py-20">
+
+      {/* 🔥 Base Background */}
       <div className="absolute inset-0 bg-[#0A0F18]" />
 
-      {/* ✨ إضاءة ناعمة (Luxury feel) */}
+      {/* ✨ Mouse Glow */}
+      <div
+        ref={glowRef}
+        className="absolute inset-0 transition duration-200 pointer-events-none"
+      />
+
+      {/* ✨ Static Glow */}
       <div className="absolute inset-0 pointer-events-none">
-        <div className="absolute right-[-150px] top-[-150px] w-[500px] h-[500px] bg-cyan-400/10 blur-3xl rounded-full" />
+        <div className="absolute right-[-120px] top-[-120px] w-[500px] h-[500px] bg-cyan-400/10 blur-3xl rounded-full" />
         <div className="absolute left-[-120px] bottom-[-120px] w-[400px] h-[400px] bg-indigo-500/10 blur-3xl rounded-full" />
       </div>
 
-      {/* ✨ Grain خفيف جدًا */}
+      {/* ✨ Noise */}
       <div
         className="absolute inset-0 opacity-[0.03] mix-blend-overlay"
         style={{ backgroundImage: 'url("https://grainy-gradients.vercel.app/noise.svg")' }}
@@ -34,47 +64,46 @@ export function HeroBanner({
       {/* ===== CONTENT ===== */}
       <div className="relative z-10 grid md:grid-cols-2 gap-14 items-center" dir="rtl">
 
-        {/* ===== RIGHT (LOGO + MESSAGE) ===== */}
-        <div className="flex flex-col gap-8 text-right">
+        {/* ===== RIGHT ===== */}
+        <div className="flex flex-col gap-8 text-right animate-fade-in">
 
-          {/* Logo Hero */}
+          {/* Logo */}
           <div className="flex justify-end">
             <img
-              src="/logo.raw"
-              alt="SIRAJ"
-              className="w-[220px] md:w-[260px] object-contain opacity-95"
+              src="/logo-hero.png"
+              className="w-[260px] object-contain drop-shadow-[0_20px_40px_rgba(34,211,238,0.15)]"
             />
           </div>
 
           {/* Headline */}
           <h1
             className="text-white font-semibold leading-[1.25] tracking-tight"
-            style={{ fontSize: 'clamp(2rem, 3vw, 2.8rem)' }}
+            style={{ fontSize: 'clamp(2.1rem, 3vw, 3rem)' }}
           >
-            إدارة مشترياتك
+            سيطرة كاملة على مشترياتك
             <br />
-            <span className="text-cyan-400">بذكاء وسرعة</span>
+            <span className="text-cyan-400">بسرعة وذكاء</span>
           </h1>
 
-          {/* Subtext */}
+          {/* Sub */}
           <p className="text-gray-400 max-w-[420px] text-[15px] leading-relaxed">
-            قارن الموردين، حلّل العروض، واتخذ القرار المناسب خلال دقائق —
-            بدون تعقيد أو تأخير.
+            قارن الموردين، حلّل العروض، واتخذ قرارات دقيقة خلال دقائق —
+            بدون تعقيد أو تشتت.
           </p>
 
         </div>
 
-        {/* ===== LEFT (ACTIONS + STATS) ===== */}
+        {/* ===== LEFT ===== */}
         <div className="flex flex-col items-start gap-10">
 
           {/* Buttons */}
-          <div className="flex gap-4 flex-wrap">
+          <div className="flex gap-4">
 
             <Link href="/rfqs/new">
               <button className="
                 px-7 py-3.5 rounded-xl
                 bg-cyan-400 text-black font-semibold
-                hover:bg-cyan-300 hover:scale-[1.04]
+                hover:bg-cyan-300 hover:scale-[1.05]
                 active:scale-95
                 transition-all duration-200
                 shadow-[0_10px_40px_rgba(34,211,238,0.25)]
@@ -97,7 +126,7 @@ export function HeroBanner({
 
           </div>
 
-          {/* Stats Card */}
+          {/* Stats */}
           <div className="
             w-full max-w-md
             bg-white/[0.03]
@@ -105,6 +134,7 @@ export function HeroBanner({
             rounded-2xl
             px-6 py-5
             backdrop-blur-xl
+            shadow-[0_10px_40px_rgba(0,0,0,0.3)]
           ">
             <div className="flex justify-between items-center">
 
@@ -118,12 +148,29 @@ export function HeroBanner({
         </div>
 
       </div>
+
+      {/* Animation */}
+      <style jsx>{`
+        .animate-fade-in {
+          animation: fadeIn 0.8s ease;
+        }
+
+        @keyframes fadeIn {
+          from {
+            opacity: 0;
+            transform: translateY(20px);
+          }
+          to {
+            opacity: 1;
+            transform: translateY(0);
+          }
+        }
+      `}</style>
     </div>
   )
 }
 
-/* ===== Components ===== */
-
+/* ===== Stat ===== */
 function Stat({
   value,
   label,
@@ -135,14 +182,11 @@ function Stat({
 }) {
   return (
     <div className="flex flex-col items-center gap-1">
-      <span
-        className={`text-2xl font-semibold tabular-nums ${
-          highlight ? 'text-cyan-400' : 'text-white'
-        }`}
-      >
+      <span className={`text-2xl font-semibold tabular-nums ${
+        highlight ? 'text-cyan-400' : 'text-white'
+      }`}>
         <CountUp value={value} />
       </span>
-
       <span className="text-[11px] text-gray-500 whitespace-nowrap">
         {label}
       </span>
