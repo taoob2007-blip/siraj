@@ -24,8 +24,8 @@ function FadeUp({
       className={className}
       style={{
         opacity: vis ? 1 : 0,
-        transform: vis ? 'translateY(20px)' : 'translateY(40px)',
-        transition: 'all 700ms ease',
+        transform: vis ? 'translateY(25px)' : 'translateY(50px)',
+        transition: 'all 800ms cubic-bezier(0.22,1,0.36,1)',
       }}
     >
       {children}
@@ -54,82 +54,83 @@ export function HeroBanner({
   resCount: number
 }) {
   return (
-    <div className="relative overflow-hidden rounded-3xl border border-white/[0.06] px-6 py-28 md:py-36">
+    <div className="relative overflow-hidden rounded-3xl border border-white/[0.06] px-6 py-32 md:py-40">
 
       {/* Background */}
       <div className="absolute inset-0">
         <img
           src="/hero-banner.jpg"
-          className="w-full h-full object-cover scale-105"
+          className="w-full h-full object-cover"
           alt=""
         />
       </div>
 
-      {/* Overlay */}
-      <div className="absolute inset-0 bg-gradient-to-b from-[#0A0F1B]/20 via-[#0A0F1B]/50 to-[#0A0F1B]/90" />
+      {/* Gradient Overlay */}
+      <div className="absolute inset-0 bg-[#0A0F1B]/70" />
 
-      {/* Glow */}
+      {/* Cinematic Light */}
       <div className="absolute inset-0 pointer-events-none">
-        <div className="absolute top-[-150px] left-[-150px] w-[500px] h-[500px] bg-cyan-500/10 blur-3xl rounded-full" />
-        <div className="absolute bottom-[-120px] right-[-100px] w-[400px] h-[400px] bg-indigo-500/10 blur-3xl rounded-full" />
+        <div className="absolute top-0 left-1/2 -translate-x-1/2 w-[800px] h-[400px] bg-cyan-400/10 blur-[120px]" />
       </div>
 
       <div className="relative z-10 flex flex-col items-center text-center" dir="rtl">
 
-        {/* LOGO */}
+        {/* 🔥 LOGO (معدل بالكامل) */}
         <FadeUp delay={0}>
-          <img
-            src="/hero-logo.png"
-            alt="SIRAJ"
-            className="w-[360px] md:w-[520px] object-contain mb-14"
-          />
+          <div className="relative mb-16">
+
+            {/* Glow خلف اللوقو */}
+            <div className="absolute inset-0 blur-[40px] opacity-60 bg-cyan-400/20 rounded-full" />
+
+            {/* اللوقو */}
+            <img
+              src="/hero-logo.png"
+              alt="SIRAJ"
+              className="relative w-[380px] md:w-[560px] object-contain 
+              drop-shadow-[0_0_25px_rgba(34,211,238,0.35)] 
+              brightness-110 contrast-110"
+            />
+          </div>
         </FadeUp>
 
-        {/* 🔥 MICRO TEXT (احترافي جداً) */}
-        <FadeUp delay={100}>
-          <p className="text-cyan-400 text-sm tracking-wide mb-3">
+        {/* Label */}
+        <FadeUp delay={120}>
+          <p className="text-cyan-400 text-sm mb-3 tracking-wide">
             منصة إدارة المشتريات الذكية
           </p>
         </FadeUp>
 
-        {/* 🔥 HEADLINE */}
-        <FadeUp delay={200}>
-          <h1
-            className="text-white font-bold"
-            style={{
-              fontSize: 'clamp(1.8rem, 3.5vw, 3rem)',
-              lineHeight: 1.3,
-            }}
-          >
+        {/* Headline */}
+        <FadeUp delay={220}>
+          <h1 className="text-white font-extrabold text-[clamp(2rem,3.5vw,3.2rem)] leading-tight">
             قرارات أسرع، نتائج أفضل
             <br />
             <span className="text-cyan-400">بدون تعقيد أو تأخير</span>
           </h1>
         </FadeUp>
 
-        {/* 🔥 VALUE PROPOSITION */}
-        <FadeUp delay={300} className="mt-6">
-          <p className="text-gray-300 max-w-[48ch] leading-relaxed text-[15px] md:text-[16px]">
+        {/* Description */}
+        <FadeUp delay={320} className="mt-6">
+          <p className="text-gray-300 max-w-[48ch] text-[16px] leading-relaxed">
             قارن العروض من عدة موردين، اختر الأنسب خلال دقائق،
-            وخل الذكاء الاصطناعي يساعدك توفّر وقتك وتكاليفك.
+            واترك الذكاء الاصطناعي يختصر عليك الوقت والتكلفة.
           </p>
         </FadeUp>
 
-        {/* 🔥 CTA ZONE */}
-        <FadeUp delay={400} className="mt-10">
+        {/* CTA */}
+        <FadeUp delay={420} className="mt-10">
           <div className="flex gap-4 flex-wrap justify-center">
 
             <Link href="/rfqs/new">
-              <button className="px-8 py-3.5 rounded-xl bg-cyan-400 text-[#0A0F1B] font-semibold 
-              shadow-[0_10px_40px_rgba(34,211,238,0.3)] 
-              hover:scale-[1.07] hover:bg-cyan-300 transition">
+              <button className="px-8 py-3.5 rounded-xl bg-cyan-400 text-[#0A0F1B] font-semibold
+              hover:scale-[1.05] hover:bg-cyan-300 transition">
                 + إنشاء طلب
               </button>
             </Link>
 
             <Link href="/rfqs">
               <button className="px-8 py-3.5 rounded-xl border border-white/[0.2] text-white 
-              hover:bg-white/[0.08] transition">
+              hover:bg-white/[0.06] transition">
                 عرض الطلبات ←
               </button>
             </Link>
@@ -137,8 +138,8 @@ export function HeroBanner({
           </div>
         </FadeUp>
 
-        {/* 🔥 STATS (صارت بلوك مستقل فخم) */}
-        <FadeUp delay={500} className="mt-16 w-full max-w-md">
+        {/* Stats */}
+        <FadeUp delay={520} className="mt-16 w-full max-w-md">
           <div className="flex justify-between items-center px-6 py-5 rounded-2xl 
           bg-white/[0.04] backdrop-blur-md border border-white/[0.08]">
 
