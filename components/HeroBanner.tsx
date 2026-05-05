@@ -2,7 +2,6 @@
 
 import { useEffect, useState } from 'react'
 import Link from 'next/link'
-import { Plus, ArrowLeft } from 'lucide-react'
 import { CountUp } from '@/components/DashboardShell'
 
 function FadeUp({
@@ -71,20 +70,17 @@ export function HeroBanner({
 
       <div className="relative flex flex-col items-center text-center gap-0" dir="rtl">
 
-        {/* 🔥 LOGO CLEAN */}
+        {/* 🔥 LOGO BANNER (جديد) */}
         <FadeUp delay={0}>
-          <div className="text-white font-medium tracking-[0.35em] text-[28px] md:text-[42px]">
-            SIR
-            <span className="relative inline-block">
-              A
-              <span className="absolute left-1/2 -translate-x-1/2 top-[110%] w-2.5 h-2.5 bg-cyan-400 rounded-full"></span>
-            </span>
-            J
-          </div>
+          <img
+            src="/hero-logo.png"
+            alt="SIRAJ"
+            className="w-[320px] md:w-[460px] object-contain mb-10"
+          />
         </FadeUp>
 
         {/* Headline */}
-        <FadeUp delay={120} className="mt-10">
+        <FadeUp delay={120}>
           <h1
             className="font-bold text-white"
             style={{
