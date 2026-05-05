@@ -14,6 +14,7 @@ function FadeUp({
   className?: string
 }) {
   const [vis, setVis] = useState(false)
+
   useEffect(() => {
     const t = setTimeout(() => setVis(true), delay)
     return () => clearTimeout(t)
@@ -55,31 +56,28 @@ export function HeroBanner({
 }) {
   return (
     <div
-      className="relative overflow-hidden rounded-3xl border border-white/[0.07] px-6 py-16 md:py-24"
-      style={{ background: '#0A0F1B' }}
+      className="relative overflow-hidden rounded-3xl border border-white/[0.07] px-6 py-16 md:py-24 bg-cover bg-center"
+      style={{
+        backgroundImage: "url('/hero-banner.jpg')",
+        backgroundColor: '#0A0F1B',
+      }}
     >
 
-      {/* Glow */}
+      {/* Overlay (مهم عشان وضوح النص) */}
+      <div className="absolute inset-0 bg-[#0A0F1B]/70 backdrop-blur-[1px]" />
+
+      {/* Glow خفيف */}
       <div className="pointer-events-none absolute inset-0">
-        <div className="absolute -top-40 -left-40 h-[420px] w-[420px] rounded-full bg-blue-700/[0.06] blur-3xl" />
-        <div className="absolute -bottom-40 -right-40 h-[420px] w-[420px] rounded-full bg-indigo-700/[0.06] blur-3xl" />
-        <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 h-[360px] w-[360px] rounded-full bg-cyan-600/[0.04] blur-3xl" />
+        <div className="absolute -top-40 -left-40 h-[420px] w-[420px] rounded-full bg-blue-700/[0.05] blur-3xl" />
+        <div className="absolute -bottom-40 -right-40 h-[420px] w-[420px] rounded-full bg-indigo-700/[0.05] blur-3xl" />
       </div>
 
       <div className="pointer-events-none absolute top-0 left-16 right-16 h-px bg-gradient-to-r from-transparent via-white/[0.08] to-transparent" />
 
-      <div className="relative flex flex-col items-center text-center gap-0" dir="rtl">
+      {/* CONTENT */}
+      <div className="relative z-10 flex flex-col items-center text-center gap-0" dir="rtl">
 
-        {/* 🔥 LOGO BANNER (جديد) */}
-        <FadeUp delay={0}>
-          <img
-            src="/hero-logo.png"
-            alt="SIRAJ"
-            className="w-[320px] md:w-[460px] object-contain mb-10"
-          />
-        </FadeUp>
-
-        {/* Headline */}
+        {/* HEADLINE */}
         <FadeUp delay={120}>
           <h1
             className="font-bold text-white"
@@ -95,14 +93,14 @@ export function HeroBanner({
           </h1>
         </FadeUp>
 
-        {/* Subtext */}
+        {/* SUBTEXT */}
         <FadeUp delay={220} className="mt-5">
           <p className="text-[15px] md:text-[16px] text-gray-300 leading-relaxed mx-auto max-w-[40ch]">
             قارن العروض، اختر الأفضل، ووفّر التكاليف — بدون تعقيد
           </p>
         </FadeUp>
 
-        {/* CTA */}
+        {/* BUTTONS */}
         <FadeUp delay={320} className="mt-9">
           <div className="flex items-center justify-center gap-3 flex-wrap">
 
@@ -121,7 +119,7 @@ export function HeroBanner({
           </div>
         </FadeUp>
 
-        {/* Stats */}
+        {/* STATS */}
         <FadeUp delay={420} className="mt-10 w-full max-w-xs">
           <div className="flex items-center justify-center pt-7 border-t border-white/[0.06]">
             <div className="flex-1">
