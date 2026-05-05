@@ -13,28 +13,28 @@ import {
 import { LogoutButton } from '@/components/LogoutButton'
 import { supabaseBrowserClient as supabase } from '@/lib/supabase/client'
 
-const NAV: { href: string; label: string; icon: ElementType; notifBadge?: boolean; proOnly?: boolean }[] = [
-  { href: '/',              label: 'Dashboard',    icon: LayoutDashboard },
-  { href: '/rfqs',          label: 'RFQs',         icon: FileText },
-  { href: '/suppliers',     label: 'Suppliers',    icon: Users },
-  { href: '/categories',    label: 'Categories',   icon: Layers },
-  { href: '/analytics',     label: 'Analytics',    icon: BarChart2,     proOnly: true },
-  { href: '/comparisons',   label: 'Comparisons',  icon: GitCompare,    proOnly: true },
-  { href: '/contracts',     label: 'Contracts',    icon: FileSignature },
-  { href: '/messages',      label: 'Messages',     icon: MessageSquare },
-  { href: '/reports',       label: 'Reports',      icon: PieChart },
-  { href: '/notifications', label: 'Notifications',icon: Bell,          notifBadge: true },
-  { href: '/settings',      label: 'Settings',     icon: Settings },
+const NAV = [
+  { href: '/', label: 'Dashboard', icon: LayoutDashboard },
+  { href: '/rfqs', label: 'RFQs', icon: FileText },
+  { href: '/suppliers', label: 'Suppliers', icon: Users },
+  { href: '/categories', label: 'Categories', icon: Layers },
+  { href: '/analytics', label: 'Analytics', icon: BarChart2, proOnly: true },
+  { href: '/comparisons', label: 'Comparisons', icon: GitCompare, proOnly: true },
+  { href: '/contracts', label: 'Contracts', icon: FileSignature },
+  { href: '/messages', label: 'Messages', icon: MessageSquare },
+  { href: '/reports', label: 'Reports', icon: PieChart },
+  { href: '/notifications', label: 'Notifications', icon: Bell, notifBadge: true },
+  { href: '/settings', label: 'Settings', icon: Settings },
 ]
 
 export function Sidebar() {
   const pathname = usePathname()
-  const [unread, setUnread]       = useState(0)
-  const [userName, setUserName]   = useState('')
+  const [unread, setUnread] = useState(0)
+  const [userName, setUserName] = useState('')
   const [userEmail, setUserEmail] = useState('')
-  const [userRole, setUserRole]   = useState('')
-  const [isPro, setIsPro]         = useState(false)
-  const [isAdmin, setIsAdmin]     = useState(false)
+  const [userRole, setUserRole] = useState('')
+  const [isPro, setIsPro] = useState(false)
+  const [isAdmin, setIsAdmin] = useState(false)
 
   useEffect(() => {
     supabase.auth.getSession().then(({ data: { session } }) => {
@@ -48,13 +48,18 @@ export function Sidebar() {
           setUserName(data.profile?.full_name ?? '')
           setUserRole(data.profile?.role ?? '')
 
-          const status  = data.profile?.subscription_status
+          const status = data.profile?.subscription_status
           const trialEnd = data.profile?.trial_ends_at
-          const subEnd   = data.profile?.subscription_ends_at
-          const now      = Date.now()
+          const subEnd = data.profile?.subscription_ends_at
+          const now = Date.now()
 
-          const activePro   = status === 'active' && (!subEnd || new Date(subEnd).getTime() > now)
-          const activeTrial = status === 'trial' && (!!trialEnd && new Date(trialEnd).getTime() > now)
+          const activePro =
+            status === 'active' &&
+            (!subEnd || new Date(subEnd).getTime() > now)
+
+          const activeTrial =
+            status === 'trial' &&
+            (!!trialEnd && new Date(trialEnd).getTime() > now)
 
           setIsPro(activePro || activeTrial)
           setIsAdmin(data.profile?.role === 'admin')
@@ -62,7 +67,9 @@ export function Sidebar() {
 
       fetch('/api/notifications')
         .then((r) => r.ok ? r.json() : null)
-        .then((data) => { if (data) setUnread(data.unread_count) })
+        .then((data) => {
+          if (data) setUnread(data.unread_count)
+        })
     })
   }, [pathname])
 
@@ -73,38 +80,52 @@ export function Sidebar() {
   const displayName = userName || userEmail.split('@')[0] || 'My Account'
 
   return (
-    <aside className="w-56 shrink-0 flex flex-col min-h-screen sticky top-0 h-screen bg-[#0a0f1a] border-r border-white/[0.06] z-30">
+    <aside className="w-60 shrink-0 flex flex-col min-h-screen sticky top-0 h-screen bg-[#0a0f1a] border-r border-white/[0.06] z-30">
 
-      {/* 🔥 LOGO CLEAN */}
-      <div className="px-5 py-5 border-b border-white/[0.04] flex items-center justify-center">
-        <Image
-          src="/logo-clean.png"
-          alt="SIRAJ"
-          width={140}
-          height={40}
-          priority
-          className="h-10 w-auto object-contain opacity-90 hover:opacity-100 transition"
-        />
+      {/* 🔥 LOGO SECTION (محسنة بالكامل) */}
+      <div className="px-4 py-6 border-b border-white/[0.05] flex items-center justify-center">
+        
+        <div className="relative group">
+
+          {/* Glow خلف اللوقو */}
+          <div className="absolute inset-0 blur-xl opacity-40 group-hover:opacity-60 transition">
+            <div className="w-full h-full bg-cyan-400/20 rounded-full" />
+          </div>
+
+          {/* اللوقو */}
+          <Image
+            src="/logo-clean.png"
+            alt="SIRAJ"
+            width={200}
+            height={60}
+            priority
+            className="relative h-16 w-auto object-contain 
+                       opacity-95 group-hover:opacity-100 
+                       transition duration-300"
+          />
+
+        </div>
+
       </div>
 
       {/* NAV */}
-      <nav className="flex-1 px-3 py-4 space-y-0.5 overflow-y-auto">
+      <nav className="flex-1 px-3 py-4 space-y-1 overflow-y-auto">
         {NAV.map(({ href, label, icon: Icon, notifBadge, proOnly }) => {
-          const active    = href === '/' ? pathname === '/' : pathname.startsWith(href)
-          const badge     = notifBadge && unread > 0 ? unread : undefined
-          const locked    = proOnly && !isPro
+          const active = href === '/' ? pathname === '/' : pathname.startsWith(href)
+          const badge = notifBadge && unread > 0 ? unread : undefined
+          const locked = proOnly && !isPro
 
           return (
             <Link
               key={href}
               href={href}
               className={[
-                'flex items-center gap-3 px-3 py-2 rounded-lg transition-all duration-150 group',
+                'flex items-center gap-3 px-3 py-2.5 rounded-lg transition-all duration-200 group',
                 active
                   ? 'bg-blue-500/10 text-blue-400 border border-blue-500/20'
                   : locked
                   ? 'text-gray-700'
-                  : 'text-gray-500 hover:text-gray-200 hover:bg-white/[0.04]',
+                  : 'text-gray-500 hover:text-gray-200 hover:bg-white/[0.05]',
               ].join(' ')}
             >
               <Icon className="h-4 w-4 shrink-0" />
@@ -125,7 +146,7 @@ export function Sidebar() {
       {/* USER */}
       <div className="px-3 py-3 border-t border-white/[0.06]">
         <div className="flex items-center gap-2 px-2 py-2">
-          <div className="h-7 w-7 rounded-full bg-blue-500 flex items-center justify-center text-xs font-bold text-white">
+          <div className="h-7 w-7 rounded-full bg-gradient-to-br from-blue-500 to-cyan-400 flex items-center justify-center text-xs font-bold text-white">
             {initials}
           </div>
           <div className="flex-1 min-w-0">
