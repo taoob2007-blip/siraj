@@ -2,7 +2,6 @@
 
 import type { ElementType } from 'react'
 import Link from 'next/link'
-import Image from 'next/image'
 import { usePathname } from 'next/navigation'
 import { useEffect, useState } from 'react'
 import {
@@ -13,7 +12,13 @@ import {
 import { LogoutButton } from '@/components/LogoutButton'
 import { supabaseBrowserClient as supabase } from '@/lib/supabase/client'
 
-const NAV = [
+const NAV: {
+  href: string
+  label: string
+  icon: ElementType
+  notifBadge?: boolean
+  proOnly?: boolean
+}[] = [
   { href: '/', label: 'Dashboard', icon: LayoutDashboard },
   { href: '/rfqs', label: 'RFQs', icon: FileText },
   { href: '/suppliers', label: 'Suppliers', icon: Users },
@@ -82,27 +87,33 @@ export function Sidebar() {
   return (
     <aside className="w-60 shrink-0 flex flex-col min-h-screen sticky top-0 h-screen bg-[#0a0f1a] border-r border-white/[0.06] z-30">
 
-      {/* 🔥 LOGO SECTION (محسنة بالكامل) */}
-      <div className="px-4 py-6 border-b border-white/[0.05] flex items-center justify-center">
-        
+      {/* 🔥 LOGO TEXT (SUPER PRO) */}
+      <div className="px-4 py-7 border-b border-white/[0.05] flex items-center justify-center">
+
         <div className="relative group">
 
-          {/* Glow خلف اللوقو */}
-          <div className="absolute inset-0 blur-xl opacity-40 group-hover:opacity-60 transition">
+          {/* Glow */}
+          <div className="absolute inset-0 blur-2xl opacity-40 group-hover:opacity-70 transition">
             <div className="w-full h-full bg-cyan-400/20 rounded-full" />
           </div>
 
-          {/* اللوقو */}
-          <Image
-            src="/logo-clean.png"
-            alt="SIRAJ"
-            width={200}
-            height={60}
-            priority
-            className="relative h-16 w-auto object-contain 
-                       opacity-95 group-hover:opacity-100 
-                       transition duration-300"
-          />
+          {/* Logo Text */}
+          <h1
+            className="
+              relative
+              text-white
+              font-semibold
+              tracking-[0.35em]
+              text-[24px]
+            "
+          >
+            SIR
+            <span className="relative inline-block">
+              A
+              <span className="absolute left-1/2 -translate-x-1/2 top-[115%] w-2.5 h-2.5 bg-cyan-400 rounded-full shadow-[0_0_12px_#22d3ee]" />
+            </span>
+            J
+          </h1>
 
         </div>
 
