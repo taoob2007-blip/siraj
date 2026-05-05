@@ -127,9 +127,9 @@ export function HeroBanner({
       {/* ── Content ─────────────────────────────────────────── */}
       <div className="relative flex flex-col items-center text-center gap-6" dir="rtl">
 
-        {/* Logo ─────────────────────────────────────────────── */}
+        {/* Logo — dir="ltr" so Latin letters never flip in RTL context */}
         <TextIn delay={0}>
-          <div className="flex items-end gap-0 select-none" aria-label="SIRAJ">
+          <div className="flex items-end gap-0 select-none" aria-label="SIRAJ" dir="ltr">
             {['S', 'I', 'R', 'A', 'J'].map((letter) => (
               <div key={letter} className="relative px-[0.12em]">
                 <span
@@ -171,7 +171,7 @@ export function HeroBanner({
         {/* Subtext ─────────────────────────────────────────── */}
         <TextIn delay={230} className="mt-1">
           <p
-            className="text-[15px] md:text-base text-gray-400 leading-[1.8] mx-auto"
+            className="text-[15px] md:text-base text-gray-300 leading-[1.8] mx-auto"
             style={{ maxWidth: '42ch' }}
           >
             قارن العروض، اختر الأفضل، ووفّر التكاليف — بدون تعقيد
