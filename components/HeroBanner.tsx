@@ -14,7 +14,6 @@ function FadeUp({
   className?: string
 }) {
   const [vis, setVis] = useState(false)
-
   useEffect(() => {
     const t = setTimeout(() => setVis(true), delay)
     return () => clearTimeout(t)
@@ -25,8 +24,8 @@ function FadeUp({
       className={className}
       style={{
         opacity: vis ? 1 : 0,
-        transform: vis ? 'translateY(0)' : 'translateY(12px)',
-        transition: 'opacity 500ms ease, transform 500ms ease',
+        transform: vis ? 'translateY(0)' : 'translateY(16px)',
+        transition: 'opacity 600ms ease, transform 600ms ease',
       }}
     >
       {children}
@@ -56,34 +55,38 @@ export function HeroBanner({
 }) {
   return (
     <div
-      className="relative overflow-hidden rounded-3xl border border-white/[0.07] px-6 py-16 md:py-24 bg-cover bg-center"
-      style={{
-        backgroundImage: "url('/hero-banner.jpg')",
-        backgroundColor: '#0A0F1B',
-      }}
+      className="relative overflow-hidden rounded-3xl border border-white/[0.06] px-6 py-20 md:py-28"
+      style={{ backgroundColor: '#0A0F1B' }}
     >
 
-      {/* Overlay (مهم عشان وضوح النص) */}
-      <div className="absolute inset-0 bg-[#0A0F1B]/70 backdrop-blur-[1px]" />
+      {/* 🔥 Background Image (Parallax feel) */}
+      <div
+        className="absolute inset-0 bg-cover bg-center opacity-80"
+        style={{
+          backgroundImage: "url('/hero-banner.jpg')",
+          transform: 'scale(1.05)',
+        }}
+      />
 
-      {/* Glow خفيف */}
+      {/* 🔥 Gradient overlay (خفيف جداً عشان اللوقو يبان) */}
+      <div className="absolute inset-0 bg-gradient-to-b from-[#0A0F1B]/20 via-[#0A0F1B]/40 to-[#0A0F1B]/80" />
+
+      {/* ✨ Moving light (إحساس حياة خفيف) */}
       <div className="pointer-events-none absolute inset-0">
-        <div className="absolute -top-40 -left-40 h-[420px] w-[420px] rounded-full bg-blue-700/[0.05] blur-3xl" />
-        <div className="absolute -bottom-40 -right-40 h-[420px] w-[420px] rounded-full bg-indigo-700/[0.05] blur-3xl" />
+        <div className="absolute w-[500px] h-[500px] bg-cyan-400/10 blur-3xl rounded-full top-[-100px] left-[-120px] animate-pulse" />
+        <div className="absolute w-[400px] h-[400px] bg-indigo-500/10 blur-3xl rounded-full bottom-[-120px] right-[-100px] animate-pulse" />
       </div>
 
-      <div className="pointer-events-none absolute top-0 left-16 right-16 h-px bg-gradient-to-r from-transparent via-white/[0.08] to-transparent" />
+      {/* Content */}
+      <div className="relative z-10 flex flex-col items-center text-center pt-14 md:pt-20" dir="rtl">
 
-      {/* CONTENT */}
-      <div className="relative z-10 flex flex-col items-center text-center gap-0" dir="rtl">
-
-        {/* HEADLINE */}
-        <FadeUp delay={120}>
+        {/* Headline */}
+        <FadeUp delay={100} className="mt-8">
           <h1
             className="font-bold text-white"
             style={{
-              fontSize: 'clamp(1.7rem, 4.2vw, 2.9rem)',
-              lineHeight: 1.3,
+              fontSize: 'clamp(1.6rem, 3.5vw, 2.6rem)',
+              lineHeight: 1.35,
               letterSpacing: '-0.01em',
             }}
           >
@@ -93,25 +96,25 @@ export function HeroBanner({
           </h1>
         </FadeUp>
 
-        {/* SUBTEXT */}
-        <FadeUp delay={220} className="mt-5">
-          <p className="text-[15px] md:text-[16px] text-gray-300 leading-relaxed mx-auto max-w-[40ch]">
+        {/* Subtext */}
+        <FadeUp delay={200} className="mt-5">
+          <p className="text-[15px] md:text-[16px] text-gray-300 leading-relaxed max-w-[42ch]">
             قارن العروض، اختر الأفضل، ووفّر التكاليف — بدون تعقيد
           </p>
         </FadeUp>
 
-        {/* BUTTONS */}
-        <FadeUp delay={320} className="mt-9">
+        {/* Buttons */}
+        <FadeUp delay={300} className="mt-9">
           <div className="flex items-center justify-center gap-3 flex-wrap">
 
             <Link href="/rfqs/new">
-              <button className="px-7 py-3 rounded-xl bg-cyan-400 hover:bg-cyan-300 text-[#0A0F1B] text-[14.5px] font-semibold transition-transform duration-200 hover:scale-[1.03]">
+              <button className="px-7 py-3 rounded-xl bg-cyan-400 hover:bg-cyan-300 text-[#0A0F1B] font-semibold transition-all duration-200 hover:scale-[1.04] shadow-lg shadow-cyan-400/10">
                 + إنشاء طلب
               </button>
             </Link>
 
             <Link href="/rfqs">
-              <button className="px-7 py-3 rounded-xl border border-white/[0.14] text-gray-300 hover:bg-white/[0.06]">
+              <button className="px-7 py-3 rounded-xl border border-white/[0.15] text-gray-300 hover:bg-white/[0.06] transition">
                 عرض الطلبات ←
               </button>
             </Link>
@@ -119,9 +122,9 @@ export function HeroBanner({
           </div>
         </FadeUp>
 
-        {/* STATS */}
-        <FadeUp delay={420} className="mt-10 w-full max-w-xs">
-          <div className="flex items-center justify-center pt-7 border-t border-white/[0.06]">
+        {/* Stats */}
+        <FadeUp delay={400} className="mt-12 w-full max-w-xs">
+          <div className="flex items-center justify-center pt-6 border-t border-white/[0.06]">
             <div className="flex-1">
               <Stat value={total} label="إجمالي الطلبات" colorCls="text-white" />
             </div>
