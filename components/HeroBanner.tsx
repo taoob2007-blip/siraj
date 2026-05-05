@@ -16,7 +16,6 @@ export function HeroBanner({
   const glowRef = useRef<HTMLDivElement>(null)
   const [hoverSide, setHoverSide] = useState<'left' | 'right' | null>(null)
 
-  // Mouse glow (خلفية فقط - بدون تحريك اللوقو)
   useEffect(() => {
     const move = (e: MouseEvent) => {
       if (!glowRef.current) return
@@ -26,9 +25,9 @@ export function HeroBanner({
       const y = e.clientY - rect.top
 
       glowRef.current.style.background = `
-        radial-gradient(600px circle at ${x}px ${y}px,
-        rgba(34,211,238,0.15),
-        transparent 55%)
+        radial-gradient(900px circle at ${x}px ${y}px,
+        rgba(255,255,255,0.025),
+        transparent 75%)
       `
     }
 
@@ -37,70 +36,58 @@ export function HeroBanner({
   }, [])
 
   return (
-    <div className="relative overflow-hidden rounded-[34px] border border-white/[0.05] px-8 py-20">
+    <div className="relative overflow-hidden rounded-[36px] border border-white/[0.06] px-10 py-24">
 
       {/* Base */}
-      <div className="absolute inset-0 bg-[#0A0F18]" />
+      <div className="absolute inset-0 bg-[#0B0F17]" />
 
-      {/* Mouse Glow */}
-      <div ref={glowRef} className="absolute inset-0 pointer-events-none" />
-
-      {/* Lights */}
-      <div className="absolute inset-0 pointer-events-none opacity-40">
-        <div className="absolute -top-32 right-1/3 w-[700px] h-[700px] bg-cyan-400/10 blur-3xl rounded-full" />
-        <div className="absolute bottom-[-200px] left-1/4 w-[700px] h-[700px] bg-violet-500/10 blur-3xl rounded-full" />
+      {/* Soft depth (بدون glow) */}
+      <div className="absolute inset-0 opacity-30">
+        <div className="absolute inset-0 bg-[radial-gradient(circle_at_30%_20%,rgba(255,255,255,0.04),transparent_45%)]" />
+        <div className="absolute inset-0 bg-[radial-gradient(circle_at_80%_80%,rgba(255,255,255,0.03),transparent_45%)]" />
       </div>
+
+      {/* Mouse subtle light */}
+      <div ref={glowRef} className="absolute inset-0 pointer-events-none" />
 
       {/* Grain */}
       <div
-        className="absolute inset-0 opacity-[0.03] mix-blend-overlay"
+        className="absolute inset-0 opacity-[0.02] mix-blend-overlay"
         style={{ backgroundImage: 'url("https://grainy-gradients.vercel.app/noise.svg")' }}
       />
 
-      {/* Content */}
-      <div className="relative z-10 flex flex-col gap-16" dir="rtl">
+      <div className="relative z-10 flex flex-col gap-20" dir="rtl">
 
-        {/* ===== LOGO (نظيف بدون مستطيل) ===== */}
-        <div className="flex justify-center relative">
-
-          {/* Glow خلف اللوقو */}
-          <div className="absolute w-[520px] h-[220px] bg-gradient-to-r from-cyan-400/20 via-transparent to-violet-500/20 blur-[120px] rounded-full" />
-
-          {/* Logo */}
+        {/* ===== LOGO ===== */}
+        <div className="flex justify-center -translate-y-10 md:-translate-y-14">
           <img
             src="/logo-hero.png"
             className="
-              relative z-10
-              w-[420px] md:w-[520px]
+              w-[500px] md:w-[620px]
               object-contain
-
-              brightness-[1.15]
-              contrast-[1.2]
-              saturate-[1.2]
-
-              drop-shadow-[0_40px_100px_rgba(34,211,238,0.35)]
+              drop-shadow-[0_20px_40px_rgba(0,0,0,0.6)]
             "
           />
         </div>
 
-        {/* ===== MAIN LAYOUT ===== */}
-        <div className="grid md:grid-cols-[1fr_auto_1fr] gap-12 items-center">
+        {/* ===== CONTENT ===== */}
+        <div className="grid md:grid-cols-[1fr_auto_1fr] gap-16 items-center">
 
           {/* RIGHT */}
           <div
             onMouseEnter={() => setHoverSide('right')}
             onMouseLeave={() => setHoverSide(null)}
-            className={`text-right flex flex-col gap-6 transition ${
+            className={`text-right flex flex-col gap-7 transition ${
               hoverSide === 'left' ? 'opacity-40' : 'opacity-100'
             }`}
           >
-            <h1 className="text-white font-semibold leading-[1.25] text-3xl">
+            <h1 className="text-white font-semibold leading-[1.2] text-[clamp(2.2rem,3vw,3.2rem)]">
               سيطرة كاملة على مشترياتك
               <br />
-              <span className="text-cyan-400">بسرعة وذكاء</span>
+              <span className="text-white/70">بسرعة وذكاء</span>
             </h1>
 
-            <p className="text-gray-400 max-w-[420px] text-sm leading-relaxed">
+            <p className="text-gray-400 max-w-[440px] text-[15px] leading-relaxed">
               قارن الموردين، حلّل العروض، واتخذ قرارات دقيقة خلال دقائق —
               بدون تعقيد أو تشتت.
             </p>
@@ -108,20 +95,14 @@ export function HeroBanner({
 
           {/* DIVIDER */}
           <div className="hidden md:flex justify-center">
-            <div className="relative w-[2px] h-44">
-              <div className={`
-                absolute inset-0
-                bg-gradient-to-b from-transparent via-cyan-400 to-transparent
-                ${hoverSide ? 'opacity-100' : 'opacity-40'}
-              `} />
-            </div>
+            <div className="w-[1px] h-52 bg-white/10" />
           </div>
 
           {/* LEFT */}
           <div
             onMouseEnter={() => setHoverSide('left')}
             onMouseLeave={() => setHoverSide(null)}
-            className={`flex flex-col items-start gap-8 transition ${
+            className={`flex flex-col items-start gap-10 transition ${
               hoverSide === 'right' ? 'opacity-40' : 'opacity-100'
             }`}
           >
@@ -131,11 +112,10 @@ export function HeroBanner({
 
               <Link href="/rfqs/new">
                 <button className="
-                  px-7 py-3 rounded-xl
-                  bg-cyan-400 text-black font-semibold
-                  hover:bg-cyan-300
-                  transition
-                  shadow-[0_10px_40px_rgba(34,211,238,0.3)]
+                  px-8 py-3.5 rounded-xl
+                  bg-white text-black font-medium
+                  hover:bg-gray-200
+                  transition-all duration-200
                 ">
                   + إنشاء طلب
                 </button>
@@ -143,10 +123,11 @@ export function HeroBanner({
 
               <Link href="/rfqs">
                 <button className="
-                  px-7 py-3 rounded-xl
-                  border border-white/[0.1]
+                  px-8 py-3.5 rounded-xl
+                  border border-white/[0.12]
                   text-white
                   hover:bg-white/[0.05]
+                  transition
                 ">
                   عرض الطلبات →
                 </button>
@@ -156,11 +137,10 @@ export function HeroBanner({
 
             {/* Stats */}
             <div className="
-              bg-white/[0.03]
-              border border-white/[0.06]
-              rounded-2xl px-6 py-5
-              flex gap-10
-              backdrop-blur-xl
+              bg-white/[0.02]
+              border border-white/[0.05]
+              rounded-2xl px-8 py-6
+              flex gap-12
             ">
               <Stat value={total} label="إجمالي الطلبات" />
               <Stat value={active} label="نشطة الآن" highlight />
@@ -187,8 +167,8 @@ function Stat({
   return (
     <div className="flex flex-col items-center gap-1">
       <span
-        className={`text-2xl font-semibold ${
-          highlight ? 'text-cyan-400' : 'text-white'
+        className={`text-[22px] font-semibold ${
+          highlight ? 'text-white' : 'text-white/70'
         }`}
       >
         <CountUp value={value} />
