@@ -7,18 +7,12 @@ import { useEffect, useState } from 'react'
 import {
   LayoutDashboard, FileText, Users, BarChart2,
   GitCompare, FileSignature, MessageSquare, PieChart,
-  Bell, Settings, Crown, Layers, Shield,
+  Bell, Settings, Crown, Layers, ChevronLeft
 } from 'lucide-react'
 import { LogoutButton } from '@/components/LogoutButton'
 import { supabaseBrowserClient as supabase } from '@/lib/supabase/client'
 
-const NAV: {
-  href: string
-  label: string
-  icon: ElementType
-  notifBadge?: boolean
-  proOnly?: boolean
-}[] = [
+const NAV = [
   { href: '/', label: 'Dashboard', icon: LayoutDashboard },
   { href: '/rfqs', label: 'RFQs', icon: FileText },
   { href: '/suppliers', label: 'Suppliers', icon: Users },
@@ -28,18 +22,17 @@ const NAV: {
   { href: '/contracts', label: 'Contracts', icon: FileSignature },
   { href: '/messages', label: 'Messages', icon: MessageSquare },
   { href: '/reports', label: 'Reports', icon: PieChart },
-  { href: '/notifications', label: 'Notifications', icon: Bell, notifBadge: true },
+  { href: '/notifications', label: 'Notifications', icon: Bell },
   { href: '/settings', label: 'Settings', icon: Settings },
 ]
 
 export function Sidebar() {
   const pathname = usePathname()
-  const [unread, setUnread] = useState(0)
+
+  const [collapsed, setCollapsed] = useState(false)
   const [userName, setUserName] = useState('')
   const [userEmail, setUserEmail] = useState('')
-  const [userRole, setUserRole] = useState('')
   const [isPro, setIsPro] = useState(false)
-  const [isAdmin, setIsAdmin] = useState(false)
 
   useEffect(() => {
     supabase.auth.getSession().then(({ data: { session } }) => {
@@ -47,127 +40,126 @@ export function Sidebar() {
       setUserEmail(session.user.email ?? '')
 
       fetch('/api/profile')
-        .then((r) => r.ok ? r.json() : null)
-        .then((data) => {
-          if (!data) return
-          setUserName(data.profile?.full_name ?? '')
-          setUserRole(data.profile?.role ?? '')
-
-          const status = data.profile?.subscription_status
-          const trialEnd = data.profile?.trial_ends_at
-          const subEnd = data.profile?.subscription_ends_at
-          const now = Date.now()
-
-          const activePro =
-            status === 'active' &&
-            (!subEnd || new Date(subEnd).getTime() > now)
-
-          const activeTrial =
-            status === 'trial' &&
-            (!!trialEnd && new Date(trialEnd).getTime() > now)
-
-          setIsPro(activePro || activeTrial)
-          setIsAdmin(data.profile?.role === 'admin')
-        })
-
-      fetch('/api/notifications')
-        .then((r) => r.ok ? r.json() : null)
-        .then((data) => {
-          if (data) setUnread(data.unread_count)
+        .then(r => r.json())
+        .then(data => {
+          setUserName(data?.profile?.full_name ?? '')
+          setIsPro(data?.profile?.subscription_status === 'active')
         })
     })
-  }, [pathname])
+  }, [])
 
-  const initials = userName
-    ? userName.split(' ').map((w: string) => w[0]).slice(0, 2).join('').toUpperCase()
-    : userEmail.charAt(0).toUpperCase() || '?'
-
-  const displayName = userName || userEmail.split('@')[0] || 'My Account'
+  const displayName = userName || userEmail.split('@')[0] || 'User'
 
   return (
-    <aside className="w-60 shrink-0 flex flex-col min-h-screen sticky top-0 h-screen bg-[#0a0f1a] border-r border-white/[0.06] z-30">
+    <aside className={`
+      ${collapsed ? 'w-20' : 'w-64'}
+      transition-all duration-300
+      min-h-screen bg-[#0b1220] border-r border-white/[0.05] flex flex-col
+    `}>
 
-      {/* 🔥 LOGO TEXT (SUPER PRO) */}
-      <div className="px-4 py-7 border-b border-white/[0.05] flex items-center justify-center">
+      {/* 🔥 HEADER */}
+      <div className="px-4 py-5 border-b border-white/[0.05] flex flex-col items-center relative">
 
-        <div className="relative group">
+        {/* Collapse Button */}
+        <button
+          onClick={() => setCollapsed(!collapsed)}
+          className="absolute left-3 top-5 text-gray-500 hover:text-white"
+        >
+          <ChevronLeft className={`transition ${collapsed ? 'rotate-180' : ''}`} />
+        </button>
 
-          {/* Glow */}
-          <div className="absolute inset-0 blur-2xl opacity-40 group-hover:opacity-70 transition">
-            <div className="w-full h-full bg-cyan-400/20 rounded-full" />
-          </div>
+        {/* Logo */}
+        <img
+          src="/logo-raw.png"
+          className={`transition-all ${collapsed ? 'w-8' : 'w-[140px]'}`}
+        />
 
-          {/* Logo Text */}
-          <h1
-            className="
-              relative
-              text-white
-              font-semibold
-              tracking-[0.35em]
-              text-[24px]
-            "
-          >
-            SIR
-            <span className="relative inline-block">
-              A
-              <span className="absolute left-1/2 -translate-x-1/2 top-[115%] w-2.5 h-2.5 bg-cyan-400 rounded-full shadow-[0_0_12px_#22d3ee]" />
-            </span>
-            J
-          </h1>
-
-        </div>
-
+        {/* Glow dot */}
+        {!collapsed && (
+          <div className="w-2 h-2 bg-cyan-400 mt-2 rounded-full shadow-[0_0_15px_rgba(34,211,238,0.8)]" />
+        )}
       </div>
 
       {/* NAV */}
-      <nav className="flex-1 px-3 py-4 space-y-1 overflow-y-auto">
-        {NAV.map(({ href, label, icon: Icon, notifBadge, proOnly }) => {
-          const active = href === '/' ? pathname === '/' : pathname.startsWith(href)
-          const badge = notifBadge && unread > 0 ? unread : undefined
+      <nav className="flex-1 px-2 py-4 space-y-1">
+
+        {NAV.map(({ href, label, icon: Icon, proOnly }) => {
+          const active = href === '/'
+            ? pathname === '/'
+            : pathname.startsWith(href)
+
           const locked = proOnly && !isPro
 
           return (
             <Link
               key={href}
               href={href}
-              className={[
-                'flex items-center gap-3 px-3 py-2.5 rounded-lg transition-all duration-200 group',
-                active
-                  ? 'bg-blue-500/10 text-blue-400 border border-blue-500/20'
-                  : locked
-                  ? 'text-gray-700'
-                  : 'text-gray-500 hover:text-gray-200 hover:bg-white/[0.05]',
-              ].join(' ')}
-            >
-              <Icon className="h-4 w-4 shrink-0" />
-              <span className="text-sm flex-1">{label}</span>
+              className={`
+                relative group flex items-center gap-3 px-3 py-2.5 rounded-xl
+                transition-all duration-200
 
-              {badge && (
-                <span className="text-[10px] bg-blue-600 text-white px-1.5 py-0.5 rounded-full font-bold">
-                  {badge > 99 ? '99+' : badge}
+                ${active
+                  ? 'text-cyan-400'
+                  : locked
+                  ? 'text-gray-600'
+                  : 'text-gray-400 hover:text-white'
+                }
+              `}
+            >
+
+              {/* Active Line */}
+              {active && (
+                <span className="absolute left-0 top-1/2 -translate-y-1/2 w-[3px] h-5 bg-cyan-400 rounded-full" />
+              )}
+
+              {/* Background hover */}
+              <div className={`
+                absolute inset-0 rounded-xl
+                ${active
+                  ? 'bg-cyan-400/10'
+                  : 'group-hover:bg-white/[0.04]'
+                }
+              `} />
+
+              <Icon className="relative h-4 w-4" />
+
+              {!collapsed && (
+                <span className="relative text-sm flex-1">
+                  {label}
                 </span>
               )}
 
-              {locked && <Crown className="h-3 w-3 text-violet-600" />}
+              {!collapsed && locked && (
+                <Crown className="h-3 w-3 text-violet-500" />
+              )}
+
             </Link>
           )
         })}
+
       </nav>
 
       {/* USER */}
-      <div className="px-3 py-3 border-t border-white/[0.06]">
-        <div className="flex items-center gap-2 px-2 py-2">
-          <div className="h-7 w-7 rounded-full bg-gradient-to-br from-blue-500 to-cyan-400 flex items-center justify-center text-xs font-bold text-white">
-            {initials}
-          </div>
-          <div className="flex-1 min-w-0">
-            <p className="text-xs text-gray-200 truncate">{displayName}</p>
-            <p className="text-[11px] text-gray-600 truncate">{userRole || userEmail}</p>
-          </div>
-        </div>
+      {!collapsed && (
+        <div className="px-4 py-4 border-t border-white/[0.05]">
 
-        <LogoutButton />
-      </div>
+          <div className="flex items-center gap-3 mb-3">
+
+            <div className="h-9 w-9 rounded-full bg-cyan-400 flex items-center justify-center text-black font-bold">
+              {displayName[0]}
+            </div>
+
+            <div className="flex-1 min-w-0">
+              <p className="text-sm text-white truncate">{displayName}</p>
+              <p className="text-xs text-gray-500 truncate">{userEmail}</p>
+            </div>
+
+          </div>
+
+          <LogoutButton />
+
+        </div>
+      )}
 
     </aside>
   )
