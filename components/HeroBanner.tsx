@@ -2,6 +2,7 @@
 
 import { useEffect, useState } from 'react'
 import Link from 'next/link'
+import Image from 'next/image'
 import { CountUp } from '@/components/DashboardShell'
 
 function FadeUp({
@@ -14,6 +15,7 @@ function FadeUp({
   className?: string
 }) {
   const [vis, setVis] = useState(false)
+
   useEffect(() => {
     const t = setTimeout(() => setVis(true), delay)
     return () => clearTimeout(t)
@@ -24,8 +26,8 @@ function FadeUp({
       className={className}
       style={{
         opacity: vis ? 1 : 0,
-        transform: vis ? 'translateY(25px)' : 'translateY(50px)',
-        transition: 'all 800ms cubic-bezier(0.22,1,0.36,1)',
+        transform: vis ? 'translateY(0)' : 'translateY(20px)',
+        transition: 'all 600ms ease',
       }}
     >
       {children}
@@ -35,7 +37,7 @@ function FadeUp({
 
 function Stat({ value, label, colorCls }: { value: number; label: string; colorCls: string }) {
   return (
-    <div className="flex flex-col items-center gap-1">
+    <div className="flex flex-col items-center gap-1.5">
       <span className={`text-2xl md:text-3xl font-bold ${colorCls}`}>
         <CountUp value={value} />
       </span>
@@ -54,83 +56,73 @@ export function HeroBanner({
   resCount: number
 }) {
   return (
-    <div className="relative overflow-hidden rounded-3xl border border-white/[0.06] px-6 py-32 md:py-40">
+    <div className="relative overflow-hidden rounded-3xl border border-white/[0.07] px-6 py-20 md:py-28 bg-[#0A0F1B]">
 
-      {/* Background */}
-      <div className="absolute inset-0">
-        <img
-          src="/hero-banner.jpg"
-          className="w-full h-full object-cover"
-          alt=""
-        />
-      </div>
-
-      {/* Gradient Overlay */}
-      <div className="absolute inset-0 bg-[#0A0F1B]/70" />
-
-      {/* Cinematic Light */}
+      {/* Background Glow */}
       <div className="absolute inset-0 pointer-events-none">
-        <div className="absolute top-0 left-1/2 -translate-x-1/2 w-[800px] h-[400px] bg-cyan-400/10 blur-[120px]" />
+        <div className="absolute -top-40 -left-40 w-[400px] h-[400px] bg-blue-600/10 blur-3xl rounded-full" />
+        <div className="absolute -bottom-40 -right-40 w-[400px] h-[400px] bg-cyan-500/10 blur-3xl rounded-full" />
       </div>
 
-      <div className="relative z-10 flex flex-col items-center text-center" dir="rtl">
+      <div className="relative flex flex-col items-center text-center" dir="rtl">
 
-        {/* 🔥 LOGO (معدل بالكامل) */}
-        <FadeUp delay={0}>
-          <div className="relative mb-16">
-
-            {/* Glow خلف اللوقو */}
-            <div className="absolute inset-0 blur-[40px] opacity-60 bg-cyan-400/20 rounded-full" />
-
-            {/* اللوقو */}
-            <img
-              src="/hero-logo.png"
-              alt="SIRAJ"
-              className="relative w-[380px] md:w-[560px] object-contain 
-              drop-shadow-[0_0_25px_rgba(34,211,238,0.35)] 
-              brightness-110 contrast-110"
-            />
-          </div>
+        {/* 🔥 LOGO (بدون قص فعلي - Blend) */}
+        <FadeUp>
+          <Image
+            src="/logo-raw.png"
+            alt="SIRAJ"
+            width={500}
+            height={200}
+            priority
+            className="
+              w-[420px] md:w-[520px]
+              object-contain
+              mix-blend-screen
+              brightness-125
+              contrast-110
+              drop-shadow-[0_0_25px_rgba(34,211,238,0.25)]
+            "
+          />
         </FadeUp>
 
-        {/* Label */}
+        {/* Tagline صغيرة */}
         <FadeUp delay={120}>
-          <p className="text-cyan-400 text-sm mb-3 tracking-wide">
+          <p className="text-cyan-400 text-sm mt-4 tracking-wide">
             منصة إدارة المشتريات الذكية
           </p>
         </FadeUp>
 
         {/* Headline */}
-        <FadeUp delay={220}>
-          <h1 className="text-white font-extrabold text-[clamp(2rem,3.5vw,3.2rem)] leading-tight">
+        <FadeUp delay={200}>
+          <h1 className="mt-4 font-bold text-white leading-tight text-[clamp(2rem,4vw,3rem)]">
             قرارات أسرع، نتائج أفضل
             <br />
-            <span className="text-cyan-400">بدون تعقيد أو تأخير</span>
+            <span className="text-cyan-400">
+              بدون تعقيد أو تأخير
+            </span>
           </h1>
         </FadeUp>
 
         {/* Description */}
-        <FadeUp delay={320} className="mt-6">
-          <p className="text-gray-300 max-w-[48ch] text-[16px] leading-relaxed">
+        <FadeUp delay={300}>
+          <p className="mt-5 text-gray-300 max-w-[520px] leading-relaxed text-[15px]">
             قارن العروض من عدة موردين، اختر الأنسب خلال دقائق،
-            واترك الذكاء الاصطناعي يختصر عليك الوقت والتكلفة.
+            واترك الذكاء الاصطناعي يختصر عليك الوقت والتكاليف.
           </p>
         </FadeUp>
 
-        {/* CTA */}
-        <FadeUp delay={420} className="mt-10">
-          <div className="flex gap-4 flex-wrap justify-center">
+        {/* Buttons */}
+        <FadeUp delay={400}>
+          <div className="mt-8 flex gap-3 flex-wrap justify-center">
 
             <Link href="/rfqs/new">
-              <button className="px-8 py-3.5 rounded-xl bg-cyan-400 text-[#0A0F1B] font-semibold
-              hover:scale-[1.05] hover:bg-cyan-300 transition">
+              <button className="px-7 py-3 rounded-xl bg-cyan-400 text-[#0A0F1B] font-semibold hover:bg-cyan-300 transition hover:scale-[1.04] shadow-lg shadow-cyan-400/20">
                 + إنشاء طلب
               </button>
             </Link>
 
             <Link href="/rfqs">
-              <button className="px-8 py-3.5 rounded-xl border border-white/[0.2] text-white 
-              hover:bg-white/[0.06] transition">
+              <button className="px-7 py-3 rounded-xl border border-white/20 text-gray-300 hover:bg-white/5 transition">
                 عرض الطلبات ←
               </button>
             </Link>
@@ -139,9 +131,8 @@ export function HeroBanner({
         </FadeUp>
 
         {/* Stats */}
-        <FadeUp delay={520} className="mt-16 w-full max-w-md">
-          <div className="flex justify-between items-center px-6 py-5 rounded-2xl 
-          bg-white/[0.04] backdrop-blur-md border border-white/[0.08]">
+        <FadeUp delay={500}>
+          <div className="mt-12 w-full max-w-md flex justify-between border-t border-white/10 pt-6">
 
             <Stat value={total} label="إجمالي الطلبات" colorCls="text-white" />
             <Stat value={active} label="نشطة الآن" colorCls="text-cyan-400" />
