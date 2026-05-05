@@ -26,7 +26,7 @@ export function HeroBanner({
 
       glowRef.current.style.background = `
         radial-gradient(900px circle at ${x}px ${y}px,
-        rgba(255,255,255,0.025),
+        rgba(255,255,255,0.02),
         transparent 75%)
       `
     }
@@ -36,18 +36,23 @@ export function HeroBanner({
   }, [])
 
   return (
-    <div className="relative overflow-hidden rounded-[36px] border border-white/[0.06] px-10 py-24">
+    <div className="
+      relative overflow-hidden rounded-[36px]
+      border border-white/[0.06]
+      px-10 py-24
+      animate-[fadeUp_0.9s_ease]
+    ">
 
       {/* Base */}
       <div className="absolute inset-0 bg-[#0B0F17]" />
 
-      {/* Soft depth (بدون glow) */}
+      {/* Depth */}
       <div className="absolute inset-0 opacity-30">
         <div className="absolute inset-0 bg-[radial-gradient(circle_at_30%_20%,rgba(255,255,255,0.04),transparent_45%)]" />
         <div className="absolute inset-0 bg-[radial-gradient(circle_at_80%_80%,rgba(255,255,255,0.03),transparent_45%)]" />
       </div>
 
-      {/* Mouse subtle light */}
+      {/* Mouse subtle */}
       <div ref={glowRef} className="absolute inset-0 pointer-events-none" />
 
       {/* Grain */}
@@ -58,30 +63,30 @@ export function HeroBanner({
 
       <div className="relative z-10 flex flex-col gap-20" dir="rtl">
 
-        {/* ===== LOGO ===== */}
+        {/* LOGO */}
         <div className="flex justify-center -translate-y-10 md:-translate-y-14">
           <img
             src="/logo-hero.png"
             className="
-              w-[500px] md:w-[620px]
+              w-[520px] md:w-[640px]
               object-contain
-              drop-shadow-[0_20px_40px_rgba(0,0,0,0.6)]
+              drop-shadow-[0_25px_50px_rgba(0,0,0,0.6)]
             "
           />
         </div>
 
-        {/* ===== CONTENT ===== */}
+        {/* CONTENT */}
         <div className="grid md:grid-cols-[1fr_auto_1fr] gap-16 items-center">
 
           {/* RIGHT */}
           <div
             onMouseEnter={() => setHoverSide('right')}
             onMouseLeave={() => setHoverSide(null)}
-            className={`text-right flex flex-col gap-7 transition ${
+            className={`text-right flex flex-col gap-7 transition duration-300 ${
               hoverSide === 'left' ? 'opacity-40' : 'opacity-100'
             }`}
           >
-            <h1 className="text-white font-semibold leading-[1.2] text-[clamp(2.2rem,3vw,3.2rem)]">
+            <h1 className="text-white font-semibold leading-[1.2] text-[clamp(2.3rem,3vw,3.3rem)]">
               سيطرة كاملة على مشترياتك
               <br />
               <span className="text-white/70">بسرعة وذكاء</span>
@@ -102,7 +107,7 @@ export function HeroBanner({
           <div
             onMouseEnter={() => setHoverSide('left')}
             onMouseLeave={() => setHoverSide(null)}
-            className={`flex flex-col items-start gap-10 transition ${
+            className={`flex flex-col items-start gap-10 transition duration-300 ${
               hoverSide === 'right' ? 'opacity-40' : 'opacity-100'
             }`}
           >
@@ -114,8 +119,9 @@ export function HeroBanner({
                 <button className="
                   px-8 py-3.5 rounded-xl
                   bg-white text-black font-medium
-                  hover:bg-gray-200
                   transition-all duration-200
+                  hover:scale-[1.03]
+                  active:scale-[0.97]
                 ">
                   + إنشاء طلب
                 </button>
@@ -126,10 +132,10 @@ export function HeroBanner({
                   px-8 py-3.5 rounded-xl
                   border border-white/[0.12]
                   text-white
+                  transition-all duration-200
                   hover:bg-white/[0.05]
-                  transition
                 ">
-                  عرض الطلبات →
+                  عرض الطلبات ←
                 </button>
               </Link>
 
@@ -141,6 +147,7 @@ export function HeroBanner({
               border border-white/[0.05]
               rounded-2xl px-8 py-6
               flex gap-12
+              backdrop-blur-xl
             ">
               <Stat value={total} label="إجمالي الطلبات" />
               <Stat value={active} label="نشطة الآن" highlight />
@@ -150,11 +157,25 @@ export function HeroBanner({
           </div>
         </div>
       </div>
+
+      {/* animation keyframes */}
+      <style jsx>{`
+        @keyframes fadeUp {
+          0% {
+            opacity: 0;
+            transform: translateY(20px);
+          }
+          100% {
+            opacity: 1;
+            transform: translateY(0);
+          }
+        }
+      `}</style>
     </div>
   )
 }
 
-/* ===== Stat ===== */
+/* Stat */
 function Stat({
   value,
   label,
