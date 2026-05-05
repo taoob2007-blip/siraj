@@ -197,49 +197,49 @@ function KPICard({
   )
 }
 
-// ── AI Insights Card (real data, shown to pro) ────────────────────────────────
+/* ── AI INSIGHTS (NEW DESIGN) ── */
 
 function AIInsightsReal({ data }: { data: NonNullable<Awaited<ReturnType<typeof getAIInsights>>> }) {
   return (
-    <div className="rounded-2xl border border-violet-500/20 bg-gradient-to-br from-violet-950/40 to-blue-950/30 p-6 space-y-5 relative overflow-hidden h-full">
-      <div className="pointer-events-none absolute top-0 left-8 right-8 h-px bg-gradient-to-r from-transparent via-violet-400/20 to-transparent" />
-      <div className="pointer-events-none absolute -top-16 -right-16 h-40 w-40 rounded-full bg-violet-500/10 blur-3xl" />
-      <div className="relative flex items-center gap-2.5">
-        <div className="p-2 rounded-xl bg-violet-500/10 border border-violet-500/20">
-          <Brain className="h-4 w-4 text-violet-400" />
+    <div className="rounded-2xl border border-white/[0.06] bg-[#0d1220] p-6 space-y-5 h-full relative overflow-hidden">
+
+      {/* subtle glow */}
+      <div className="absolute -top-20 right-10 w-[300px] h-[300px] bg-cyan-400/10 blur-3xl rounded-full" />
+
+      <div className="relative flex items-center gap-2">
+        <div className="p-2 rounded-xl bg-cyan-400/10 border border-cyan-400/20">
+          <Brain className="h-4 w-4 text-cyan-400" />
         </div>
         <div>
           <p className="text-sm font-semibold text-white">AI Insights</p>
-          <p className="text-[11px] text-violet-400">Powered by SIRAJ intelligence</p>
+          <p className="text-[11px] text-gray-500">Powered by SIRAJ</p>
         </div>
       </div>
-      <div className="relative grid grid-cols-1 gap-3">
-        <div className="p-3.5 rounded-xl bg-white/[0.03] border border-white/[0.06] space-y-1.5">
-          <div className="flex items-center gap-2">
-            <Target className="h-3.5 w-3.5 text-emerald-400 shrink-0" />
-            <p className="text-xs font-semibold text-emerald-400">Cost Savings Opportunity</p>
-          </div>
-          <p className="text-2xl font-bold text-white">{data.savings}%</p>
-          <p className="text-xs text-gray-500">potential savings vs. avg quote · avg ${data.avgPrice.toLocaleString()}</p>
+
+      <div className="grid gap-3">
+
+        <div className="p-3.5 rounded-xl bg-white/[0.03] border border-white/[0.05]">
+          <p className="text-xs text-cyan-400 font-semibold">Cost Saving</p>
+          <p className="text-2xl text-white font-bold">{data.savings}%</p>
+          <p className="text-xs text-gray-500 mt-1">
+            avg ${data.avgPrice.toLocaleString()}
+          </p>
         </div>
+
         {data.topSupplier && (
-          <div className="p-3.5 rounded-xl bg-white/[0.03] border border-white/[0.06] space-y-1.5">
-            <div className="flex items-center gap-2">
-              <Trophy className="h-3.5 w-3.5 text-amber-400 shrink-0" />
-              <p className="text-xs font-semibold text-amber-400">Top Supplier</p>
-            </div>
-            <p className="text-sm font-semibold text-white truncate">{data.topSupplier}</p>
-            <p className="text-xs text-gray-500">best price/speed combination</p>
+          <div className="p-3.5 rounded-xl bg-white/[0.03] border border-white/[0.05]">
+            <p className="text-xs text-cyan-400 font-semibold">Top Supplier</p>
+            <p className="text-sm text-white truncate">{data.topSupplier}</p>
+            <p className="text-xs text-gray-500">best price/value</p>
           </div>
         )}
-        <div className="p-3.5 rounded-xl bg-white/[0.03] border border-white/[0.06] space-y-1.5">
-          <div className="flex items-center gap-2">
-            <BarChart3 className="h-3.5 w-3.5 text-blue-400 shrink-0" />
-            <p className="text-xs font-semibold text-blue-400">Quote Pipeline</p>
-          </div>
-          <p className="text-2xl font-bold text-white">{data.totalQuotes}</p>
-          <p className="text-xs text-gray-500">total supplier quotes received</p>
+
+        <div className="p-3.5 rounded-xl bg-white/[0.03] border border-white/[0.05]">
+          <p className="text-xs text-cyan-400 font-semibold">Quotes</p>
+          <p className="text-2xl text-white font-bold">{data.totalQuotes}</p>
+          <p className="text-xs text-gray-500">total received</p>
         </div>
+
       </div>
     </div>
   )
@@ -247,36 +247,34 @@ function AIInsightsReal({ data }: { data: NonNullable<Awaited<ReturnType<typeof 
 
 function AIInsightsMock() {
   return (
-    <div className="rounded-2xl border border-violet-500/20 bg-gradient-to-br from-violet-950/40 to-blue-950/30 p-6 space-y-5 relative overflow-hidden h-full">
-      <div className="flex items-center gap-2.5">
-        <div className="p-2 rounded-xl bg-violet-500/10 border border-violet-500/20">
-          <Brain className="h-4 w-4 text-violet-400" />
+    <div className="rounded-2xl border border-white/[0.06] bg-[#0d1220] p-6 space-y-5 h-full">
+
+      <div className="flex items-center gap-2">
+        <div className="p-2 rounded-xl bg-cyan-400/10 border border-cyan-400/20">
+          <Brain className="h-4 w-4 text-cyan-400" />
         </div>
         <div>
           <p className="text-sm font-semibold text-white">AI Insights</p>
-          <p className="text-[11px] text-violet-400">Powered by SIRAJ intelligence</p>
+          <p className="text-[11px] text-gray-500">Powered by SIRAJ</p>
         </div>
       </div>
-      <div className="grid grid-cols-1 gap-3">
+
+      <div className="grid gap-3">
         {[
-          { icon: Target, color: 'text-emerald-400', label: 'Cost Savings Opportunity', val: '23%', sub: 'potential savings vs. avg quote' },
-          { icon: Trophy, color: 'text-amber-400',   label: 'Top Supplier', val: 'supplier@acme.com', sub: 'best price/speed score' },
-          { icon: BarChart3, color: 'text-blue-400', label: 'Quote Pipeline', val: '14', sub: 'total supplier quotes' },
-        ].map(({ icon: Icon, color, label, val, sub }) => (
-          <div key={label} className="p-3.5 rounded-xl bg-white/[0.03] border border-white/[0.06] space-y-1.5">
-            <div className="flex items-center gap-2">
-              <Icon className={`h-3.5 w-3.5 ${color} shrink-0`} />
-              <p className={`text-xs font-semibold ${color}`}>{label}</p>
-            </div>
-            <p className="text-2xl font-bold text-white">{val}</p>
-            <p className="text-xs text-gray-500">{sub}</p>
+          { label: 'Cost Saving', val: '23%' },
+          { label: 'Top Supplier', val: 'supplier@email.com' },
+          { label: 'Quotes', val: '14' },
+        ].map((item) => (
+          <div key={item.label} className="p-3.5 rounded-xl bg-white/[0.03] border border-white/[0.05]">
+            <p className="text-xs text-cyan-400 font-semibold">{item.label}</p>
+            <p className="text-white font-bold">{item.val}</p>
           </div>
         ))}
       </div>
+
     </div>
   )
 }
-
 // ── Recent Activity ───────────────────────────────────────────────────────────
 
 type ActivityItem = {
