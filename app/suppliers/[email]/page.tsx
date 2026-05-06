@@ -51,7 +51,7 @@ export default async function SupplierDetailPage({ params }: Props) {
 
       {/* Header */}
       <div className="flex items-center gap-4">
-        <div className="h-14 w-14 rounded-2xl bg-gradient-to-br from-blue-600/30 to-violet-600/30 border border-blue-500/20 flex items-center justify-center text-xl font-bold text-blue-300 uppercase">
+        <div className="h-14 w-14 rounded-2xl bg-gradient-to-br from-cyan-400/10 to-cyan-400/5 border border-cyan-400/20 flex items-center justify-center text-xl font-bold text-cyan-400 uppercase">
           {name[0]}
         </div>
         <div>
@@ -69,9 +69,9 @@ export default async function SupplierDetailPage({ params }: Props) {
         {[
           { label: 'RFQs Participated', value: rfqIds.length, icon: FileText, cls: 'bg-blue-500/10 border-blue-500/20 text-blue-400' },
           { label: 'Avg Price',         value: avgPrice !== null ? `$${avgPrice.toLocaleString('en-US')}` : '—', icon: DollarSign, cls: 'bg-emerald-500/10 border-emerald-500/20 text-emerald-400' },
-          { label: 'Avg Delivery',      value: avgDelivery !== null ? `${avgDelivery}d` : '—',           icon: Clock,      cls: 'bg-violet-500/10 border-violet-500/20 text-violet-400' },
+          { label: 'Avg Delivery',      value: avgDelivery !== null ? `${avgDelivery}d` : '—',           icon: Clock,      cls: 'bg-cyan-400/10 border-cyan-400/20 text-cyan-400' },
         ].map(({ label, value, icon: Icon, cls }) => (
-          <div key={label} className="rounded-2xl border border-white/[0.07] bg-[#111827] p-5">
+          <div key={label} className="rounded-2xl border border-white/[0.07] bg-[#0d1220] p-5">
             <div className="flex items-start justify-between mb-3">
               <p className="text-xs font-medium text-gray-500 uppercase tracking-wider">{label}</p>
               <div className={`p-1.5 rounded-lg border ${cls}`}><Icon className="h-3.5 w-3.5" /></div>
@@ -84,7 +84,7 @@ export default async function SupplierDetailPage({ params }: Props) {
       {/* RFQ history */}
       <div>
         <h2 className="text-sm font-semibold text-white mb-3">RFQ History</h2>
-        <div className="rounded-2xl border border-white/[0.07] bg-[#111827] overflow-hidden divide-y divide-white/[0.05]">
+        <div className="rounded-2xl border border-white/[0.07] bg-[#0d1220] overflow-hidden divide-y divide-white/[0.05]">
           {responses.map((r) => {
             const rfq = rfqMap[r.rfq_id as string]
             return (

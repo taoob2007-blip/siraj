@@ -177,7 +177,7 @@ export function ContractsClient({ contracts, rfqs, tableExists }: Props) {
               { label: 'Signed',    value: signed,    icon: CheckCircle2, cls: 'bg-emerald-500/10 border-emerald-500/20 text-emerald-400' },
               { label: 'Cancelled', value: cancelled, icon: XCircle,      cls: 'bg-red-500/10 border-red-500/20 text-red-400' },
             ].map(({ label, value, icon: Icon, cls }) => (
-              <div key={label} className="rounded-2xl border border-white/[0.07] bg-[#111827] p-5">
+              <div key={label} className="rounded-2xl border border-white/[0.07] bg-[#0d1220] p-5">
                 <div className="flex items-start justify-between mb-3">
                   <p className="text-xs font-medium text-gray-500 uppercase tracking-wider">{label}</p>
                   <div className={`p-1.5 rounded-lg border ${cls}`}><Icon className="h-3.5 w-3.5" /></div>
@@ -215,7 +215,7 @@ export function ContractsClient({ contracts, rfqs, tableExists }: Props) {
             </div>
           ) : (
             /* ── Contract list ─────────────────────────────────────────────── */
-            <div className="rounded-2xl border border-white/[0.07] bg-[#111827] overflow-hidden divide-y divide-white/[0.05]">
+            <div className="rounded-2xl border border-white/[0.07] bg-[#0d1220] overflow-hidden divide-y divide-white/[0.05]">
               {local.map((c) => {
                 const cfg        = deriveContractStatus(c)
                 const StatusIcon = cfg.icon

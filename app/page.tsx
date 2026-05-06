@@ -340,7 +340,7 @@ export default async function Home() {
     ...activity.contracts.map(c => ({
       id: `cnt-${c.id}`, label: c.title ?? 'Contract',
       sub: 'Contract', time: timeAgo(c.created_at), status: c.status,
-      icon: FileSignature, iconCls: 'bg-violet-500/10 border-violet-500/20 text-violet-400',
+      icon: FileSignature, iconCls: 'bg-cyan-400/10 border-cyan-400/20 text-cyan-400',
     })),
     ...activity.responses.map(r => ({
       id: `res-${r.id}`, label: r.supplier_email,
@@ -364,31 +364,31 @@ export default async function Home() {
       <div className="grid grid-cols-2 lg:grid-cols-4 gap-4">
         <KPICard
           label="Total RFQs" value={total} sub={`${active} currently active`}
-          icon={FileText} iconCls="bg-blue-500/10 border-blue-500/20 text-blue-400"
-          glowCls="bg-blue-500" borderHover="hover:border-blue-500/20"
-          barColor="bg-gradient-to-r from-blue-600 to-blue-400" barValue={Math.min(total * 10, 100)}
+          icon={FileText} iconCls="bg-cyan-400/10 border-cyan-400/20 text-cyan-400"
+          glowCls="bg-cyan-400" borderHover="hover:border-cyan-400/20"
+          barColor="bg-gradient-to-r from-cyan-600 to-cyan-400" barValue={Math.min(total * 10, 100)}
           trend={total > 0 ? { up: true, label: 'Growing' } : undefined} index={1}
         />
         <KPICard
           label="Active RFQs" value={active} sub="accepting quotes now"
-          icon={Activity} iconCls="bg-emerald-500/10 border-emerald-500/20 text-emerald-400"
-          glowCls="bg-emerald-500" borderHover="hover:border-emerald-500/20"
-          barColor="bg-gradient-to-r from-emerald-600 to-emerald-400"
+          icon={Activity} iconCls="bg-cyan-400/10 border-cyan-400/20 text-cyan-400"
+          glowCls="bg-cyan-400" borderHover="hover:border-cyan-400/20"
+          barColor="bg-gradient-to-r from-cyan-600 to-cyan-400"
           barValue={total > 0 ? Math.round((active / total) * 100) : 0}
           trend={active > 0 ? { up: true, label: 'Live' } : undefined} index={2}
         />
         <KPICard
           label="Suppliers" value={supplierCount} sub="in your network"
-          icon={Users} iconCls="bg-indigo-500/10 border-indigo-500/20 text-indigo-400"
-          glowCls="bg-indigo-500" borderHover="hover:border-indigo-500/20"
-          barColor="bg-gradient-to-r from-indigo-600 to-indigo-400" barValue={Math.min(supplierCount * 5, 100)}
+          icon={Users} iconCls="bg-cyan-400/10 border-cyan-400/20 text-cyan-400"
+          glowCls="bg-cyan-400" borderHover="hover:border-cyan-400/20"
+          barColor="bg-gradient-to-r from-cyan-600 to-cyan-400" barValue={Math.min(supplierCount * 5, 100)}
           index={3}
         />
         <KPICard
           label="Contracts" value={contracts} sub={`${activeDeals} pending signature`}
-          icon={FileSignature} iconCls="bg-teal-500/10 border-teal-500/20 text-teal-400"
-          glowCls="bg-teal-500" borderHover="hover:border-teal-500/20"
-          barColor="bg-gradient-to-r from-teal-600 to-teal-400" barValue={Math.min(contracts * 15, 100)}
+          icon={FileSignature} iconCls="bg-cyan-400/10 border-cyan-400/20 text-cyan-400"
+          glowCls="bg-cyan-400" borderHover="hover:border-cyan-400/20"
+          barColor="bg-gradient-to-r from-cyan-600 to-cyan-400" barValue={Math.min(contracts * 15, 100)}
           trend={contracts > 0 ? { up: true, label: 'Closed deals' } : undefined} index={4}
         />
       </div>
@@ -406,14 +406,16 @@ export default async function Home() {
             {aiInsights
               ? <AIInsightsReal data={aiInsights} />
               : (
-                <div className="rounded-2xl border border-violet-500/20 bg-gradient-to-br from-violet-950/40 to-blue-950/30 p-6 flex flex-col items-center justify-center gap-4 text-center h-full min-h-[280px]">
-                  <Brain className="h-8 w-8 text-violet-400" />
+                <div className="rounded-2xl border border-white/[0.06] bg-[#0d1220] p-6 flex flex-col items-center justify-center gap-4 text-center h-full min-h-[280px]">
+                  <div className="p-3 rounded-2xl bg-cyan-400/10 border border-cyan-400/20">
+                    <Brain className="h-8 w-8 text-cyan-400" />
+                  </div>
                   <div>
                     <p className="text-sm font-semibold text-white">No data yet</p>
                     <p className="text-xs text-gray-500 mt-1">Create RFQs and collect quotes to unlock AI insights.</p>
                   </div>
                   <Link href="/rfqs/new">
-                    <button className="flex items-center gap-2 px-4 py-2 rounded-xl bg-violet-600 hover:bg-violet-500 text-white text-sm font-semibold transition-all">
+                    <button className="flex items-center gap-2 px-4 py-2 rounded-xl bg-cyan-400 hover:bg-cyan-300 text-black text-sm font-semibold transition-all">
                       <Plus className="h-3.5 w-3.5" />
                       Create RFQ
                     </button>
@@ -439,10 +441,12 @@ export default async function Home() {
 
             {activityItems.length === 0 ? (
               <div className="flex flex-col items-center justify-center py-10 gap-3 text-center">
-                <Clock className="h-7 w-7 text-gray-700" />
-                <p className="text-xs text-gray-600">No activity yet — create your first RFQ</p>
+                <div className="p-2.5 rounded-xl bg-cyan-400/10 border border-cyan-400/20">
+                  <Clock className="h-5 w-5 text-cyan-400" />
+                </div>
+                <p className="text-xs text-gray-500">No activity yet — create your first RFQ</p>
                 <Link href="/rfqs/new">
-                  <button className="flex items-center gap-2 px-3 py-1.5 rounded-lg bg-blue-600/80 hover:bg-blue-600 text-white text-xs font-medium transition-all">
+                  <button className="flex items-center gap-2 px-3 py-1.5 rounded-lg bg-cyan-400 hover:bg-cyan-300 text-black text-xs font-semibold transition-all">
                     <Plus className="h-3 w-3" /> Create RFQ
                   </button>
                 </Link>
@@ -465,31 +469,32 @@ export default async function Home() {
 
       {/* ════ HOW IT WORKS ════ */}
       <StaggerIn index={8}>
-        <div className="rounded-2xl border border-white/[0.07] bg-gradient-to-br from-[#0d1220] to-[#090d18] p-8 relative overflow-hidden">
-          <div className="pointer-events-none absolute top-0 left-1/2 -translate-x-1/2 h-px w-2/3 bg-gradient-to-r from-transparent via-white/[0.07] to-transparent" />
-          <div className="mb-8 text-center">
-            <p className="text-xs font-semibold text-blue-400 uppercase tracking-widest mb-1.5">Process</p>
+        <div className="rounded-2xl border border-white/[0.05] bg-gradient-to-br from-[#0d1220] to-[#090d18] p-8 relative overflow-hidden">
+          <div className="pointer-events-none absolute top-0 left-1/2 -translate-x-1/2 h-px w-2/3 bg-gradient-to-r from-transparent via-cyan-400/10 to-transparent" />
+          <div className="pointer-events-none absolute -top-16 left-1/2 -translate-x-1/2 w-[300px] h-[200px] bg-cyan-400/5 blur-3xl rounded-full" />
+          <div className="mb-8 text-center relative">
+            <p className="text-xs font-semibold text-cyan-400 uppercase tracking-widest mb-1.5">Process</p>
             <h2 className="text-xl font-semibold text-white">How SIRAJ Works</h2>
           </div>
           <div className="flex flex-col md:flex-row items-start gap-4 md:gap-0">
             {[
-              { num: 1, icon: FileText, title: 'Create RFQ',     desc: 'Create your request and invite suppliers.',   color: 'bg-blue-500/10 border-blue-500/25 text-blue-400' },
-              { num: 2, icon: Users,    title: 'Receive Quotes', desc: 'Suppliers submit via a public form.',          color: 'bg-violet-500/10 border-violet-500/25 text-violet-400' },
-              { num: 3, icon: Brain,    title: 'AI Analysis',    desc: 'AI ranks suppliers on price, speed, value.',  color: 'bg-indigo-500/10 border-indigo-500/25 text-indigo-400' },
-              { num: 4, icon: Trophy,   title: 'Make Decision',  desc: 'Choose the best with AI-backed confidence.', color: 'bg-amber-500/10 border-amber-500/25 text-amber-400' },
+              { num: 1, icon: FileText, title: 'Create RFQ',     desc: 'Create your request and invite suppliers.',   color: 'bg-cyan-400/10 border-cyan-400/20 text-cyan-400' },
+              { num: 2, icon: Users,    title: 'Receive Quotes', desc: 'Suppliers submit via a public form.',          color: 'bg-cyan-400/10 border-cyan-400/20 text-cyan-400' },
+              { num: 3, icon: Brain,    title: 'AI Analysis',    desc: 'AI ranks suppliers on price, speed, value.',  color: 'bg-cyan-400/10 border-cyan-400/20 text-cyan-400' },
+              { num: 4, icon: Trophy,   title: 'Make Decision',  desc: 'Choose the best with AI-backed confidence.', color: 'bg-cyan-400/10 border-cyan-400/20 text-cyan-400' },
             ].map((step, i, arr) => (
               <div key={step.num} className="flex flex-1 items-start">
                 <div className="flex flex-col items-center text-center gap-3 flex-1 group">
                   <div className={`relative h-14 w-14 rounded-2xl flex items-center justify-center border transition-all group-hover:scale-110 group-hover:shadow-lg ${step.color}`}>
                     <step.icon className="h-6 w-6" />
-                    <span className="absolute -top-2 -right-2 h-5 w-5 rounded-full bg-[#080c14] border border-white/[0.08] text-[10px] font-bold text-gray-400 flex items-center justify-center">{step.num}</span>
+                    <span className="absolute -top-2 -right-2 h-5 w-5 rounded-full bg-[#0a0f18] border border-cyan-400/20 text-[10px] font-bold text-cyan-400 flex items-center justify-center">{step.num}</span>
                   </div>
                   <div>
                     <p className="text-sm font-semibold text-white">{step.title}</p>
                     <p className="text-sm text-gray-400 mt-0.5 leading-relaxed">{step.desc}</p>
                   </div>
                 </div>
-                {i < arr.length - 1 && <ArrowRight className="hidden md:block h-4 w-4 text-gray-700 mt-7 shrink-0 mx-2" />}
+                {i < arr.length - 1 && <ArrowRight className="hidden md:block h-4 w-4 text-cyan-400/30 mt-7 shrink-0 mx-2" />}
               </div>
             ))}
           </div>
@@ -499,21 +504,21 @@ export default async function Home() {
       {/* ════ CTA / ACTIVE BAR ════ */}
       {total > 0 && (
         <StaggerIn index={9}>
-          <div className="flex items-center justify-between rounded-2xl border border-white/[0.06] bg-gradient-to-r from-[#0f1827] to-[#0d1220] px-6 py-4 relative overflow-hidden">
-            <div className="pointer-events-none absolute top-0 left-0 right-0 h-px bg-gradient-to-r from-transparent via-blue-500/15 to-transparent" />
+          <div className="flex items-center justify-between rounded-2xl border border-white/[0.05] bg-gradient-to-r from-[#0d1220] to-[#0a0f18] px-6 py-4 relative overflow-hidden">
+            <div className="pointer-events-none absolute top-0 left-0 right-0 h-px bg-gradient-to-r from-transparent via-cyan-400/10 to-transparent" />
             <div className="flex items-center gap-3">
-              <div className="p-2 rounded-lg bg-blue-500/10 border border-blue-500/20">
-                <Clock className="h-4 w-4 text-blue-400" />
+              <div className="p-2 rounded-lg bg-cyan-400/10 border border-cyan-400/20">
+                <Clock className="h-4 w-4 text-cyan-400" />
               </div>
               <div>
                 <p className="text-sm font-semibold text-white">
-                  You have <span className="text-blue-400 tabular-nums">{active}</span> active RFQ{active !== 1 ? 's' : ''}
+                  You have <span className="text-cyan-400 tabular-nums">{active}</span> active RFQ{active !== 1 ? 's' : ''}
                 </p>
-                <p className="text-xs text-gray-400">Waiting for supplier responses</p>
+                <p className="text-xs text-gray-500">Waiting for supplier responses</p>
               </div>
             </div>
             <Link href="/rfqs">
-              <button className="inline-flex items-center gap-2 px-4 py-2 rounded-lg border border-white/[0.08] bg-white/[0.03] hover:bg-white/[0.07] text-gray-300 text-sm font-medium transition-all">
+              <button className="inline-flex items-center gap-2 px-4 py-2 rounded-lg border border-white/[0.08] bg-white/[0.03] hover:bg-white/[0.04] hover:border-cyan-400/20 text-gray-300 text-sm font-medium transition-all">
                 View All <ArrowRight className="h-3.5 w-3.5" />
               </button>
             </Link>
@@ -523,18 +528,19 @@ export default async function Home() {
 
       {total === 0 && (
         <StaggerIn index={9}>
-          <div className="rounded-2xl border border-dashed border-white/[0.08] p-14 flex flex-col items-center gap-5 text-center">
-            <div className="p-4 rounded-2xl bg-white/[0.03] border border-white/[0.06]">
-              <FileText className="h-8 w-8 text-gray-600" />
+          <div className="rounded-2xl border border-dashed border-white/[0.07] p-14 flex flex-col items-center gap-5 text-center relative overflow-hidden">
+            <div className="pointer-events-none absolute inset-0 bg-cyan-400/[0.02] rounded-2xl" />
+            <div className="p-4 rounded-2xl bg-cyan-400/10 border border-cyan-400/20 relative">
+              <FileText className="h-8 w-8 text-cyan-400" />
             </div>
-            <div>
-              <p className="text-sm font-semibold text-gray-300">No RFQs yet</p>
-              <p className="text-sm text-gray-400 mt-1 leading-relaxed max-w-xs mx-auto">
+            <div className="relative">
+              <p className="text-sm font-semibold text-white">No RFQs yet</p>
+              <p className="text-sm text-gray-500 mt-1 leading-relaxed max-w-xs mx-auto">
                 Create your first request for quotation and let AI do the heavy lifting.
               </p>
             </div>
-            <Link href="/rfqs/new">
-              <button className="inline-flex items-center gap-2 px-5 py-2.5 rounded-xl bg-blue-600 hover:bg-blue-500 text-white text-sm font-semibold shadow-lg shadow-blue-600/25 transition-all">
+            <Link href="/rfqs/new" className="relative">
+              <button className="inline-flex items-center gap-2 px-5 py-2.5 rounded-xl bg-cyan-400 hover:bg-cyan-300 text-black text-sm font-semibold shadow-lg shadow-cyan-400/20 transition-all">
                 <Plus className="h-4 w-4" /> Create First RFQ
               </button>
             </Link>

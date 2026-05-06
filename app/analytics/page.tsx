@@ -87,12 +87,12 @@ export default async function AnalyticsPage() {
   const data = await getAnalyticsData()
 
   const kpis = [
-    { label: 'Total RFQs',       value: data?.totalRFQs ?? 0,        sub: `${data?.activeRFQs ?? 0} active`,         icon: Activity,       cls: 'bg-blue-500/10 border-blue-500/20 text-blue-400' },
-    { label: 'Total Responses',  value: data?.totalResponses ?? 0,    sub: `from ${data?.totalInvites ?? 0} invited`, icon: MessageSquare,  cls: 'bg-violet-500/10 border-violet-500/20 text-violet-400' },
-    { label: 'Response Rate',    value: `${data?.responseRate ?? 0}%`, sub: 'invitations responded',                  icon: TrendingUp,     cls: 'bg-emerald-500/10 border-emerald-500/20 text-emerald-400' },
-    { label: 'Avg Price',        value: data?.avgPrice ? `$${data.avgPrice.toLocaleString('en-US')}` : '—', sub: 'across all quotes', icon: BarChart3, cls: 'bg-orange-500/10 border-orange-500/20 text-orange-400' },
-    { label: 'Contracts',        value: data?.totalContracts ?? 0,    sub: `${data?.signedContracts ?? 0} signed`,    icon: FileSignature,  cls: 'bg-teal-500/10 border-teal-500/20 text-teal-400' },
-    { label: 'Conversion Rate',  value: `${data?.conversionRate ?? 0}%`, sub: 'RFQs → signed contracts',             icon: CheckCircle2,   cls: 'bg-amber-500/10 border-amber-500/20 text-amber-400' },
+    { label: 'Total RFQs',       value: data?.totalRFQs ?? 0,        sub: `${data?.activeRFQs ?? 0} active`,         icon: Activity,       cls: 'bg-cyan-400/10 border-cyan-400/20 text-cyan-400' },
+    { label: 'Total Responses',  value: data?.totalResponses ?? 0,    sub: `from ${data?.totalInvites ?? 0} invited`, icon: MessageSquare,  cls: 'bg-cyan-400/10 border-cyan-400/20 text-cyan-400' },
+    { label: 'Response Rate',    value: `${data?.responseRate ?? 0}%`, sub: 'invitations responded',                  icon: TrendingUp,     cls: 'bg-cyan-400/10 border-cyan-400/20 text-cyan-400' },
+    { label: 'Avg Price',        value: data?.avgPrice ? `$${data.avgPrice.toLocaleString('en-US')}` : '—', sub: 'across all quotes', icon: BarChart3, cls: 'bg-cyan-400/10 border-cyan-400/20 text-cyan-400' },
+    { label: 'Contracts',        value: data?.totalContracts ?? 0,    sub: `${data?.signedContracts ?? 0} signed`,    icon: FileSignature,  cls: 'bg-cyan-400/10 border-cyan-400/20 text-cyan-400' },
+    { label: 'Conversion Rate',  value: `${data?.conversionRate ?? 0}%`, sub: 'RFQs → signed contracts',             icon: CheckCircle2,   cls: 'bg-cyan-400/10 border-cyan-400/20 text-cyan-400' },
   ]
 
   return (
@@ -105,8 +105,8 @@ export default async function AnalyticsPage() {
       {/* KPIs */}
       <div className="grid grid-cols-2 lg:grid-cols-3 gap-4">
         {kpis.map(({ label, value, sub, icon: Icon, cls }) => (
-          <div key={label} className="relative overflow-hidden rounded-2xl border border-white/[0.07] bg-[#111827] p-5">
-            <div className={`absolute -top-6 -right-6 h-16 w-16 rounded-full blur-2xl opacity-20 ${cls}`} />
+          <div key={label} className="relative overflow-hidden rounded-2xl border border-white/[0.05] bg-[#0d1220] p-5 group hover:border-cyan-400/20 transition-all duration-300">
+            <div className="absolute -top-6 -right-6 h-16 w-16 rounded-full blur-2xl opacity-10 group-hover:opacity-20 transition-opacity bg-cyan-400" />
             <div className="relative">
               <div className="flex items-start justify-between mb-3">
                 <p className="text-xs font-medium text-gray-500 uppercase tracking-wider">{label}</p>
@@ -127,8 +127,8 @@ export default async function AnalyticsPage() {
           deliveryDistribution={data.deliveryDistribution}
         />
       ) : (
-        <div className="rounded-2xl border border-white/[0.07] bg-[#111827] p-12 text-center">
-          <p className="text-gray-500 text-sm">Could not load chart data.</p>
+        <div className="rounded-2xl border border-white/[0.05] bg-[#0d1220] p-12 text-center">
+          <p className="text-gray-600 text-sm">Could not load chart data.</p>
         </div>
       )}
     </div>

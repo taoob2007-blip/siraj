@@ -119,7 +119,7 @@ function SupplierNegotiateRow({
             )}
           </div>
 
-          <div className="min-h-[80px] rounded-xl bg-[#111827] border border-white/[0.06] p-3.5 text-sm text-gray-300 leading-relaxed whitespace-pre-wrap">
+          <div className="min-h-[80px] rounded-xl bg-[#0d1220] border border-white/[0.06] p-3.5 text-sm text-gray-300 leading-relaxed whitespace-pre-wrap">
             {loading && !message && (
               <span className="flex items-center gap-2 text-gray-600 text-xs">
                 <Loader2 className="h-3.5 w-3.5 animate-spin" />Generating…
@@ -196,7 +196,7 @@ export function MessagesClient({ rfqs, responses }: Props) {
           <h1 className="text-xl font-bold text-white">Messages</h1>
           <p className="text-xs text-gray-600 mt-0.5">AI-powered negotiation messages per supplier</p>
         </div>
-        <div className="flex items-center gap-2 px-3 py-1.5 rounded-xl border border-white/[0.07] bg-[#111827] text-xs text-gray-500">
+        <div className="flex items-center gap-2 px-3 py-1.5 rounded-xl border border-white/[0.07] bg-[#0d1220] text-xs text-gray-500">
           <Mail className="h-3.5 w-3.5" />
           {totalSuppliers} suppliers · {responses.length} quotes
         </div>
@@ -209,7 +209,7 @@ export function MessagesClient({ rfqs, responses }: Props) {
           const isOpen = expandedRfq === rfq.id
 
           return (
-            <div key={rfq.id} className="rounded-2xl border border-white/[0.07] bg-[#111827] overflow-hidden">
+            <div key={rfq.id} className="rounded-2xl border border-white/[0.07] bg-[#0d1220] overflow-hidden">
               {/* RFQ header */}
               <button
                 onClick={() => setExpandedRfq(isOpen ? null : rfq.id)}

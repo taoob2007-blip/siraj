@@ -80,7 +80,7 @@ function CategoryPicker({
         type="button"
         onClick={toggle}
         disabled={disabled}
-        className="inline-flex items-center gap-1.5 text-xs px-3 py-2 rounded-xl border border-violet-500/25 bg-violet-500/8 hover:bg-violet-500/15 text-violet-300 font-medium transition-all disabled:opacity-40"
+        className="inline-flex items-center gap-1.5 text-xs px-3 py-2 rounded-xl border border-cyan-400/20 bg-cyan-400/[0.05] hover:bg-cyan-400/10 text-cyan-400 font-medium transition-all disabled:opacity-40"
       >
         <Layers className="h-3.5 w-3.5" />
         Import from Category
@@ -88,7 +88,7 @@ function CategoryPicker({
       </button>
 
       {open && (
-        <div className="absolute left-0 top-full mt-2 z-50 w-72 rounded-2xl border border-white/[0.10] bg-[#111827] shadow-2xl shadow-black/60 overflow-hidden">
+        <div className="absolute left-0 top-full mt-2 z-50 w-72 rounded-2xl border border-white/[0.10] bg-[#0d1220] shadow-2xl shadow-black/60 overflow-hidden">
           <div className="flex items-center justify-between px-4 py-3 border-b border-white/[0.06]">
             <span className="text-xs font-semibold text-gray-300">Select a Category</span>
             <button onClick={() => setOpen(false)} className="text-gray-600 hover:text-gray-400">
@@ -118,8 +118,8 @@ function CategoryPicker({
                   className="w-full flex items-center justify-between px-4 py-3 hover:bg-white/[0.04] transition-colors disabled:opacity-40 text-left"
                 >
                   <div className="flex items-center gap-2.5 min-w-0">
-                    <div className="h-7 w-7 rounded-lg bg-violet-500/10 border border-violet-500/20 flex items-center justify-center shrink-0">
-                      <Layers className="h-3.5 w-3.5 text-violet-400" />
+                    <div className="h-7 w-7 rounded-lg bg-cyan-400/10 border border-cyan-400/20 flex items-center justify-center shrink-0">
+                      <Layers className="h-3.5 w-3.5 text-cyan-400" />
                     </div>
                     <div className="min-w-0">
                       <p className="text-sm font-medium text-white truncate">{cat.name}</p>
@@ -127,8 +127,8 @@ function CategoryPicker({
                     </div>
                   </div>
                   {importing === cat.id
-                    ? <Loader2 className="h-3.5 w-3.5 text-violet-400 animate-spin shrink-0" />
-                    : <span className="text-[10px] text-violet-400 font-medium shrink-0">Import</span>}
+                    ? <Loader2 className="h-3.5 w-3.5 text-cyan-400 animate-spin shrink-0" />
+                    : <span className="text-[10px] text-cyan-400 font-medium shrink-0">Import</span>}
                 </button>
               ))}
             </div>
@@ -168,7 +168,7 @@ function SectionCard({
   icon: React.ElementType; title: string; description: string; children: React.ReactNode
 }) {
   return (
-    <div className="rounded-2xl border border-white/[0.07] bg-[#111827] overflow-hidden">
+    <div className="rounded-2xl border border-white/[0.07] bg-[#0d1220] overflow-hidden">
       <div className="flex items-start gap-3 border-b border-white/[0.05] px-6 py-4">
         <div className="p-1.5 rounded-lg bg-blue-500/10 border border-blue-500/15 shrink-0">
           <Icon className="h-4 w-4 text-blue-400" />
@@ -433,9 +433,9 @@ export function RFQCreateForm() {
         <div className="space-y-4">
           {/* Category pre-fill notice */}
           {prefilledCategoryName && formData.suppliers.length > 0 && (
-            <div className="flex items-center gap-2 rounded-xl border border-violet-500/20 bg-violet-500/8 px-3 py-2">
-              <Layers className="h-3.5 w-3.5 text-violet-400 shrink-0" />
-              <p className="text-xs text-violet-300">
+            <div className="flex items-center gap-2 rounded-xl border border-cyan-400/15 bg-cyan-400/[0.04] px-3 py-2">
+              <Layers className="h-3.5 w-3.5 text-cyan-400 shrink-0" />
+              <p className="text-xs text-cyan-400">
                 Suppliers loaded from <span className="font-semibold">{prefilledCategoryName}</span>
               </p>
             </div>

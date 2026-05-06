@@ -103,7 +103,7 @@ export function SupplierSigningClient({ contract, rfqTitle, rfqDescription, toke
   return (
     <PageShell>
       {/* Contract summary */}
-      <div className="rounded-2xl border border-white/[0.07] bg-[#111827] overflow-hidden mb-6">
+      <div className="rounded-2xl border border-white/[0.07] bg-[#0d1220] overflow-hidden mb-6">
 
         {/* Header */}
         <div className="px-6 py-5 border-b border-white/[0.06] bg-gradient-to-r from-blue-950/40 to-indigo-950/30">
@@ -171,7 +171,7 @@ export function SupplierSigningClient({ contract, rfqTitle, rfqDescription, toke
       </div>
 
       {/* Signature section */}
-      <div className="rounded-2xl border border-white/[0.07] bg-[#111827] p-6 space-y-4">
+      <div className="rounded-2xl border border-white/[0.07] bg-[#0d1220] p-6 space-y-4">
         <div>
           <h3 className="text-base font-semibold text-white">Your Signature</h3>
           <p className="text-xs text-gray-500 mt-0.5">

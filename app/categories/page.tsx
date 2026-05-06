@@ -172,7 +172,7 @@ export default function CategoriesPage() {
           </button>
         </div>
       ) : (
-        <div className="rounded-2xl border border-white/[0.07] bg-[#111827] overflow-hidden">
+        <div className="rounded-2xl border border-white/[0.07] bg-[#0d1220] overflow-hidden">
           {/* Table header */}
           <div className="grid grid-cols-[1fr_100px_80px] gap-4 px-5 py-3 border-b border-white/[0.06] text-[10px] font-semibold text-gray-600 uppercase tracking-wider">
             <span>Category</span>

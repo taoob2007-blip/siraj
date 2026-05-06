@@ -126,7 +126,7 @@ export function AddToCategoryButton({ email, supplierName }: Props) {
       </button>
 
       {open && (
-        <div className="absolute right-0 top-full mt-1.5 z-50 w-64 rounded-2xl border border-white/[0.10] bg-[#111827] shadow-2xl shadow-black/60 overflow-hidden">
+        <div className="absolute right-0 top-full mt-1.5 z-50 w-64 rounded-2xl border border-white/[0.10] bg-[#0d1220] shadow-2xl shadow-black/60 overflow-hidden">
 
           {/* Header */}
           <div className="flex items-center justify-between px-4 py-2.5 border-b border-white/[0.06]">
@@ -204,7 +204,7 @@ export function AddToCategoryButton({ email, supplierName }: Props) {
                     className="w-full flex items-center justify-between px-4 py-2.5 hover:bg-white/[0.04] transition-colors disabled:cursor-default text-left group"
                   >
                     <div className="flex items-center gap-2 min-w-0">
-                      <Layers className={`h-3.5 w-3.5 shrink-0 ${isDone ? 'text-emerald-400' : 'text-violet-400'}`} />
+                      <Layers className={`h-3.5 w-3.5 shrink-0 ${isDone ? 'text-emerald-400' : 'text-cyan-400'}`} />
                       <div className="min-w-0">
                         <p className="text-xs text-gray-300 truncate">{cat.name}</p>
                         <p className="text-[10px] text-gray-600">{cat.supplier_count} supplier{cat.supplier_count !== 1 ? 's' : ''}</p>
@@ -213,7 +213,7 @@ export function AddToCategoryButton({ email, supplierName }: Props) {
                     {isDone ? (
                       <Check className="h-3.5 w-3.5 text-emerald-400 shrink-0" />
                     ) : adding === cat.id ? (
-                      <Loader2 className="h-3.5 w-3.5 text-violet-400 animate-spin shrink-0" />
+                      <Loader2 className="h-3.5 w-3.5 text-cyan-400 animate-spin shrink-0" />
                     ) : (
                       <Plus className="h-3.5 w-3.5 text-gray-600 group-hover:text-gray-300 shrink-0 transition-colors" />
                     )}

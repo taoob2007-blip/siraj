@@ -45,7 +45,7 @@ function StatCard({
   icon: Icon, label, value, sub,
 }: { icon: React.ElementType; label: string; value: string; sub?: string }) {
   return (
-    <div className="flex flex-col gap-1.5 rounded-xl border border-white/[0.07] bg-[#111827] px-4 py-3.5">
+    <div className="flex flex-col gap-1.5 rounded-xl border border-white/[0.07] bg-[#0d1220] px-4 py-3.5">
       <div className="flex items-center gap-1.5 text-gray-600">
         <Icon className="h-3.5 w-3.5" />
         <span className="text-[10px] font-semibold uppercase tracking-widest">{label}</span>
@@ -524,7 +524,7 @@ export default function CategoryDetailPage() {
           </button>
         </div>
       ) : (
-        <div className="rounded-2xl border border-white/[0.07] bg-[#111827] overflow-hidden">
+        <div className="rounded-2xl border border-white/[0.07] bg-[#0d1220] overflow-hidden">
           <div className="flex items-center justify-between px-5 py-3 border-b border-white/[0.06]">
             <span className="text-[10px] font-semibold text-gray-600 uppercase tracking-wider">Suppliers</span>
             <span className="text-[10px] text-gray-600">{suppliers.length} member{suppliers.length !== 1 ? 's' : ''}</span>

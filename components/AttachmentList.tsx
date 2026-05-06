@@ -240,7 +240,7 @@ export function AttachmentList({ attachments, onDelete, disabled, className }: P
           return (
             <div
               key={item.path}
-              className="flex items-center gap-3 rounded-xl border border-white/[0.07] bg-[#111827] px-3 py-2.5 transition-colors hover:border-white/[0.12]"
+              className="flex items-center gap-3 rounded-xl border border-white/[0.07] bg-[#0d1220] px-3 py-2.5 transition-colors hover:border-white/[0.12]"
             >
               {/* Thumbnail */}
               <div className="shrink-0 w-10 h-10 rounded-lg overflow-hidden border border-white/[0.08] flex items-center justify-center bg-white/[0.03]">

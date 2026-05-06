@@ -271,7 +271,7 @@ function FileRow({
       'flex items-center gap-3 rounded-xl border px-3 py-2.5 transition-colors',
       file.status === 'error'
         ? 'border-red-500/25 bg-red-500/[0.04]'
-        : 'border-white/[0.07] bg-[#111827]',
+        : 'border-white/[0.07] bg-[#0d1220]',
     ].join(' ')}>
 
       {/* Thumbnail */}

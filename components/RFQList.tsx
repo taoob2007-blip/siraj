@@ -171,12 +171,12 @@ function KPICard({ label, value, sub, icon: Icon, cls }: {
   label: string; value: string | number; sub?: string; icon: React.ElementType; cls: string
 }) {
   return (
-    <div className="relative overflow-hidden rounded-2xl border border-white/[0.07] bg-[#111827] p-5 group card-hover">
-      <div className={`absolute -top-6 -right-6 h-16 w-16 rounded-full blur-2xl opacity-20 group-hover:opacity-30 transition-opacity ${cls}`} />
+    <div className="relative overflow-hidden rounded-2xl border border-white/[0.05] bg-[#0d1220] p-5 group hover:border-cyan-400/20 transition-all duration-300">
+      <div className="absolute -top-6 -right-6 h-16 w-16 rounded-full blur-2xl opacity-10 group-hover:opacity-20 transition-opacity bg-cyan-400" />
       <div className="relative">
         <div className="flex items-start justify-between mb-3">
           <p className="text-xs font-medium text-gray-500 uppercase tracking-wider">{label}</p>
-          <div className={`p-1.5 rounded-lg border ${cls}`}><Icon className="h-3.5 w-3.5" /></div>
+          <div className="p-1.5 rounded-lg border bg-cyan-400/10 border-cyan-400/20 text-cyan-400"><Icon className="h-3.5 w-3.5" /></div>
         </div>
         <p className="text-2xl font-bold text-white">{value}</p>
         {sub && <p className="text-xs text-gray-600 mt-1">{sub}</p>}
@@ -261,22 +261,22 @@ function DecisionGuidancePanel({ rfqs }: { rfqs: ScoredRFQ[] }) {
   if (whyBest.length === 0)                                        whyBest.push('Highest priority score among all active RFQs')
 
   return (
-    <div className="relative overflow-hidden rounded-2xl border border-blue-500/20 bg-gradient-to-br from-[#0d1a2e] via-[#0f1629] to-[#0d1220] p-6">
+    <div className="relative overflow-hidden rounded-2xl border border-white/[0.05] bg-gradient-to-br from-[#0d1220] to-[#0a0f18] p-6">
       {/* bg glow */}
-      <div className="pointer-events-none absolute -top-12 -left-12 h-40 w-40 rounded-full bg-blue-600/8 blur-3xl" />
-      <div className="pointer-events-none absolute -bottom-12 -right-12 h-40 w-40 rounded-full bg-violet-600/8 blur-3xl" />
+      <div className="pointer-events-none absolute -top-12 -left-12 h-40 w-40 rounded-full bg-cyan-400/5 blur-3xl" />
+      <div className="pointer-events-none absolute -bottom-12 -right-12 h-40 w-40 rounded-full bg-cyan-400/5 blur-3xl" />
 
       <div className="relative">
         {/* Title */}
         <div className="flex items-center gap-2.5 mb-5">
-          <div className="p-2 rounded-xl bg-blue-500/15 border border-blue-500/20">
-            <Brain className="h-4 w-4 text-blue-400" />
+          <div className="p-2 rounded-xl bg-cyan-400/10 border border-cyan-400/20">
+            <Brain className="h-4 w-4 text-cyan-400" />
           </div>
           <div>
             <h2 className="text-sm font-bold text-white">AI Decision Guidance</h2>
             <p className="text-[11px] text-gray-600">Ranked by priority score · Updates in real-time</p>
           </div>
-          <span className="ml-auto inline-flex items-center gap-1 text-[10px] px-2 py-1 rounded-full bg-blue-500/10 border border-blue-500/20 text-blue-400 font-semibold">
+          <span className="ml-auto inline-flex items-center gap-1 text-[10px] px-2 py-1 rounded-full bg-cyan-400/10 border border-cyan-400/20 text-cyan-400 font-semibold">
             <Sparkles className="h-2.5 w-2.5" />
             Live
           </span>
@@ -315,13 +315,13 @@ function DecisionGuidancePanel({ rfqs }: { rfqs: ScoredRFQ[] }) {
           {/* Why */}
           <div className="md:col-span-1 space-y-3">
             <p className="text-[10px] font-semibold text-gray-500 uppercase tracking-wider flex items-center gap-1.5">
-              <CheckCircle2 className="h-3 w-3 text-blue-400" />
+              <CheckCircle2 className="h-3 w-3 text-cyan-400" />
               Why it ranks highest
             </p>
             <ul className="space-y-2">
               {whyBest.slice(0, 3).map((w, i) => (
                 <li key={i} className="flex items-start gap-2 text-xs text-gray-400">
-                  <span className="mt-1.5 h-1.5 w-1.5 rounded-full bg-blue-400 shrink-0" />
+                  <span className="mt-1.5 h-1.5 w-1.5 rounded-full bg-cyan-400 shrink-0" />
                   {w}
                 </li>
               ))}
@@ -394,16 +394,16 @@ function RFQCard({ rfq, pending, onUpdateStatus, onDelete }: {
   return (
     <div
       className={[
-        'relative group rounded-2xl border transition-all duration-200 bg-[#111827]',
+        'relative group rounded-2xl border transition-all duration-200 bg-[#0d1220]',
         'hover:-translate-y-0.5 hover:shadow-xl hover:shadow-black/30',
         isTop
-          ? 'border-blue-500/40 shadow-lg shadow-blue-500/10'
-          : 'border-white/[0.07] hover:border-white/[0.14]',
+          ? 'border-cyan-400/30 shadow-lg shadow-cyan-400/5'
+          : 'border-white/[0.05] hover:border-cyan-400/20',
       ].join(' ')}
     >
       {/* top glow strip */}
       {isTop && (
-        <div className="absolute inset-x-0 top-0 h-px bg-gradient-to-r from-transparent via-blue-500/50 to-transparent rounded-t-2xl" />
+        <div className="absolute inset-x-0 top-0 h-px bg-gradient-to-r from-transparent via-cyan-400/40 to-transparent rounded-t-2xl" />
       )}
 
       {/* Rank badge */}
@@ -417,7 +417,7 @@ function RFQCard({ rfq, pending, onUpdateStatus, onDelete }: {
           #{rfq?.rank ?? 0}
         </span>
         {isTop && (
-          <span className="inline-flex items-center gap-1 bg-gradient-to-r from-blue-600 to-violet-600 text-white text-[10px] font-bold px-2.5 py-1 rounded-full shadow-lg shadow-blue-500/25">
+          <span className="inline-flex items-center gap-1 bg-cyan-400/10 border border-cyan-400/30 text-cyan-400 text-[10px] font-bold px-2.5 py-1 rounded-full shadow-lg shadow-cyan-400/10">
             <Trophy className="h-2.5 w-2.5" />
             AI Recommended
           </span>
@@ -504,10 +504,10 @@ function RFQCard({ rfq, pending, onUpdateStatus, onDelete }: {
         </div>
 
         {/* AI Insight */}
-        <div className="flex items-start gap-2 px-3 py-2.5 rounded-xl bg-blue-500/[0.07] border border-blue-500/15">
-          <Brain className="h-3.5 w-3.5 text-blue-400 mt-0.5 shrink-0" />
-          <p className="text-xs text-blue-300/80 leading-relaxed">
-            <span className="font-semibold text-blue-300">AI: </span>{insight}
+        <div className="flex items-start gap-2 px-3 py-2.5 rounded-xl bg-cyan-400/[0.05] border border-cyan-400/10">
+          <Brain className="h-3.5 w-3.5 text-cyan-400 mt-0.5 shrink-0" />
+          <p className="text-xs text-cyan-300/70 leading-relaxed">
+            <span className="font-semibold text-cyan-400">AI: </span>{insight}
           </p>
         </div>
 
@@ -516,17 +516,17 @@ function RFQCard({ rfq, pending, onUpdateStatus, onDelete }: {
       </div>
 
       {/* Actions */}
-      <div className="flex items-center justify-between px-5 py-3 border-t border-white/[0.05] bg-white/[0.015] rounded-b-2xl gap-2">
+      <div className="flex items-center justify-between px-5 py-3 border-t border-white/[0.05] bg-white/[0.01] rounded-b-2xl gap-2">
         <div className="flex items-center gap-2">
           <Link href={`/rfqs/${rfq?.id ?? ''}`}>
-            <button className="inline-flex items-center gap-1.5 text-xs px-3 py-1.5 rounded-lg bg-blue-600 hover:bg-blue-500 active:scale-95 text-white font-semibold transition-all">
+            <button className="inline-flex items-center gap-1.5 text-xs px-3 py-1.5 rounded-lg bg-cyan-400 hover:bg-cyan-300 active:scale-95 text-black font-semibold transition-all">
               <Eye className="h-3.5 w-3.5" />
               View Details
             </button>
           </Link>
           {(rfq?.response_count ?? 0) >= 2 && (
             <Link href={`/rfqs/${rfq?.id ?? ''}`}>
-              <button className="inline-flex items-center gap-1.5 text-xs px-3 py-1.5 rounded-lg border border-violet-500/30 bg-violet-500/10 hover:bg-violet-500/20 text-violet-300 font-medium transition-all">
+              <button className="inline-flex items-center gap-1.5 text-xs px-3 py-1.5 rounded-lg border border-cyan-400/20 bg-cyan-400/5 hover:bg-cyan-400/10 text-cyan-400 font-medium transition-all">
                 <Sparkles className="h-3.5 w-3.5" />
                 AI Analysis
               </button>
@@ -681,7 +681,7 @@ export function RFQList({ initialRfqs }: { initialRfqs: RFQ[] }) {
           <p className="text-xs text-gray-600 mt-0.5">{rfqs.length} total · {activeCount} active · ranked by AI score</p>
         </div>
         <Link href="/rfqs/new">
-          <button className="inline-flex items-center gap-2 px-4 py-2 rounded-xl bg-blue-600 hover:bg-blue-500 active:scale-95 text-white text-sm font-semibold transition-all shadow-lg shadow-blue-600/20">
+          <button className="inline-flex items-center gap-2 px-4 py-2 rounded-xl bg-cyan-400 hover:bg-cyan-300 active:scale-95 text-black text-sm font-semibold transition-all shadow-lg shadow-cyan-400/20">
             <Plus className="h-4 w-4" />New RFQ
           </button>
         </Link>
@@ -693,9 +693,9 @@ export function RFQList({ initialRfqs }: { initialRfqs: RFQ[] }) {
       {/* KPIs */}
       <div className="grid grid-cols-2 md:grid-cols-4 gap-3">
         <KPICard label="Total RFQs"        value={rfqs.length}    sub={`${activeCount} active`}            icon={Activity}      cls="bg-blue-500/10 border-blue-500/20 text-blue-400" />
-        <KPICard label="Active"            value={activeCount}    sub="accepting quotes"                    icon={Zap}           cls="bg-emerald-500/10 border-emerald-500/20 text-emerald-400" />
-        <KPICard label="Total Responses"   value={totalResponses} sub={`from ${totalInvites} invitations`} icon={MessageSquare} cls="bg-violet-500/10 border-violet-500/20 text-violet-400" />
-        <KPICard label="Avg Response Rate" value={`${avgRate}%`}  sub="across all RFQs"                    icon={TrendingUp}    cls="bg-orange-500/10 border-orange-500/20 text-orange-400" />
+        <KPICard label="Active"            value={activeCount}    sub="accepting quotes"                    icon={Zap}           cls="bg-cyan-400/10 border-cyan-400/20 text-cyan-400" />
+        <KPICard label="Total Responses"   value={totalResponses} sub={`from ${totalInvites} invitations`} icon={MessageSquare} cls="bg-cyan-400/10 border-cyan-400/20 text-cyan-400" />
+        <KPICard label="Avg Response Rate" value={`${avgRate}%`}  sub="across all RFQs"                    icon={TrendingUp}    cls="bg-cyan-400/10 border-cyan-400/20 text-cyan-400" />
       </div>
 
       {/* Insights */}
@@ -709,14 +709,14 @@ export function RFQList({ initialRfqs }: { initialRfqs: RFQ[] }) {
             placeholder="Search RFQs…"
             value={search}
             onChange={(e) => setSearch(e.target.value)}
-            className="pl-9 bg-[#111827] border-white/[0.08] text-white placeholder:text-gray-700 focus:border-blue-500/50 h-9 text-sm rounded-xl"
+            className="pl-9 bg-[#0d1220] border-white/[0.07] text-white placeholder:text-gray-600 focus:border-cyan-400/30 h-9 text-sm rounded-xl"
           />
         </div>
         <Select value={statusFilter} onValueChange={setStatusFilter}>
-          <SelectTrigger className="w-full sm:w-36 bg-[#111827] border-white/[0.08] text-gray-400 h-9 text-sm rounded-xl">
+          <SelectTrigger className="w-full sm:w-36 bg-[#0d1220] border-white/[0.07] text-gray-400 h-9 text-sm rounded-xl">
             <SelectValue placeholder="Status" />
           </SelectTrigger>
-          <SelectContent className="bg-[#111827] border-white/[0.08] text-gray-300">
+          <SelectContent className="bg-[#0d1220] border-white/[0.07] text-gray-300">
             <SelectItem value="all">All statuses</SelectItem>
             <SelectItem value="active">Active</SelectItem>
             <SelectItem value="paused">Paused</SelectItem>
@@ -725,11 +725,11 @@ export function RFQList({ initialRfqs }: { initialRfqs: RFQ[] }) {
           </SelectContent>
         </Select>
         <Select value={sortBy} onValueChange={(v) => setSortBy(v as typeof sortBy)}>
-          <SelectTrigger className="w-full sm:w-44 bg-[#111827] border-white/[0.08] text-gray-400 h-9 text-sm rounded-xl gap-1.5">
+          <SelectTrigger className="w-full sm:w-44 bg-[#0d1220] border-white/[0.07] text-gray-400 h-9 text-sm rounded-xl gap-1.5">
             <ArrowUpDown className="h-3.5 w-3.5 text-gray-600" />
             <SelectValue placeholder="Sort" />
           </SelectTrigger>
-          <SelectContent className="bg-[#111827] border-white/[0.08] text-gray-300">
+          <SelectContent className="bg-[#0d1220] border-white/[0.07] text-gray-300">
             <SelectItem value="score">AI Score ↓</SelectItem>
             <SelectItem value="newest">Newest first</SelectItem>
             <SelectItem value="responses">Most responses</SelectItem>
@@ -741,11 +741,11 @@ export function RFQList({ initialRfqs }: { initialRfqs: RFQ[] }) {
       {/* Cards */}
       {filtered.length === 0 ? (
         <div className="py-24 text-center space-y-3">
-          <div className="p-4 rounded-2xl bg-white/[0.02] border border-white/[0.06] w-fit mx-auto">
-            <Search className="h-7 w-7 text-gray-700" />
+          <div className="p-4 rounded-2xl bg-white/[0.03] border border-white/[0.06] w-fit mx-auto">
+            <Search className="h-7 w-7 text-gray-600" />
           </div>
           <p className="text-sm text-gray-500">No RFQs match your filters.</p>
-          <button onClick={() => { setSearch(''); setStatusFilter('all') }} className="text-xs text-blue-400 hover:text-blue-300 underline underline-offset-2 transition-colors">
+          <button onClick={() => { setSearch(''); setStatusFilter('all') }} className="text-xs text-cyan-400 hover:text-cyan-300 underline underline-offset-2 transition-colors">
             Clear filters
           </button>
         </div>

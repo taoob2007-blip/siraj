@@ -50,9 +50,9 @@ async function getSuppliers(): Promise<SupplierSummary[]> {
 }
 
 function ScoreBadge({ score }: { score: number }) {
-  const cls = score >= 70 ? 'text-emerald-400 bg-emerald-500/10 border-emerald-500/25'
-    : score >= 45 ? 'text-yellow-400 bg-yellow-500/10 border-yellow-500/25'
-    : 'text-red-400 bg-red-500/10 border-red-500/25'
+  const cls = score >= 70 ? 'text-cyan-400 bg-cyan-400/10 border-cyan-400/20'
+    : score >= 45 ? 'text-gray-300 bg-white/[0.05] border-white/[0.08]'
+    : 'text-gray-500 bg-white/[0.03] border-white/[0.05]'
   return (
     <span className={`text-xs font-bold px-2 py-1 rounded-lg border ${cls}`}>{score}</span>
   )
@@ -69,26 +69,26 @@ export default async function SuppliersPage() {
           <h1 className="text-xl font-bold text-white">Suppliers</h1>
           <p className="text-xs text-gray-600 mt-0.5">{suppliers.length} unique suppliers across all RFQs</p>
         </div>
-        <div className="flex items-center gap-2 px-3 py-1.5 rounded-xl border border-white/[0.07] bg-[#111827] text-xs text-gray-500">
-          <Users className="h-3.5 w-3.5" />
+        <div className="flex items-center gap-2 px-3 py-1.5 rounded-xl border border-white/[0.05] bg-[#0d1220] text-xs text-gray-500">
+          <Users className="h-3.5 w-3.5 text-cyan-400" />
           {suppliers.length} total
         </div>
       </div>
 
       {suppliers.length === 0 ? (
         <div className="flex flex-col items-center justify-center py-32 gap-4 text-center">
-          <div className="p-4 rounded-2xl bg-white/[0.02] border border-white/[0.06]">
-            <Users className="h-8 w-8 text-gray-700" />
+          <div className="p-4 rounded-2xl bg-cyan-400/10 border border-cyan-400/20">
+            <Users className="h-8 w-8 text-cyan-400" />
           </div>
           <p className="text-sm text-gray-500">No suppliers yet — invite them from an RFQ.</p>
           <Link href="/rfqs">
-            <button className="text-xs text-blue-400 hover:text-blue-300 underline underline-offset-2">View RFQs</button>
+            <button className="text-xs text-cyan-400 hover:text-cyan-300 underline underline-offset-2 transition-colors">View RFQs</button>
           </Link>
         </div>
       ) : (
-        <div className="rounded-2xl border border-white/[0.07] bg-[#111827] overflow-hidden">
+        <div className="rounded-2xl border border-white/[0.05] bg-[#0d1220] overflow-hidden">
           {/* Table header */}
-          <div className="grid grid-cols-[1fr_80px_100px_100px_80px_120px_36px] gap-3 px-5 py-3 border-b border-white/[0.06] text-[10px] font-semibold text-gray-600 uppercase tracking-wider">
+          <div className="grid grid-cols-[1fr_80px_100px_100px_80px_120px_36px] gap-3 px-5 py-3 border-b border-white/[0.05] text-[10px] font-semibold text-gray-600 uppercase tracking-wider">
             <span>Supplier</span>
             <span className="text-right">RFQs</span>
             <span className="text-right">Avg Price</span>
@@ -104,10 +104,10 @@ export default async function SuppliersPage() {
             return (
               <div
                 key={s.email}
-                className={`group grid grid-cols-[1fr_80px_100px_100px_80px_120px_36px] gap-3 px-5 py-4 items-center hover:bg-white/[0.03] transition-colors ${i !== 0 ? 'border-t border-white/[0.05]' : ''}`}
+                className={`group grid grid-cols-[1fr_80px_100px_100px_80px_120px_36px] gap-3 px-5 py-4 items-center hover:bg-white/[0.02] transition-colors ${i !== 0 ? 'border-t border-white/[0.04]' : ''}`}
               >
                 <Link href={`/suppliers/${encodeURIComponent(s.email)}`} className="flex items-center gap-3 min-w-0">
-                  <div className="h-8 w-8 rounded-full bg-gradient-to-br from-blue-600/30 to-violet-600/30 border border-blue-500/20 flex items-center justify-center text-xs font-bold text-blue-300 shrink-0 uppercase">
+                  <div className="h-8 w-8 rounded-full bg-cyan-400/10 border border-cyan-400/20 flex items-center justify-center text-xs font-bold text-cyan-400 shrink-0 uppercase">
                     {name[0]}
                   </div>
                   <div className="min-w-0">

@@ -42,7 +42,7 @@ const SECTION_HEADERS: Record<string, { color: string; bg: string; border: strin
   '🏆': { color: 'text-amber-200',  bg: 'bg-amber-500/10',  border: 'border-amber-500/25' },
   '📊': { color: 'text-blue-200',   bg: 'bg-blue-500/8',    border: 'border-blue-500/20'  },
   '💡': { color: 'text-sky-200',    bg: 'bg-sky-500/8',     border: 'border-sky-500/20'   },
-  '⚖️': { color: 'text-violet-200', bg: 'bg-violet-500/8',  border: 'border-violet-500/20'},
+  '⚖️': { color: 'text-cyan-200', bg: 'bg-cyan-400/[0.05]',  border: 'border-cyan-400/20'},
   '⚠️': { color: 'text-red-300',    bg: 'bg-red-500/8',     border: 'border-red-500/20'   },
   '🎯': { color: 'text-emerald-200',bg: 'bg-emerald-500/8', border: 'border-emerald-500/20'},
   '🔑': { color: 'text-orange-200', bg: 'bg-orange-500/8',  border: 'border-orange-500/20'},
@@ -491,7 +491,7 @@ export function AIChatPanel({ rfqTitle, rfqDescription, suppliers, formFields, o
       {!isNearBottom && (
         <button
           onClick={scrollToBottom}
-          className="absolute bottom-3 left-1/2 -translate-x-1/2 flex items-center gap-1.5 text-xs px-3 py-1.5 rounded-full border border-blue-500/40 bg-[#111827]/90 text-blue-300 hover:bg-blue-500/20 hover:text-white transition-all shadow-lg backdrop-blur-sm"
+          className="absolute bottom-3 left-1/2 -translate-x-1/2 flex items-center gap-1.5 text-xs px-3 py-1.5 rounded-full border border-blue-500/40 bg-[#0d1220]/90 text-blue-300 hover:bg-blue-500/20 hover:text-white transition-all shadow-lg backdrop-blur-sm"
         >
           <ChevronDown className="h-3.5 w-3.5" />
           Jump to latest

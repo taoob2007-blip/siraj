@@ -333,11 +333,11 @@ function NegotiatePanel({ open, loading, message, error, copied, onGenerate, onC
 }) {
   if (!open) return null
   return (
-    <div className="mt-3 rounded-xl border border-violet-500/20 bg-violet-500/5">
-      <div className="flex items-center justify-between px-3.5 py-2.5 border-b border-violet-500/10">
+    <div className="mt-3 rounded-xl border border-cyan-400/15 bg-cyan-400/[0.03]">
+      <div className="flex items-center justify-between px-3.5 py-2.5 border-b border-cyan-400/10">
         <div className="flex items-center gap-2">
-          <MessageSquare className="h-3 w-3 text-violet-400" />
-          <span className="text-xs font-medium text-violet-300">Negotiation Draft</span>
+          <MessageSquare className="h-3 w-3 text-cyan-400" />
+          <span className="text-xs font-medium text-cyan-400/80">Negotiation Draft</span>
         </div>
         <button onClick={onClose} className="text-gray-600 hover:text-gray-400 transition-colors">
           <X className="h-3 w-3" />
@@ -357,7 +357,7 @@ function NegotiatePanel({ open, loading, message, error, copied, onGenerate, onC
         <div className="flex gap-2">
           <button
             onClick={onGenerate} disabled={loading}
-            className="inline-flex items-center gap-1.5 text-xs px-3 py-1.5 rounded-lg bg-violet-600 hover:bg-violet-500 text-white font-medium transition-all disabled:opacity-40 active:scale-95"
+            className="inline-flex items-center gap-1.5 text-xs px-3 py-1.5 rounded-lg bg-cyan-400 hover:bg-cyan-300 text-black font-medium transition-all disabled:opacity-40 active:scale-95"
           >
             {loading
               ? <><Loader2 className="h-3 w-3 animate-spin" />Generating…</>
@@ -453,8 +453,8 @@ export function SupplierCard({
       isThisAccepted
         ? 'border-emerald-500/40 bg-gradient-to-br from-emerald-500/10 to-transparent shadow-lg shadow-emerald-500/10'
         : isAIChoice
-          ? 'border-yellow-500/40 bg-gradient-to-br from-yellow-500/10 to-transparent shadow-lg shadow-yellow-500/10'
-          : 'border-white/[0.07] bg-[#0d0f14] hover:border-white/[0.12] hover:shadow-xl hover:shadow-black/40',
+          ? 'border-cyan-400/30 bg-gradient-to-br from-cyan-400/5 to-transparent shadow-lg shadow-cyan-400/5'
+          : 'border-white/[0.05] bg-[#0d1220] hover:border-cyan-400/20 hover:shadow-xl hover:shadow-black/40',
     ].join(' ')}>
 
       {/* Selected Supplier crown */}
@@ -467,9 +467,9 @@ export function SupplierCard({
 
       {/* AI Choice crown */}
       {isAIChoice && !isThisAccepted && (
-        <div className="flex items-center gap-1.5 justify-center py-2 bg-amber-500/10 border-b border-amber-500/20">
-          <Trophy className="h-3 w-3 text-amber-400" />
-          <span className="text-[11px] font-semibold text-amber-400 tracking-wide uppercase">AI Recommended</span>
+        <div className="flex items-center gap-1.5 justify-center py-2 bg-cyan-400/10 border-b border-cyan-400/20">
+          <Trophy className="h-3 w-3 text-cyan-400" />
+          <span className="text-[11px] font-semibold text-cyan-400 tracking-wide uppercase">AI Recommended</span>
         </div>
       )}
 
@@ -484,11 +484,11 @@ export function SupplierCard({
                 {aiRank}
               </span>
             )}
-            <div className={`p-1.5 rounded-lg shrink-0 ${isAIChoice ? 'bg-amber-500/10' : 'bg-white/[0.04]'}`}>
-              <Mail className={`h-3.5 w-3.5 ${isAIChoice ? 'text-amber-400/80' : 'text-gray-500'}`} />
+            <div className={`p-1.5 rounded-lg shrink-0 ${isAIChoice ? 'bg-cyan-400/10' : 'bg-white/[0.04]'}`}>
+              <Mail className={`h-3.5 w-3.5 ${isAIChoice ? 'text-cyan-400' : 'text-gray-500'}`} />
             </div>
             <div className="min-w-0">
-              <p className={`text-sm font-semibold truncate leading-tight ${isAIChoice ? 'text-blue-400' : 'text-white/90'}`}>{emailUser}</p>
+              <p className={`text-sm font-semibold truncate leading-tight ${isAIChoice ? 'text-cyan-400' : 'text-white/90'}`}>{emailUser}</p>
               <p className="text-[11px] text-gray-600 truncate">@{emailDomain}</p>
             </div>
           </div>
@@ -496,8 +496,8 @@ export function SupplierCard({
           {/* AI Score */}
           <div className="flex flex-col items-end gap-1 shrink-0">
             <div className="flex items-baseline gap-0.5">
-              <Sparkles className={`h-2.5 w-2.5 mr-0.5 ${isAIChoice ? 'text-amber-400' : 'text-violet-500'}`} />
-              <span className={`text-lg font-semibold tabular-nums ${isAIChoice ? 'text-amber-300' : 'text-white/80'}`}>
+              <Sparkles className={`h-2.5 w-2.5 mr-0.5 ${isAIChoice ? 'text-cyan-400' : 'text-gray-600'}`} />
+              <span className={`text-lg font-semibold tabular-nums ${isAIChoice ? 'text-cyan-400' : 'text-white/80'}`}>
                 {displayScore}
               </span>
               <span className="text-[10px] text-gray-700 font-normal">/100</span>
@@ -514,16 +514,16 @@ export function SupplierCard({
         {/* ── PRICE (level 1) ────────────────────────────────────────────────── */}
         <div className={`rounded-xl px-4 py-3.5 ${
           isAIChoice
-            ? 'bg-amber-500/8 border border-amber-500/15'
+            ? 'bg-cyan-400/[0.06] border border-cyan-400/15'
             : 'bg-white/[0.03] border border-white/[0.05]'
         }`}>
           <div className="flex items-center gap-1.5 mb-1">
-            <DollarSign className={`h-3 w-3 ${isAIChoice ? 'text-amber-500' : 'text-gray-600'}`} />
-            <span className={`text-[10px] font-semibold uppercase tracking-widest ${isAIChoice ? 'text-amber-500/70' : 'text-gray-600'}`}>
+            <DollarSign className={`h-3 w-3 ${isAIChoice ? 'text-cyan-400' : 'text-gray-600'}`} />
+            <span className={`text-[10px] font-semibold uppercase tracking-widest ${isAIChoice ? 'text-cyan-400/70' : 'text-gray-600'}`}>
               Price
             </span>
           </div>
-          <p className={`text-2xl font-semibold tracking-tight ${isAIChoice ? 'text-amber-200' : 'text-white/90'}`}>
+          <p className={`text-2xl font-semibold tracking-tight ${isAIChoice ? 'text-white' : 'text-white/90'}`}>
             {supplier.price !== null
               ? `$${Number(supplier.price).toLocaleString('en-US')}`
               : <span className="text-gray-700 text-xl font-normal">—</span>}
@@ -534,19 +534,19 @@ export function SupplierCard({
         {/* ── DELIVERY (level 2) ─────────────────────────────────────────────── */}
         <div className={`flex items-center justify-between px-4 py-2.5 rounded-lg ${
           isAIChoice
-            ? 'bg-amber-500/5 border border-amber-500/10'
+            ? 'bg-cyan-400/[0.03] border border-cyan-400/10'
             : 'bg-white/[0.02] border border-white/[0.04]'
         }`}>
           <div className="flex items-center gap-1.5">
-            <Clock className={`h-3 w-3 ${isAIChoice ? 'text-amber-500' : 'text-gray-600'}`} />
-            <span className={`text-xs ${isAIChoice ? 'text-amber-500/60' : 'text-gray-600'}`}>Delivery</span>
+            <Clock className={`h-3 w-3 ${isAIChoice ? 'text-cyan-400' : 'text-gray-600'}`} />
+            <span className={`text-xs ${isAIChoice ? 'text-cyan-400/60' : 'text-gray-600'}`}>Delivery</span>
           </div>
           <div className="flex items-baseline gap-1">
-            <span className={`text-base font-semibold tabular-nums ${isAIChoice ? 'text-emerald-400' : 'text-white/90'}`}>
+            <span className={`text-base font-semibold tabular-nums ${isAIChoice ? 'text-cyan-400' : 'text-white/90'}`}>
               {supplier.delivery_days !== null ? supplier.delivery_days : '—'}
             </span>
             {supplier.delivery_days !== null && (
-              <span className={`text-[10px] ${isAIChoice ? 'text-emerald-400/60' : 'text-gray-600'}`}>days</span>
+              <span className={`text-[10px] ${isAIChoice ? 'text-cyan-400/60' : 'text-gray-600'}`}>days</span>
             )}
           </div>
         </div>
@@ -567,7 +567,7 @@ export function SupplierCard({
         )}
 
         {/* ── SUMMARY (level 4) ──────────────────────────────────────────────── */}
-        <p className={`text-xs leading-relaxed line-clamp-2 ${isAIChoice ? 'text-amber-100/50' : 'text-white/40'}`}>
+        <p className={`text-xs leading-relaxed line-clamp-2 ${isAIChoice ? 'text-gray-400' : 'text-white/40'}`}>
           {summary}
         </p>
 
@@ -593,9 +593,9 @@ export function SupplierCard({
             className={[
               'w-full flex items-center justify-between text-xs py-2 px-3 rounded-lg border transition-all duration-200',
               detailsOpen
-                ? 'border-white/[0.10] bg-white/[0.05] text-gray-400'
+                ? 'border-white/[0.08] bg-white/[0.04] text-gray-400'
                 : isAIChoice
-                  ? 'border-amber-500/15 bg-transparent text-amber-500/50 hover:text-amber-400 hover:border-amber-500/25'
+                  ? 'border-cyan-400/15 bg-transparent text-cyan-400/50 hover:text-cyan-400 hover:border-cyan-400/25'
                   : 'border-white/[0.05] bg-transparent text-gray-600 hover:text-gray-400 hover:border-white/[0.10]',
             ].join(' ')}
           >
@@ -735,8 +735,8 @@ export function SupplierCard({
           className={[
             'w-full flex items-center justify-center gap-1.5 text-xs py-2 rounded-lg border transition-all duration-200',
             negotiateOpen
-              ? 'border-violet-500/30 bg-violet-500/10 text-violet-300'
-              : 'border-white/[0.05] bg-transparent text-gray-600 hover:border-violet-500/20 hover:text-violet-400',
+              ? 'border-cyan-400/20 bg-cyan-400/[0.07] text-cyan-400'
+              : 'border-white/[0.05] bg-transparent text-gray-600 hover:border-cyan-400/20 hover:text-cyan-400',
           ].join(' ')}
         >
           <MessageSquare className="h-3 w-3" />

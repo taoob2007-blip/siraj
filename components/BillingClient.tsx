@@ -155,7 +155,7 @@ export function BillingClient({ email, fullName, access, requests, hasPending, l
       {/* ── Header ── */}
       <div>
         <h1 className="text-2xl font-bold text-white flex items-center gap-2.5">
-          <CreditCard className="h-6 w-6 text-blue-400" />
+          <CreditCard className="h-6 w-6 text-cyan-400" />
           Billing &amp; Subscription
         </h1>
         <p className="text-sm text-gray-500 mt-1">Manage your SIRAJ subscription</p>
@@ -223,11 +223,11 @@ export function BillingClient({ email, fullName, access, requests, hasPending, l
         <>
           {/* Step-by-step instructions */}
           <div className="rounded-2xl border border-white/[0.07] bg-[#0d1220] p-6 relative overflow-hidden">
-            <div className="pointer-events-none absolute top-0 left-8 right-8 h-px bg-gradient-to-r from-transparent via-blue-500/15 to-transparent" />
+            <div className="pointer-events-none absolute top-0 left-8 right-8 h-px bg-gradient-to-r from-transparent via-cyan-400/10 to-transparent" />
 
             <div className="flex items-center gap-2 mb-5">
-              <div className="p-1.5 rounded-lg bg-blue-500/10 border border-blue-500/20">
-                <Banknote className="h-4 w-4 text-blue-400" />
+              <div className="p-1.5 rounded-lg bg-cyan-400/10 border border-cyan-400/20">
+                <Banknote className="h-4 w-4 text-cyan-400" />
               </div>
               <p className="text-sm font-semibold text-white">How to Subscribe</p>
             </div>

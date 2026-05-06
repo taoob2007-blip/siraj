@@ -114,7 +114,7 @@ export function ComparisonClient({ rfqs, responses }: Props) {
           </div>
 
           {scored.length < 2 ? (
-            <div className="rounded-2xl border border-white/[0.07] bg-[#111827] p-12 text-center space-y-2">
+            <div className="rounded-2xl border border-white/[0.07] bg-[#0d1220] p-12 text-center space-y-2">
               <p className="text-sm text-gray-400">Not enough data to compare.</p>
               <p className="text-xs text-gray-600">Need at least 2 supplier quotes with price and delivery.</p>
               <Link href={`/rfqs/${selectedId}`}>
@@ -141,7 +141,7 @@ export function ComparisonClient({ rfqs, responses }: Props) {
               )}
 
               {/* Scatter chart */}
-              <div className="rounded-2xl border border-white/[0.07] bg-[#111827] p-5">
+              <div className="rounded-2xl border border-white/[0.07] bg-[#0d1220] p-5">
                 <p className="text-sm font-semibold text-gray-200 mb-1">Price vs Delivery</p>
                 <p className="text-xs text-gray-600 mb-5">Bottom-left = best (cheap + fast)</p>
                 <ResponsiveContainer width="100%" height={280}>
@@ -183,7 +183,7 @@ export function ComparisonClient({ rfqs, responses }: Props) {
               </div>
 
               {/* Ranked table */}
-              <div className="rounded-2xl border border-white/[0.07] bg-[#111827] overflow-hidden">
+              <div className="rounded-2xl border border-white/[0.07] bg-[#0d1220] overflow-hidden">
                 <div className="grid grid-cols-[28px_1fr_90px_90px_80px] gap-4 px-5 py-3 border-b border-white/[0.06] text-[10px] font-semibold text-gray-600 uppercase tracking-wider">
                   <span>#</span><span>Supplier</span><span className="text-right">Price</span><span className="text-right">Delivery</span><span className="text-right">Score</span>
                 </div>

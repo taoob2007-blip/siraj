@@ -263,7 +263,7 @@ export function ReportsClient({ contracts, totalRFQs, activeRFQs }: Props) {
 
       {/* Controls */}
       <div className="flex items-center justify-between gap-4 flex-wrap">
-        <div className="flex items-center gap-1 bg-[#111827] border border-white/[0.07] rounded-xl p-1">
+        <div className="flex items-center gap-1 bg-[#0d1220] border border-white/[0.07] rounded-xl p-1">
           {(['7d', '30d', 'all'] as DateFilter[]).map((f) => (
             <button
               key={f}
@@ -332,7 +332,7 @@ export function ReportsClient({ contracts, totalRFQs, activeRFQs }: Props) {
             cls:   'bg-orange-500/10 border-orange-500/20 text-orange-400',
           },
         ].map(({ label, value, sub, icon: Icon, cls }) => (
-          <div key={label} className="relative overflow-hidden rounded-2xl border border-white/[0.07] bg-[#111827] p-5">
+          <div key={label} className="relative overflow-hidden rounded-2xl border border-white/[0.07] bg-[#0d1220] p-5">
             <div className={`absolute -top-6 -right-6 h-16 w-16 rounded-full blur-2xl opacity-20 ${cls}`} />
             <div className="relative">
               <div className="flex items-start justify-between mb-3">
@@ -353,7 +353,7 @@ export function ReportsClient({ contracts, totalRFQs, activeRFQs }: Props) {
           { label: 'Pending',   value: metrics.pending,   icon: Clock,        cls: 'text-yellow-400 bg-yellow-500/10 border-yellow-500/20' },
           { label: 'Cancelled', value: metrics.cancelled, icon: XCircle,      cls: 'text-red-400 bg-red-500/10 border-red-500/20' },
         ].map(({ label, value, icon: Icon, cls }) => (
-          <div key={label} className="rounded-2xl border border-white/[0.07] bg-[#111827] p-4 flex items-center gap-3">
+          <div key={label} className="rounded-2xl border border-white/[0.07] bg-[#0d1220] p-4 flex items-center gap-3">
             <div className={`p-2 rounded-lg border ${cls}`}><Icon className="h-4 w-4" /></div>
             <div>
               <p className="text-xs text-gray-500">{label}</p>
@@ -367,7 +367,7 @@ export function ReportsClient({ contracts, totalRFQs, activeRFQs }: Props) {
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-4">
 
         {/* Spend over time */}
-        <div className="rounded-2xl border border-white/[0.07] bg-[#111827] p-5">
+        <div className="rounded-2xl border border-white/[0.07] bg-[#0d1220] p-5">
           <p className="text-sm font-semibold text-gray-200 mb-1">Contract Spend Over Time</p>
           <p className="text-xs text-gray-600 mb-5">Signed contract value by date</p>
           {hasSpendData ? (
@@ -398,7 +398,7 @@ export function ReportsClient({ contracts, totalRFQs, activeRFQs }: Props) {
         </div>
 
         {/* Spend by supplier */}
-        <div className="rounded-2xl border border-white/[0.07] bg-[#111827] p-5">
+        <div className="rounded-2xl border border-white/[0.07] bg-[#0d1220] p-5">
           <p className="text-sm font-semibold text-gray-200 mb-1">Spend by Supplier</p>
           <p className="text-xs text-gray-600 mb-5">Top suppliers by total contract value</p>
           {hasSupplierData ? (
@@ -430,7 +430,7 @@ export function ReportsClient({ contracts, totalRFQs, activeRFQs }: Props) {
       </div>
 
       {/* Supplier performance table */}
-      <div className="rounded-2xl border border-white/[0.07] bg-[#111827] overflow-hidden">
+      <div className="rounded-2xl border border-white/[0.07] bg-[#0d1220] overflow-hidden">
         <div className="px-5 py-4 border-b border-white/[0.06]">
           <div className="flex items-center gap-2">
             <Users className="h-4 w-4 text-gray-500" />

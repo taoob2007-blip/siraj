@@ -145,14 +145,14 @@ function InsightsPanel({ insights, warnings, tradeoffs, winner }: {
 
         {/* Tradeoffs */}
         {tradeoffs && tradeoffs.length > 0 && (
-          <div className="rounded-xl border border-violet-500/15 bg-violet-500/5 px-4 py-3 space-y-2">
-            <p className="text-xs font-semibold text-violet-400 uppercase tracking-wider flex items-center gap-1.5">
+          <div className="rounded-xl border border-cyan-400/15 bg-cyan-400/[0.03] px-4 py-3 space-y-2">
+            <p className="text-xs font-semibold text-cyan-400 uppercase tracking-wider flex items-center gap-1.5">
               <ArrowLeftRight className="h-3.5 w-3.5" />Trade-offs
             </p>
             <ul className="space-y-1.5">
               {tradeoffs.map((t, i) => (
                 <li key={i} className="flex items-start gap-2 text-sm text-gray-300">
-                  <span className="mt-2 h-1.5 w-1.5 rounded-full bg-violet-400 shrink-0" />
+                  <span className="mt-2 h-1.5 w-1.5 rounded-full bg-cyan-400 shrink-0" />
                   {t}
                 </li>
               ))}
@@ -470,7 +470,7 @@ export function RFQResponseSection({
           {suppliers.length > 0 && (
             <div className="flex items-center gap-2">
               {scoring && (
-                <span className="inline-flex items-center gap-1.5 text-xs text-violet-400/70">
+                <span className="inline-flex items-center gap-1.5 text-xs text-cyan-400/70">
                   <Loader2 className="h-3 w-3 animate-spin" />
                   AI scoring…
                 </span>
@@ -484,7 +484,7 @@ export function RFQResponseSection({
               <button
                 onClick={scoreWithAI}
                 disabled={scoring}
-                className="inline-flex items-center gap-1.5 text-xs px-3 py-1.5 rounded-lg border border-violet-500/30 bg-violet-500/8 hover:bg-violet-500/15 text-violet-300 font-medium transition-all disabled:opacity-50"
+                className="inline-flex items-center gap-1.5 text-xs px-3 py-1.5 rounded-lg border border-cyan-400/20 bg-cyan-400/[0.05] hover:bg-cyan-400/[0.10] text-cyan-400 font-medium transition-all disabled:opacity-50"
               >
                 <Sparkles className="h-3 w-3" />
                 {hasAiScores ? 'Re-score' : 'Score with AI'}
@@ -584,7 +584,7 @@ export function RFQResponseSection({
                     <div
                       className={`h-full rounded-full transition-all duration-700 ${
                         aiSc
-                          ? 'bg-gradient-to-r from-violet-500 to-blue-500'
+                          ? 'bg-gradient-to-r from-cyan-600 to-cyan-400'
                           : isTop ? 'bg-amber-500' : 'bg-gray-500'
                       }`}
                       style={{ width: `${displayScore ?? 0}%` }}

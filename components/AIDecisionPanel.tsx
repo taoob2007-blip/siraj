@@ -98,18 +98,18 @@ function NegotiationModal({
       onClick={onBackdrop}
     >
       <div
-        className="relative w-full max-w-lg rounded-2xl border border-violet-500/20 overflow-hidden"
+        className="relative w-full max-w-lg rounded-2xl border border-cyan-400/20 overflow-hidden"
         style={{ background: 'linear-gradient(135deg, #0e0a18 0%, #0d0f1e 100%)' }}
       >
         {/* top edge */}
-        <div className="absolute top-0 left-8 right-8 h-px bg-gradient-to-r from-transparent via-violet-400/30 to-transparent" />
-        <div className="pointer-events-none absolute -top-12 -right-12 h-36 w-36 rounded-full bg-violet-500/8 blur-3xl" />
+        <div className="absolute top-0 left-8 right-8 h-px bg-gradient-to-r from-transparent via-cyan-400/20 to-transparent" />
+        <div className="pointer-events-none absolute -top-12 -right-12 h-36 w-36 rounded-full bg-cyan-400/[0.04] blur-3xl" />
 
         {/* Header */}
         <div className="flex items-center justify-between px-5 py-4 border-b border-white/[0.06]">
           <div className="flex items-center gap-2.5">
-            <div className="p-1.5 rounded-lg bg-violet-500/10 border border-violet-500/20">
-              <MessageSquare className="h-3.5 w-3.5 text-violet-400" />
+            <div className="p-1.5 rounded-lg bg-cyan-400/10 border border-cyan-400/20">
+              <MessageSquare className="h-3.5 w-3.5 text-cyan-400" />
             </div>
             <div>
               <p className="text-sm font-semibold text-white leading-none">Negotiation Message</p>
@@ -130,14 +130,14 @@ function NegotiationModal({
             value={draft}
             onChange={(e) => setDraft(e.target.value)}
             rows={7}
-            className="w-full rounded-xl border border-white/[0.08] bg-white/[0.03] px-4 py-3 text-sm text-gray-200 leading-relaxed resize-none focus:outline-none focus:border-violet-500/40 focus:bg-white/[0.05] transition-all placeholder:text-gray-700"
+            className="w-full rounded-xl border border-white/[0.08] bg-white/[0.03] px-4 py-3 text-sm text-gray-200 leading-relaxed resize-none focus:outline-none focus:border-cyan-400/30 focus:bg-white/[0.05] transition-all placeholder:text-gray-700"
             placeholder="Negotiation message will appear here…"
           />
 
           <div className="flex items-center gap-2.5">
             <button
               onClick={copy}
-              className="flex-1 inline-flex items-center justify-center gap-2 py-2.5 rounded-xl border border-violet-500/30 bg-violet-500/10 hover:bg-violet-500/15 text-violet-300 text-sm font-medium transition-all active:scale-[0.98]"
+              className="flex-1 inline-flex items-center justify-center gap-2 py-2.5 rounded-xl border border-cyan-400/20 bg-cyan-400/10 hover:bg-cyan-400/[0.07] text-cyan-400 text-sm font-medium transition-all active:scale-[0.98]"
             >
               {copied
                 ? <><Check className="h-3.5 w-3.5 text-emerald-400" /><span className="text-emerald-300">Copied!</span></>
@@ -322,7 +322,7 @@ function Skeleton() {
           <div className="h-3.5 w-36 rounded-full bg-white/[0.06]" />
           <div className="h-2.5 w-24 rounded-full bg-white/[0.04]" />
         </div>
-        <div className="ml-auto flex items-center gap-1.5 text-xs text-violet-400/60">
+        <div className="ml-auto flex items-center gap-1.5 text-xs text-cyan-400/60">
           <Loader2 className="h-3 w-3 animate-spin" />
           Analyzing suppliers…
         </div>
@@ -412,7 +412,7 @@ export function AIDecisionPanel({
         <div className="pointer-events-none absolute -top-16 -left-16 h-48 w-48 rounded-full blur-3xl"
           style={{ background: isAccepted ? 'rgba(34,197,94,0.05)' : 'rgba(245,158,11,0.06)' }}
         />
-        <div className="pointer-events-none absolute -bottom-12 -right-12 h-40 w-40 rounded-full bg-violet-500/5 blur-3xl" />
+        <div className="pointer-events-none absolute -bottom-12 -right-12 h-40 w-40 rounded-full bg-cyan-400/[0.03] blur-3xl" />
 
         {/* Header */}
         <div className="relative flex items-center justify-between gap-4 px-6 py-4">
@@ -511,7 +511,7 @@ export function AIDecisionPanel({
             />
             <Section
               icon={ArrowLeftRight} label="Trade-offs" text={decision.tradeoffs}
-              iconCls="text-violet-400" borderCls="border-violet-500/15" bgCls="bg-violet-500/5" labelCls="text-violet-500/70"
+              iconCls="text-cyan-400" borderCls="border-cyan-400/15" bgCls="bg-cyan-400/[0.03]" labelCls="text-cyan-400/60"
             />
             <Section
               icon={Key} label="Negotiation strategy" text={decision.negotiation}
@@ -523,7 +523,7 @@ export function AIDecisionPanel({
           <div className="flex items-center gap-2 px-6 pb-5 pt-1 border-t border-white/[0.04]">
             <button
               onClick={() => setShowNegModal(true)}
-              className="inline-flex items-center gap-1.5 text-xs px-3 py-1.5 rounded-lg border border-violet-500/25 bg-violet-500/8 hover:bg-violet-500/14 text-violet-300 font-medium transition-all"
+              className="inline-flex items-center gap-1.5 text-xs px-3 py-1.5 rounded-lg border border-cyan-400/20 bg-cyan-400/[0.04] hover:bg-cyan-400/[0.07] text-cyan-400 font-medium transition-all"
             >
               <MessageSquare className="h-3 w-3" />
               Negotiation message

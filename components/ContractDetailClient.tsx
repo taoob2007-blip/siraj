@@ -203,7 +203,7 @@ export function ContractDetailClient({ contract: initial, rfq }: Props) {
       {/* Contract document (printable) */}
       <div
         id="contract-printable"
-        className="rounded-2xl border border-white/[0.07] bg-[#111827] overflow-hidden"
+        className="rounded-2xl border border-white/[0.07] bg-[#0d1220] overflow-hidden"
       >
         {/* Document header */}
         <div className="px-8 py-7 border-b border-white/[0.06] bg-gradient-to-r from-blue-950/40 to-indigo-950/30">
