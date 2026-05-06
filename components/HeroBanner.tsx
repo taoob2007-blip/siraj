@@ -1,6 +1,7 @@
 'use client'
 
 import { useEffect, useRef, useState } from 'react'
+import { useTranslations, useLocale } from 'next-intl'
 import Link from 'next/link'
 import { CountUp } from '@/components/DashboardShell'
 
@@ -13,24 +14,25 @@ export function HeroBanner({
   active: number
   resCount: number
 }) {
+  const t      = useTranslations('hero')
+  const locale = useLocale()
+  const isAr   = locale === 'ar'
+
   const glowRef = useRef<HTMLDivElement>(null)
   const [hoverSide, setHoverSide] = useState<'left' | 'right' | null>(null)
 
   useEffect(() => {
     const move = (e: MouseEvent) => {
       if (!glowRef.current) return
-
       const rect = glowRef.current.getBoundingClientRect()
       const x = e.clientX - rect.left
       const y = e.clientY - rect.top
-
       glowRef.current.style.background = `
         radial-gradient(800px circle at ${x}px ${y}px,
         rgba(34,211,238,0.06),
         transparent 70%)
       `
     }
-
     window.addEventListener('mousemove', move)
     return () => window.removeEventListener('mousemove', move)
   }, [])
@@ -43,16 +45,16 @@ export function HeroBanner({
       animate-[fadeUp_0.9s_ease]
     ">
 
-      {/* ===== Base Color (رجعنا هوية v10) ===== */}
+      {/* ===== Base Color ===== */}
       <div className="absolute inset-0 bg-[#0A0F18]" />
 
-      {/* ===== Brand Gradient (Cyan + Violet متناسق) ===== */}
+      {/* ===== Brand Gradient ===== */}
       <div className="absolute inset-0 opacity-60">
         <div className="absolute inset-0 bg-[radial-gradient(circle_at_25%_30%,rgba(34,211,238,0.10),transparent_45%)]" />
         <div className="absolute inset-0 bg-[radial-gradient(circle_at_75%_75%,rgba(139,92,246,0.10),transparent_45%)]" />
       </div>
 
-      {/* Mouse subtle */}
+      {/* Mouse glow */}
       <div ref={glowRef} className="absolute inset-0 pointer-events-none" />
 
       {/* Grain */}
@@ -61,9 +63,9 @@ export function HeroBanner({
         style={{ backgroundImage: 'url("https://grainy-gradients.vercel.app/noise.svg")' }}
       />
 
-      <div className="relative z-10 flex flex-col gap-20" dir="rtl">
+      <div className="relative z-10 flex flex-col gap-20" dir={isAr ? 'rtl' : 'ltr'}>
 
-        {/* ===== LOGO (مرفوع أكثر) ===== */}
+        {/* ===== LOGO ===== */}
         <div className="flex justify-center -translate-y-14 md:-translate-y-20">
           <img
             src="/logo-hero.png"
@@ -78,23 +80,22 @@ export function HeroBanner({
         {/* ===== CONTENT ===== */}
         <div className="grid md:grid-cols-[1fr_auto_1fr] gap-16 items-center">
 
-          {/* RIGHT */}
+          {/* HEADLINE side */}
           <div
             onMouseEnter={() => setHoverSide('right')}
             onMouseLeave={() => setHoverSide(null)}
-            className={`text-right flex flex-col gap-7 transition duration-300 ${
+            className={`${isAr ? 'text-right' : 'text-left'} flex flex-col gap-7 transition duration-300 ${
               hoverSide === 'left' ? 'opacity-40' : 'opacity-100'
             }`}
           >
             <h1 className="text-white font-semibold leading-[1.2] text-[clamp(2.3rem,3vw,3.3rem)]">
-              سيطرة كاملة على مشترياتك
+              {t('headline')}
               <br />
-              <span className="text-cyan-400">بسرعة وذكاء</span>
+              <span className="text-cyan-400">{t('headlineAccent')}</span>
             </h1>
 
             <p className="text-gray-400 max-w-[440px] text-[15px] leading-relaxed">
-              قارن الموردين، حلّل العروض، واتخذ قرارات دقيقة خلال دقائق —
-              بدون تعقيد أو تشتت.
+              {t('sub')}
             </p>
           </div>
 
@@ -103,7 +104,7 @@ export function HeroBanner({
             <div className="w-[1px] h-52 bg-gradient-to-b from-transparent via-cyan-400/40 to-transparent" />
           </div>
 
-          {/* LEFT */}
+          {/* CTA + STATS side */}
           <div
             onMouseEnter={() => setHoverSide('left')}
             onMouseLeave={() => setHoverSide(null)}
@@ -114,7 +115,6 @@ export function HeroBanner({
 
             {/* Buttons */}
             <div className="flex gap-4">
-
               <Link href="/rfqs/new">
                 <button className="
                   px-8 py-3.5 rounded-xl
@@ -123,7 +123,7 @@ export function HeroBanner({
                   hover:scale-[1.03]
                   active:scale-[0.97]
                 ">
-                  + إنشاء طلب
+                  {t('cta')}
                 </button>
               </Link>
 
@@ -135,10 +135,9 @@ export function HeroBanner({
                   transition-all duration-200
                   hover:bg-white/[0.05]
                 ">
-                  عرض الطلبات ←
+                  {t('ctaSecondary')}
                 </button>
               </Link>
-
             </div>
 
             {/* Stats */}
@@ -149,9 +148,9 @@ export function HeroBanner({
               flex gap-12
               backdrop-blur-xl
             ">
-              <Stat value={total} label="إجمالي الطلبات" />
-              <Stat value={active} label="نشطة الآن" highlight />
-              <Stat value={resCount} label="عروض مستلمة" />
+              <Stat value={total}    label={t('statTotal')} />
+              <Stat value={active}   label={t('statActive')} highlight />
+              <Stat value={resCount} label={t('statQuotes')} />
             </div>
 
           </div>
@@ -161,7 +160,7 @@ export function HeroBanner({
       {/* animation */}
       <style jsx>{`
         @keyframes fadeUp {
-          0% { opacity: 0; transform: translateY(20px); }
+          0%   { opacity: 0; transform: translateY(20px); }
           100% { opacity: 1; transform: translateY(0); }
         }
       `}</style>
@@ -169,7 +168,7 @@ export function HeroBanner({
   )
 }
 
-/* Stat */
+/* ── Stat sub-component ────────────────────────────────────────────────────── */
 function Stat({
   value,
   label,
@@ -181,16 +180,10 @@ function Stat({
 }) {
   return (
     <div className="flex flex-col items-center gap-1">
-      <span
-        className={`text-[22px] font-semibold ${
-          highlight ? 'text-cyan-400' : 'text-white/70'
-        }`}
-      >
+      <span className={`text-[22px] font-semibold ${highlight ? 'text-cyan-400' : 'text-white/70'}`}>
         <CountUp value={value} />
       </span>
-      <span className="text-xs text-gray-500 whitespace-nowrap">
-        {label}
-      </span>
+      <span className="text-xs text-gray-500 whitespace-nowrap">{label}</span>
     </div>
   )
 }

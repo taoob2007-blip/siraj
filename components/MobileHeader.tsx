@@ -6,6 +6,7 @@ import { useTranslations } from 'next-intl'
 import Link from 'next/link'
 import Image from 'next/image'
 import { Menu, Bell, Plus, X } from 'lucide-react'
+import { LanguageSwitcher } from '@/components/LanguageSwitcher'
 
 export function MobileHeader() {
   const pathname = usePathname()
@@ -75,8 +76,10 @@ export function MobileHeader() {
         />
       </div>
 
-      {/* Right: quick actions */}
-      <div className="flex items-center gap-1">
+      {/* Right: language switcher + quick actions */}
+      <div className="flex items-center gap-1.5">
+        <LanguageSwitcher variant="compact" />
+
         <Link href="/notifications">
           <button
             aria-label={t('notifications')}

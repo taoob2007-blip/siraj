@@ -239,6 +239,13 @@ export function Sidebar() {
         })}
       </div>
 
+      {/* LANGUAGE SWITCHER — always visible above user section */}
+      {!collapsed && (
+        <div className="px-3 pb-2">
+          <LanguageSwitcher variant="pill" />
+        </div>
+      )}
+
       {/* USER */}
       <div className="px-3 py-3 border-t border-white/[0.05] sticky bottom-0 bg-[#0B0F19]">
         <div
@@ -262,12 +269,6 @@ export function Sidebar() {
             <Link href="/settings" className="block px-3 py-2 text-sm text-gray-300 hover:bg-white/5 rounded">
               {tSidebar('settings')}
             </Link>
-
-            <div className="border-t border-white/10 my-2" />
-
-            <div className="px-1 pb-1">
-              <LanguageSwitcher collapsed={collapsed} />
-            </div>
 
             <div className="border-t border-white/10 my-2" />
 
