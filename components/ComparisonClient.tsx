@@ -78,7 +78,7 @@ export function ComparisonClient({ rfqs, responses }: Props) {
   return (
     <div className="space-y-6">
       <div>
-        <h1 className="text-xl font-bold text-white">Comparisons</h1>
+        <h1 className="text-lg sm:text-xl font-bold text-white">Comparisons</h1>
         <p className="text-xs text-gray-600 mt-0.5">Compare supplier offers across RFQs</p>
       </div>
 
@@ -125,15 +125,17 @@ export function ComparisonClient({ rfqs, responses }: Props) {
             <>
               {/* Winner banner */}
               {best && (
-                <div className="flex items-center gap-4 rounded-2xl border border-amber-500/30 bg-amber-500/5 px-5 py-4">
-                  <Trophy className="h-5 w-5 text-amber-400 shrink-0" />
-                  <div className="flex-1 min-w-0">
-                    <p className="text-xs text-amber-400 font-semibold uppercase tracking-wider mb-0.5">Best Overall Value</p>
-                    <p className="text-sm font-bold text-white">{best.email}</p>
-                    <p className="text-xs text-gray-500">Score {best.score}/100 · ${best.price.toLocaleString('en-US')} · {best.delivery}d delivery</p>
+                <div className="flex flex-col sm:flex-row sm:items-center gap-3 sm:gap-4 rounded-2xl border border-amber-500/30 bg-amber-500/5 px-5 py-4">
+                  <div className="flex items-center gap-3 sm:gap-4 flex-1 min-w-0">
+                    <Trophy className="h-5 w-5 text-amber-400 shrink-0" />
+                    <div className="min-w-0">
+                      <p className="text-xs text-amber-400 font-semibold uppercase tracking-wider mb-0.5">Best Overall Value</p>
+                      <p className="text-sm font-bold text-white truncate">{best.email}</p>
+                      <p className="text-xs text-gray-500">Score {best.score}/100 · ${best.price.toLocaleString('en-US')} · {best.delivery}d delivery</p>
+                    </div>
                   </div>
-                  <Link href={`/rfqs/${selectedId}`}>
-                    <button className="text-xs px-3 py-1.5 rounded-lg bg-amber-500/15 border border-amber-500/30 text-amber-300 hover:bg-amber-500/25 transition-colors font-medium">
+                  <Link href={`/rfqs/${selectedId}`} className="shrink-0">
+                    <button className="text-xs px-3 py-2 sm:py-1.5 rounded-lg bg-amber-500/15 border border-amber-500/30 text-amber-300 hover:bg-amber-500/25 transition-colors font-medium min-h-[36px]">
                       View RFQ
                     </button>
                   </Link>
@@ -144,7 +146,8 @@ export function ComparisonClient({ rfqs, responses }: Props) {
               <div className="rounded-2xl border border-white/[0.07] bg-[#0d1220] p-5">
                 <p className="text-sm font-semibold text-gray-200 mb-1">Price vs Delivery</p>
                 <p className="text-xs text-gray-600 mb-5">Bottom-left = best (cheap + fast)</p>
-                <ResponsiveContainer width="100%" height={280}>
+                <div className="h-[200px] sm:h-[280px]">
+                <ResponsiveContainer width="100%" height="100%">
                   <ScatterChart margin={{ top: 8, right: 24, left: 0, bottom: 0 }}>
                     <CartesianGrid stroke="rgba(255,255,255,0.04)" />
                     <XAxis
@@ -180,10 +183,53 @@ export function ComparisonClient({ rfqs, responses }: Props) {
                     />
                   </ScatterChart>
                 </ResponsiveContainer>
+                </div>
               </div>
 
-              {/* Ranked table */}
-              <div className="rounded-2xl border border-white/[0.07] bg-[#0d1220] overflow-hidden">
+              {/* ── MOBILE: Ranked cards ───────────────────────────────── */}
+              <div className="md:hidden space-y-3">
+                {scored.map((s, i) => {
+                  const scoreCls = s.score >= 70 ? 'text-emerald-400' : s.score >= 45 ? 'text-yellow-400' : 'text-red-400'
+                  return (
+                    <div key={s.id} className={`rounded-2xl border bg-[#0d1220] p-4 space-y-3 ${i === 0 ? 'border-amber-500/30 bg-amber-500/[0.03]' : 'border-white/[0.07]'}`}>
+                      <div className="flex items-center justify-between gap-2">
+                        <div className="flex items-center gap-2.5 min-w-0">
+                          <span className={`text-xs font-bold shrink-0 ${i === 0 ? 'text-amber-400' : 'text-gray-600'}`}>#{i + 1}</span>
+                          <div className="min-w-0">
+                            <p className="text-sm font-medium text-white truncate">{s.email}</p>
+                            <div className="flex gap-1.5 mt-0.5 flex-wrap">
+                              {s.price === Math.min(...scored.map((x) => x.price)) && (
+                                <span className="inline-flex items-center gap-1 text-[10px] text-emerald-400 bg-emerald-500/10 border border-emerald-500/20 px-1.5 py-0.5 rounded-full">
+                                  <TrendingDown className="h-2.5 w-2.5" />Cheapest
+                                </span>
+                              )}
+                              {s.delivery === Math.min(...scored.map((x) => x.delivery)) && (
+                                <span className="inline-flex items-center gap-1 text-[10px] text-blue-400 bg-blue-500/10 border border-blue-500/20 px-1.5 py-0.5 rounded-full">
+                                  <Zap className="h-2.5 w-2.5" />Fastest
+                                </span>
+                              )}
+                            </div>
+                          </div>
+                        </div>
+                        <span className={`text-lg font-bold shrink-0 ${scoreCls}`}>{s.score}</span>
+                      </div>
+                      <div className="grid grid-cols-2 gap-2 pt-2 border-t border-white/[0.05]">
+                        <div className="text-center">
+                          <p className="text-[10px] text-gray-600 uppercase tracking-wide mb-0.5">Price</p>
+                          <p className="text-sm font-semibold text-gray-300">${s.price.toLocaleString('en-US')}</p>
+                        </div>
+                        <div className="text-center border-l border-white/[0.05]">
+                          <p className="text-[10px] text-gray-600 uppercase tracking-wide mb-0.5">Delivery</p>
+                          <p className="text-sm font-semibold text-gray-300">{s.delivery}d</p>
+                        </div>
+                      </div>
+                    </div>
+                  )
+                })}
+              </div>
+
+              {/* ── DESKTOP: Ranked table ─────────────────────────────── */}
+              <div className="hidden md:block rounded-2xl border border-white/[0.07] bg-[#0d1220] overflow-hidden">
                 <div className="grid grid-cols-[28px_1fr_90px_90px_80px] gap-4 px-5 py-3 border-b border-white/[0.06] text-[10px] font-semibold text-gray-600 uppercase tracking-wider">
                   <span>#</span><span>Supplier</span><span className="text-right">Price</span><span className="text-right">Delivery</span><span className="text-right">Score</span>
                 </div>

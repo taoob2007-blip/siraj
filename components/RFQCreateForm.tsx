@@ -88,7 +88,7 @@ function CategoryPicker({
       </button>
 
       {open && (
-        <div className="absolute left-0 top-full mt-2 z-50 w-72 rounded-2xl border border-white/[0.10] bg-[#0d1220] shadow-2xl shadow-black/60 overflow-hidden">
+        <div className="absolute right-0 top-full mt-2 z-50 w-72 max-w-[calc(100vw-2rem)] rounded-2xl border border-white/[0.10] bg-[#0d1220] shadow-2xl shadow-black/60 overflow-hidden">
           <div className="flex items-center justify-between px-4 py-3 border-b border-white/[0.06]">
             <span className="text-xs font-semibold text-gray-300">Select a Category</span>
             <button onClick={() => setOpen(false)} className="text-gray-600 hover:text-gray-400">
@@ -169,7 +169,7 @@ function SectionCard({
 }) {
   return (
     <div className="rounded-2xl border border-white/[0.07] bg-[#0d1220] overflow-hidden">
-      <div className="flex items-start gap-3 border-b border-white/[0.05] px-6 py-4">
+      <div className="flex items-start gap-3 border-b border-white/[0.05] px-4 sm:px-6 py-4">
         <div className="p-1.5 rounded-lg bg-blue-500/10 border border-blue-500/15 shrink-0">
           <Icon className="h-4 w-4 text-blue-400" />
         </div>
@@ -178,7 +178,7 @@ function SectionCard({
           <p className="text-xs text-gray-500 mt-0.5">{description}</p>
         </div>
       </div>
-      <div className="px-6 py-5">{children}</div>
+      <div className="px-4 sm:px-6 py-5">{children}</div>
     </div>
   )
 }
@@ -329,7 +329,7 @@ export function RFQCreateForm() {
 
         <InviteLinks rfqId={response.rfq_id} invites={response.invites} />
 
-        <div className="flex gap-3">
+        <div className="flex flex-col sm:flex-row gap-3">
           <button
             onClick={() => {
               setStep('form')
@@ -337,13 +337,13 @@ export function RFQCreateForm() {
               setResponse(null)
               setAttachments([])
             }}
-            className="inline-flex items-center gap-2 px-4 py-2.5 rounded-xl border border-white/[0.08] bg-white/[0.03] hover:bg-white/[0.06] text-sm text-gray-300 font-medium transition-all"
+            className="inline-flex items-center justify-center gap-2 px-4 py-3 sm:py-2.5 rounded-xl border border-white/[0.08] bg-white/[0.03] hover:bg-white/[0.06] text-sm text-gray-300 font-medium transition-all min-h-[44px]"
           >
             Create Another RFQ
           </button>
           <button
             onClick={() => router.push(`/rfqs/${response.rfq_id}`)}
-            className="inline-flex items-center gap-2 px-4 py-2.5 rounded-xl bg-blue-600 hover:bg-blue-500 text-sm text-white font-semibold transition-all shadow-lg shadow-blue-600/20"
+            className="inline-flex items-center justify-center gap-2 px-4 py-3 sm:py-2.5 rounded-xl bg-blue-600 hover:bg-blue-500 text-sm text-white font-semibold transition-all shadow-lg shadow-blue-600/20 min-h-[44px]"
           >
             View RFQ Details
           </button>
@@ -442,7 +442,7 @@ export function RFQCreateForm() {
           )}
 
           {/* Category picker */}
-          <div className="flex items-center justify-between">
+          <div className="flex flex-wrap items-center justify-between gap-2">
             <span className="text-xs text-gray-500">Or import an entire category:</span>
             <CategoryPicker
               disabled={isLoading}
@@ -465,10 +465,10 @@ export function RFQCreateForm() {
       </SectionCard>
 
       {/* Submit row */}
-      <div className="flex items-center justify-between gap-3 pt-2">
+      <div className="flex flex-col-reverse sm:flex-row sm:items-center sm:justify-between gap-3 pt-2">
         <Link
           href="/rfqs"
-          className="inline-flex items-center gap-2 px-4 py-2.5 rounded-xl border border-white/[0.08] bg-white/[0.03] hover:bg-white/[0.06] text-sm text-gray-400 font-medium transition-all"
+          className="inline-flex items-center justify-center gap-2 px-4 py-3 sm:py-2.5 rounded-xl border border-white/[0.08] bg-white/[0.03] hover:bg-white/[0.06] text-sm text-gray-400 font-medium transition-all min-h-[44px]"
         >
           <ArrowLeft className="h-4 w-4" />
           Cancel
@@ -476,7 +476,7 @@ export function RFQCreateForm() {
         <button
           type="submit"
           disabled={isLoading}
-          className="inline-flex items-center gap-2 px-6 py-2.5 rounded-xl bg-blue-600 hover:bg-blue-500 active:scale-95 text-sm text-white font-semibold transition-all shadow-lg shadow-blue-600/20 disabled:opacity-50 disabled:cursor-not-allowed"
+          className="inline-flex items-center justify-center gap-2 px-6 py-3 sm:py-2.5 rounded-xl bg-blue-600 hover:bg-blue-500 active:scale-95 text-sm text-white font-semibold transition-all shadow-lg shadow-blue-600/20 disabled:opacity-50 disabled:cursor-not-allowed min-h-[44px]"
         >
           {isLoading
             ? <><Loader2 className="h-4 w-4 animate-spin" />Creating…</>

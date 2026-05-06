@@ -11,12 +11,19 @@
   --blue-glow:  rgba(59,130,246,0.18);
   --violet-glow:rgba(139,92,246,0.18);
   --green-glow: rgba(34,197,94,0.15);
+  /* Safe areas */
+  --sat: env(safe-area-inset-top);
+  --sar: env(safe-area-inset-right);
+  --sab: env(safe-area-inset-bottom);
+  --sal: env(safe-area-inset-left);
 }
 
 body {
   background-color: var(--bg-base);
   color: #f8fafc;
   color-scheme: dark;
+  /* Prevent elastic bounce scroll on iOS */
+  overscroll-behavior: none;
 }
 
 html {
@@ -24,6 +31,59 @@ html {
   -webkit-font-smoothing: antialiased;
   -moz-osx-font-smoothing: grayscale;
   text-rendering: optimizeLegibility;
+  /* Prevent double-tap zoom on iOS */
+  touch-action: manipulation;
+}
+
+/* ── Touch / tap optimization ───────────────────────────── */
+* {
+  -webkit-tap-highlight-color: transparent;
+  -webkit-touch-callout: none;
+}
+
+/* Prevent iOS input zoom — keep 16px minimum */
+input, select, textarea {
+  font-size: max(16px, 1rem);
+}
+
+/* ── Safe area utilities ─────────────────────────────────── */
+.safe-inset-top    { padding-top:    env(safe-area-inset-top); }
+.safe-inset-bottom { padding-bottom: env(safe-area-inset-bottom); }
+.safe-inset-left   { padding-left:   env(safe-area-inset-left); }
+.safe-inset-right  { padding-right:  env(safe-area-inset-right); }
+
+/* Mobile header accounts for safe area */
+.safe-area-top {
+  padding-top: max(env(safe-area-inset-top), 0px);
+}
+
+/* Bottom safe area for fixed bottom elements */
+.pb-safe {
+  padding-bottom: max(env(safe-area-inset-bottom), 0.75rem);
+}
+
+/* ── Mobile scroll ───────────────────────────────────────── */
+.scroll-touch {
+  -webkit-overflow-scrolling: touch;
+  overflow-y: auto;
+}
+
+.scroll-x-touch {
+  -webkit-overflow-scrolling: touch;
+  overflow-x: auto;
+  /* Snap scrolling for horizontal card lists */
+  scroll-snap-type: x mandatory;
+}
+
+.snap-card {
+  scroll-snap-align: start;
+  flex-shrink: 0;
+}
+
+/* ── Momentum scroll for drawers / lists ────────────────── */
+.momentum-scroll {
+  -webkit-overflow-scrolling: touch;
+  overscroll-behavior-y: contain;
 }
 
 /* ── Scrollbar ──────────────────────────────────────────── */
@@ -264,4 +324,167 @@ html {
   animation: brain-micro-rotate 8s ease-in-out infinite;
   transform-origin: center;
 }
+
+/* ═══════════════════════════════════════════════════════════
+   MOBILE-FIRST UTILITIES
+   ═══════════════════════════════════════════════════════════ */
+
+/* Minimum touch target (44px Apple HIG / 48dp Material) */
+.touch-target {
+  min-height: 44px;
+  min-width: 44px;
+}
+
+/* Active press feedback on mobile */
+.touch-press {
+  transition: transform 120ms ease, opacity 120ms ease;
+}
+.touch-press:active {
+  transform: scale(0.96);
+  opacity: 0.85;
+}
+
+/* Mobile drawer slide-in */
+@keyframes drawer-slide-in {
+  from { transform: translateX(-100%); }
+  to   { transform: translateX(0); }
+}
+
+@keyframes drawer-slide-out {
+  from { transform: translateX(0); }
+  to   { transform: translateX(-100%); }
+}
+
+/* Bottom sheet */
+@keyframes sheet-slide-up {
+  from { transform: translateY(100%); opacity: 0; }
+  to   { transform: translateY(0);    opacity: 1; }
+}
+
+.bottom-sheet {
+  animation: sheet-slide-up 0.28s cubic-bezier(0.32, 0.72, 0, 1) both;
+}
+
+/* Mobile card list — horizontal scroll snap */
+.mobile-card-scroll {
+  display: flex;
+  gap: 0.75rem;
+  overflow-x: auto;
+  padding-bottom: 0.75rem;
+  scroll-snap-type: x mandatory;
+  -webkit-overflow-scrolling: touch;
+  scrollbar-width: none;
+}
+.mobile-card-scroll::-webkit-scrollbar { display: none; }
+.mobile-card-scroll > * {
+  scroll-snap-align: start;
+  flex-shrink: 0;
+}
+
+/* ── Mobile table → card transform ──────────────────────── */
+@media (max-width: 767px) {
+  .mobile-table-card {
+    display: block;
+  }
+  .mobile-table-card thead {
+    display: none;
+  }
+  .mobile-table-card tbody tr {
+    display: block;
+    margin-bottom: 0.75rem;
+    border-radius: 1rem;
+    border: 1px solid rgba(255,255,255,0.06);
+    background: #0d1220;
+    padding: 1rem;
+  }
+  .mobile-table-card td {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 0.375rem 0;
+    border: none;
+  }
+  .mobile-table-card td::before {
+    content: attr(data-label);
+    font-size: 0.7rem;
+    font-weight: 600;
+    text-transform: uppercase;
+    letter-spacing: 0.08em;
+    color: #6b7280;
+  }
+}
+
+/* ── Responsive typography ───────────────────────────────── */
+.text-fluid-xl {
+  font-size: clamp(1.25rem, 4vw, 1.75rem);
+}
+.text-fluid-2xl {
+  font-size: clamp(1.5rem, 5vw, 2.25rem);
+}
+.text-fluid-3xl {
+  font-size: clamp(1.875rem, 6vw, 3rem);
+}
+
+/* ── Mobile input improvements ───────────────────────────── */
+@media (max-width: 767px) {
+  input[type="text"],
+  input[type="email"],
+  input[type="number"],
+  input[type="password"],
+  input[type="search"],
+  select,
+  textarea {
+    border-radius: 0.75rem;
+    padding: 0.75rem 1rem;
+    min-height: 48px;
+  }
+
+  /* Sticky bottom submit on mobile forms */
+  .mobile-sticky-submit {
+    position: sticky;
+    bottom: max(env(safe-area-inset-bottom), 1rem);
+    z-index: 10;
+  }
+}
+
+/* ── Prevent iOS over-zoom on inputs ─────────────────────── */
+@supports (-webkit-touch-callout: none) {
+  input[type="text"],
+  input[type="email"],
+  input[type="number"],
+  input[type="password"],
+  input[type="search"],
+  select,
+  textarea {
+    font-size: 16px;
+  }
+}
+
+/* ── Landscape mobile adjustments ───────────────────────── */
+@media (max-height: 500px) and (orientation: landscape) {
+  .mobile-header-height { height: 3rem; }
+  .mobile-content-top   { padding-top: 3rem; }
+}
+
+/* ── PWA standalone mode adjustments ────────────────────── */
+@media (display-mode: standalone) {
+  body { overscroll-behavior: none; }
+  .safe-inset-top { padding-top: max(env(safe-area-inset-top), 1rem); }
+}
+
+/* ── Reduce animations for performance on mobile ─────────── */
+@media (prefers-reduced-motion: reduce) {
+  *, *::before, *::after {
+    animation-duration: 0.01ms !important;
+    transition-duration: 0.01ms !important;
+  }
+}
+
+/* ── Smooth native-feel scroll ───────────────────────────── */
+@media (max-width: 767px) {
+  .kpi-card:hover { transform: none; } /* Disable hover transforms on touch */
+  .card-hover:hover { transform: none; box-shadow: none; }
+  .feature-card:hover { transform: none; }
+}
+
 

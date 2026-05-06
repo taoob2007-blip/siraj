@@ -4,7 +4,7 @@ import type { ElementType } from 'react'
 import Link from 'next/link'
 import Image from 'next/image'
 import { usePathname } from 'next/navigation'
-import { useEffect, useRef, useState } from 'react'
+import { useEffect, useRef, useState, useCallback } from 'react'
 import {
   LayoutDashboard, FileText, Users, BarChart2,
   GitCompare, FileSignature, MessageSquare, PieChart,
@@ -36,6 +36,7 @@ export function Sidebar() {
   const pathname = usePathname()
 
   const [collapsed, setCollapsed] = useState(false)
+  const [mobileOpen, setMobileOpen] = useState(false)
   const [userName, setUserName] = useState('')
   const [userEmail, setUserEmail] = useState('')
   const [userRole, setUserRole] = useState('')
@@ -44,6 +45,25 @@ export function Sidebar() {
 
   const activeRef = useRef<HTMLAnchorElement | null>(null)
   const [pill, setPill] = useState({ top: 0, height: 0 })
+
+  // Mobile drawer event bus
+  const closeMobile = useCallback(() => {
+    setMobileOpen(false)
+    window.dispatchEvent(new CustomEvent('mobile-sidebar', { detail: { open: false } }))
+  }, [])
+
+  useEffect(() => {
+    function handleMobileSidebar(e: CustomEvent) {
+      setMobileOpen(e.detail.open)
+    }
+    window.addEventListener('mobile-sidebar' as any, handleMobileSidebar)
+    return () => window.removeEventListener('mobile-sidebar' as any, handleMobileSidebar)
+  }, [])
+
+  // Close mobile sidebar on route change
+  useEffect(() => {
+    closeMobile()
+  }, [pathname, closeMobile])
 
   useEffect(() => {
     supabase.auth.getSession().then(({ data: { session } }) => {
@@ -77,16 +97,36 @@ export function Sidebar() {
   const displayName = userName || userEmail.split('@')[0] || 'My Account'
 
   return (
+    <>
+      {/* Mobile backdrop */}
+      {mobileOpen && (
+        <div
+          className="md:hidden fixed inset-0 z-40 bg-black/60 backdrop-blur-sm"
+          onClick={closeMobile}
+          aria-hidden="true"
+        />
+      )}
+
     <aside
-      className={`relative flex flex-col h-screen bg-[#0B0F19] border-r border-white/[0.05]
-      transition-all duration-300 ease-in-out
-      ${collapsed ? 'w-[78px]' : 'w-64'}`}
+      className={[
+        // Base
+        'flex flex-col bg-[#0B0F19] border-r border-white/[0.05]',
+        'transition-all duration-300 ease-in-out',
+        // Desktop: relative, height=screen
+        'md:relative md:h-screen md:translate-x-0',
+        // Mobile: fixed overlay drawer
+        'fixed inset-y-0 left-0 z-50 h-[100dvh]',
+        // Mobile open/close via translate
+        mobileOpen ? 'translate-x-0 shadow-2xl shadow-black/60' : '-translate-x-full md:translate-x-0',
+        // Width
+        collapsed ? 'md:w-[78px] w-72' : 'w-72 md:w-64',
+      ].join(' ')}
     >
 
-      {/* Collapse Button */}
+      {/* Collapse Button — desktop only */}
       <button
         onClick={() => setCollapsed(!collapsed)}
-        className="absolute -right-3 top-6 z-50 bg-[#0B0F19] border border-white/10 rounded-full p-1 hover:bg-white/10 transition"
+        className="hidden md:flex absolute -right-3 top-6 z-50 bg-[#0B0F19] border border-white/10 rounded-full p-1 hover:bg-white/10 transition items-center justify-center"
       >
         <ChevronLeft className={`w-4 h-4 text-white transition ${collapsed ? 'rotate-180' : ''}`} />
       </button>
@@ -169,7 +209,8 @@ export function Sidebar() {
               key={href}
               href={href}
               ref={active ? activeRef : null}
-              className={`group relative flex items-center gap-3 px-3 py-2.5 rounded-xl transition-all duration-200
+              onClick={closeMobile}
+              className={`group relative flex items-center gap-3 px-3 py-2.5 rounded-xl transition-all duration-200 min-h-[44px]
               ${active
                 ? 'text-cyan-400'
                 : locked
@@ -226,5 +267,6 @@ export function Sidebar() {
       </div>
 
     </aside>
+    </>
   )
 }

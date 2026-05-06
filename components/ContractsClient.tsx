@@ -126,16 +126,16 @@ export function ContractsClient({ contracts, rfqs, tableExists }: Props) {
     <div className="space-y-6">
 
       {/* ── Header ─────────────────────────────────────────────────────────── */}
-      <div className="flex items-center justify-between">
+      <div className="flex items-center justify-between gap-3">
         <div>
-          <h1 className="text-xl font-bold text-white">Contracts</h1>
+          <h1 className="text-lg sm:text-xl font-bold text-white">Contracts</h1>
           <p className="text-xs text-gray-600 mt-0.5">Supplier agreements created from accepted RFQs</p>
         </div>
         <Link
           href="/rfqs"
-          className="inline-flex items-center gap-2 px-4 py-2 rounded-xl bg-blue-600 hover:bg-blue-500 active:scale-95 text-white text-sm font-semibold transition-all shadow-lg shadow-blue-600/20"
+          className="inline-flex items-center gap-2 px-3 sm:px-4 py-2.5 rounded-xl bg-blue-600 hover:bg-blue-500 active:scale-95 text-white text-sm font-semibold transition-all shadow-lg shadow-blue-600/20 shrink-0 min-h-[44px]"
         >
-          <Plus className="h-4 w-4" />New Contract
+          <Plus className="h-4 w-4" /><span className="hidden sm:inline">New Contract</span>
         </Link>
       </div>
 
@@ -171,18 +171,18 @@ export function ContractsClient({ contracts, rfqs, tableExists }: Props) {
       {tableExists && (
         <>
           {/* ── Stats ────────────────────────────────────────────────────────── */}
-          <div className="grid grid-cols-3 gap-4">
+          <div className="grid grid-cols-3 gap-2 sm:gap-4">
             {[
               { label: 'Pending',   value: pending,   icon: Clock,        cls: 'bg-yellow-500/10 border-yellow-500/20 text-yellow-400' },
               { label: 'Signed',    value: signed,    icon: CheckCircle2, cls: 'bg-emerald-500/10 border-emerald-500/20 text-emerald-400' },
               { label: 'Cancelled', value: cancelled, icon: XCircle,      cls: 'bg-red-500/10 border-red-500/20 text-red-400' },
             ].map(({ label, value, icon: Icon, cls }) => (
-              <div key={label} className="rounded-2xl border border-white/[0.07] bg-[#0d1220] p-5">
-                <div className="flex items-start justify-between mb-3">
-                  <p className="text-xs font-medium text-gray-500 uppercase tracking-wider">{label}</p>
-                  <div className={`p-1.5 rounded-lg border ${cls}`}><Icon className="h-3.5 w-3.5" /></div>
+              <div key={label} className="rounded-2xl border border-white/[0.07] bg-[#0d1220] p-3 sm:p-5">
+                <div className="flex items-start justify-between mb-2 sm:mb-3">
+                  <p className="text-[10px] sm:text-xs font-medium text-gray-500 uppercase tracking-wider">{label}</p>
+                  <div className={`p-1 sm:p-1.5 rounded-lg border ${cls}`}><Icon className="h-3 w-3 sm:h-3.5 sm:w-3.5" /></div>
                 </div>
-                <p className="text-2xl font-bold text-white">{value}</p>
+                <p className="text-xl sm:text-2xl font-bold text-white">{value}</p>
               </div>
             ))}
           </div>

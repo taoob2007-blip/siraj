@@ -98,7 +98,7 @@ export default async function AnalyticsPage() {
   return (
     <div className="space-y-6">
       <div>
-        <h1 className="text-xl font-bold text-white">Analytics</h1>
+        <h1 className="text-lg sm:text-xl font-bold text-white">Analytics</h1>
         <p className="text-xs text-gray-600 mt-0.5">Platform-wide procurement insights</p>
       </div>
 
