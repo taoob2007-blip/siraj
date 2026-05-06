@@ -83,7 +83,7 @@ export async function POST(req: NextRequest) {
 
     const rfqId = rfqData.id
     const invites: CreateRFQResponse['invites'] = []
-    const emailJobs: Array<() => Promise<void>> = []
+    const emailJobs: Array<() => Promise<unknown>> = []
 
     for (const supplier of body.suppliers) {
       const email = supplier.email.trim().toLowerCase()
@@ -140,7 +140,7 @@ export async function POST(req: NextRequest) {
     // individual failures are logged but do NOT block the success response.
     const emailResults = await Promise.allSettled(emailJobs.map(fn => fn()))
     const failedCount = emailResults.filter(
-      r => r.status === 'rejected' || (r.status === 'fulfilled' && !r.value.success)
+      r => r.status === 'rejected' || (r.status === 'fulfilled' && !(r.value as { success?: boolean })?.success)
     ).length
     if (failedCount > 0) {
       console.warn(JSON.stringify({

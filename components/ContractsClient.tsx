@@ -1,6 +1,7 @@
 'use client'
 
 import { useState } from 'react'
+import { useTranslations } from 'next-intl'
 import {
   FileSignature, Plus, CheckCircle2, Clock, XCircle,
   AlertTriangle, Copy, Check, DollarSign, Truck, Loader2, PenTool,
@@ -75,6 +76,8 @@ CREATE INDEX IF NOT EXISTS contracts_user_id_idx ON contracts(user_id);`
 // ── Component ──────────────────────────────────────────────────────────────────
 
 export function ContractsClient({ contracts, rfqs, tableExists }: Props) {
+  const t = useTranslations('contracts')
+  const tCommon = useTranslations('common')
   const [local, setLocal]         = useState<Contract[]>(contracts)
   const [updating, setUpdating]   = useState<string | null>(null)
   const [updateErr, setUpdateErr] = useState<string | null>(null)
@@ -128,14 +131,14 @@ export function ContractsClient({ contracts, rfqs, tableExists }: Props) {
       {/* ── Header ─────────────────────────────────────────────────────────── */}
       <div className="flex items-center justify-between gap-3">
         <div>
-          <h1 className="text-lg sm:text-xl font-bold text-white">Contracts</h1>
+          <h1 className="text-lg sm:text-xl font-bold text-white">{t('title')}</h1>
           <p className="text-xs text-gray-600 mt-0.5">Supplier agreements created from accepted RFQs</p>
         </div>
         <Link
           href="/rfqs"
           className="inline-flex items-center gap-2 px-3 sm:px-4 py-2.5 rounded-xl bg-blue-600 hover:bg-blue-500 active:scale-95 text-white text-sm font-semibold transition-all shadow-lg shadow-blue-600/20 shrink-0 min-h-[44px]"
         >
-          <Plus className="h-4 w-4" /><span className="hidden sm:inline">New Contract</span>
+          <Plus className="h-4 w-4" /><span className="hidden sm:inline">{t('newContract')}</span>
         </Link>
       </div>
 
@@ -173,9 +176,9 @@ export function ContractsClient({ contracts, rfqs, tableExists }: Props) {
           {/* ── Stats ────────────────────────────────────────────────────────── */}
           <div className="grid grid-cols-3 gap-2 sm:gap-4">
             {[
-              { label: 'Pending',   value: pending,   icon: Clock,        cls: 'bg-yellow-500/10 border-yellow-500/20 text-yellow-400' },
-              { label: 'Signed',    value: signed,    icon: CheckCircle2, cls: 'bg-emerald-500/10 border-emerald-500/20 text-emerald-400' },
-              { label: 'Cancelled', value: cancelled, icon: XCircle,      cls: 'bg-red-500/10 border-red-500/20 text-red-400' },
+              { label: t('stats.pending'),   value: pending,   icon: Clock,        cls: 'bg-yellow-500/10 border-yellow-500/20 text-yellow-400' },
+              { label: t('stats.signed'),    value: signed,    icon: CheckCircle2, cls: 'bg-emerald-500/10 border-emerald-500/20 text-emerald-400' },
+              { label: t('stats.cancelled'), value: cancelled, icon: XCircle,      cls: 'bg-red-500/10 border-red-500/20 text-red-400' },
             ].map(({ label, value, icon: Icon, cls }) => (
               <div key={label} className="rounded-2xl border border-white/[0.07] bg-[#0d1220] p-3 sm:p-5">
                 <div className="flex items-start justify-between mb-2 sm:mb-3">
@@ -201,16 +204,14 @@ export function ContractsClient({ contracts, rfqs, tableExists }: Props) {
                 <FileSignature className="h-8 w-8 text-gray-700" />
               </div>
               <div>
-                <p className="text-sm text-gray-500">No contracts yet</p>
-                <p className="text-xs text-gray-600 mt-1">
-                  Contracts are created automatically when you accept a supplier on an RFQ.
-                </p>
+                <p className="text-sm text-gray-500">{t('noContracts')}</p>
+                <p className="text-xs text-gray-600 mt-1">{t('noContractsDesc')}</p>
               </div>
               <Link
                 href="/rfqs"
                 className="inline-flex items-center gap-2 text-xs px-4 py-2 rounded-xl border border-blue-500/30 bg-blue-500/8 hover:bg-blue-500/15 text-blue-300 font-medium transition-all"
               >
-                Go to RFQs
+                {t('viewRfqs')}
               </Link>
             </div>
           ) : (
@@ -268,14 +269,14 @@ export function ContractsClient({ contracts, rfqs, tableExists }: Props) {
                             ? <Loader2 className="h-3 w-3 animate-spin" />
                             : <PenTool className="h-3 w-3" />
                           }
-                          Sign
+                          {tCommon('confirm')}
                         </button>
                         <button
                           onClick={() => cancelContract(c.id)}
                           disabled={isUpdating}
                           className="inline-flex items-center gap-1.5 text-xs px-3 py-1.5 rounded-lg bg-red-600/10 hover:bg-red-600/20 border border-red-500/25 text-red-400 font-medium transition-all disabled:opacity-50"
                         >
-                          <XCircle className="h-3 w-3" />Cancel
+                          <XCircle className="h-3 w-3" />{tCommon('cancel')}
                         </button>
                       </div>
                     )}

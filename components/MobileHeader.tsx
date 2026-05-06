@@ -2,42 +2,15 @@
 
 import { useEffect, useState } from 'react'
 import { usePathname } from 'next/navigation'
+import { useTranslations } from 'next-intl'
 import Link from 'next/link'
 import Image from 'next/image'
 import { Menu, Bell, Plus, X } from 'lucide-react'
 
-const ROUTE_LABELS: Record<string, string> = {
-  '/':             'Dashboard',
-  '/rfqs':         'RFQs',
-  '/rfqs/new':     'New RFQ',
-  '/suppliers':    'Suppliers',
-  '/categories':   'Categories',
-  '/analytics':    'Analytics',
-  '/comparisons':  'Comparisons',
-  '/contracts':    'Contracts',
-  '/messages':     'Messages',
-  '/reports':      'Reports',
-  '/notifications':'Notifications',
-  '/settings':     'Settings',
-  '/billing':      'Billing',
-  '/pricing':      'Pricing',
-}
-
-function getRouteLabel(pathname: string) {
-  if (ROUTE_LABELS[pathname]) return ROUTE_LABELS[pathname]
-  if (pathname.startsWith('/rfqs/')) return 'RFQ Details'
-  if (pathname.startsWith('/suppliers/')) return 'Supplier'
-  if (pathname.startsWith('/contracts/')) return 'Contract'
-  if (pathname.startsWith('/comparisons/')) return 'Comparison'
-  if (pathname.startsWith('/categories/')) return 'Category'
-  return 'SIRAJ'
-}
-
 export function MobileHeader() {
   const pathname = usePathname()
+  const t = useTranslations('mobile')
   const [sidebarOpen, setSidebarOpen] = useState(false)
-
-  const pageLabel = getRouteLabel(pathname)
 
   function toggleSidebar() {
     const next = !sidebarOpen
@@ -72,7 +45,7 @@ export function MobileHeader() {
       {/* Left: hamburger */}
       <button
         onClick={toggleSidebar}
-        aria-label="Toggle menu"
+        aria-label={t('menu')}
         className="
           flex items-center justify-center
           w-10 h-10 -ml-1
@@ -106,7 +79,7 @@ export function MobileHeader() {
       <div className="flex items-center gap-1">
         <Link href="/notifications">
           <button
-            aria-label="Notifications"
+            aria-label={t('notifications')}
             className="
               flex items-center justify-center
               w-10 h-10
@@ -124,7 +97,7 @@ export function MobileHeader() {
 
         <Link href="/rfqs/new">
           <button
-            aria-label="New RFQ"
+            aria-label={t('newRfq')}
             className="
               flex items-center justify-center
               w-9 h-9

@@ -4,6 +4,7 @@ import { getServerSupabaseClient } from '@/lib/supabase/server'
 import Link from 'next/link'
 import { DollarSign, Clock, Users, ChevronRight } from 'lucide-react'
 import { AddToCategoryButton } from '@/components/AddToCategoryButton'
+import { getTranslations } from 'next-intl/server'
 
 interface SupplierSummary {
   email: string
@@ -58,19 +59,22 @@ function ScoreBadge({ score }: { score: number }) {
 }
 
 export default async function SuppliersPage() {
-  const suppliers = await getSuppliers()
+  const [suppliers, t] = await Promise.all([
+    getSuppliers(),
+    getTranslations('suppliers'),
+  ])
 
   return (
     <div className="space-y-4 sm:space-y-6">
       {/* Header */}
       <div className="flex items-center justify-between">
         <div>
-          <h1 className="text-lg sm:text-xl font-bold text-white">Suppliers</h1>
-          <p className="text-xs text-gray-600 mt-0.5">{suppliers.length} unique suppliers across all RFQs</p>
+          <h1 className="text-lg sm:text-xl font-bold text-white">{t('title')}</h1>
+          <p className="text-xs text-gray-600 mt-0.5">{t('uniqueSuppliers', { count: suppliers.length })}</p>
         </div>
         <div className="flex items-center gap-2 px-3 py-1.5 rounded-xl border border-white/[0.05] bg-[#0d1220] text-xs text-gray-500">
           <Users className="h-3.5 w-3.5 text-cyan-400" />
-          {suppliers.length} total
+          {suppliers.length} {t('total')}
         </div>
       </div>
 
@@ -79,9 +83,9 @@ export default async function SuppliersPage() {
           <div className="p-4 rounded-2xl bg-cyan-400/10 border border-cyan-400/20">
             <Users className="h-8 w-8 text-cyan-400" />
           </div>
-          <p className="text-sm text-gray-500">No suppliers yet — invite them from an RFQ.</p>
+          <p className="text-sm text-gray-500">{t('noSuppliers')}</p>
           <Link href="/rfqs">
-            <button className="text-xs text-cyan-400 hover:text-cyan-300 underline underline-offset-2 transition-colors min-h-[44px] flex items-center">View RFQs</button>
+            <button className="text-xs text-cyan-400 hover:text-cyan-300 underline underline-offset-2 transition-colors min-h-[44px] flex items-center">{t('viewRfqs')}</button>
           </Link>
         </div>
       ) : (
@@ -118,12 +122,12 @@ export default async function SuppliersPage() {
                   {/* Stats row */}
                   <div className="grid grid-cols-3 gap-2 pt-1 border-t border-white/[0.04]">
                     <div className="text-center">
-                      <p className="text-[10px] text-gray-600 uppercase tracking-wide mb-0.5">RFQs</p>
+                      <p className="text-[10px] text-gray-600 uppercase tracking-wide mb-0.5">{t('stats.rfqs')}</p>
                       <p className="text-sm font-bold text-white">{s.response_count}</p>
                     </div>
                     <div className="text-center border-x border-white/[0.04]">
                       <p className="text-[10px] text-gray-600 uppercase tracking-wide mb-0.5 flex items-center justify-center gap-0.5">
-                        <DollarSign className="h-2.5 w-2.5" />Price
+                        <DollarSign className="h-2.5 w-2.5" />{t('stats.price')}
                       </p>
                       <p className="text-sm font-bold text-white">
                         {s.avg_price !== null ? `$${s.avg_price.toLocaleString('en-US')}` : '—'}
@@ -131,7 +135,7 @@ export default async function SuppliersPage() {
                     </div>
                     <div className="text-center">
                       <p className="text-[10px] text-gray-600 uppercase tracking-wide mb-0.5 flex items-center justify-center gap-0.5">
-                        <Clock className="h-2.5 w-2.5" />Delivery
+                        <Clock className="h-2.5 w-2.5" />{t('stats.delivery')}
                       </p>
                       <p className="text-sm font-bold text-white">
                         {s.avg_delivery !== null ? `${s.avg_delivery}d` : '—'}
@@ -144,7 +148,7 @@ export default async function SuppliersPage() {
                     <AddToCategoryButton email={s.email} supplierName={name} />
                     <Link href={`/suppliers/${encodeURIComponent(s.email)}`}>
                       <button className="text-xs text-cyan-400 hover:text-cyan-300 flex items-center gap-1 min-h-[36px] transition-colors">
-                        View Profile <ChevronRight className="h-3.5 w-3.5" />
+                        {t('viewProfile')} <ChevronRight className="h-3.5 w-3.5" />
                       </button>
                     </Link>
                   </div>
@@ -157,11 +161,11 @@ export default async function SuppliersPage() {
           <div className="hidden md:block rounded-2xl border border-white/[0.05] bg-[#0d1220] overflow-hidden">
             {/* Table header */}
             <div className="grid grid-cols-[1fr_80px_100px_100px_80px_120px_36px] gap-3 px-5 py-3 border-b border-white/[0.05] text-[10px] font-semibold text-gray-600 uppercase tracking-wider">
-              <span>Supplier</span>
-              <span className="text-right">RFQs</span>
-              <span className="text-right">Avg Price</span>
-              <span className="text-right">Avg Delivery</span>
-              <span className="text-right">Score</span>
+              <span>{t('columns.supplier')}</span>
+              <span className="text-right">{t('columns.rfqs')}</span>
+              <span className="text-right">{t('columns.avgPrice')}</span>
+              <span className="text-right">{t('columns.avgDelivery')}</span>
+              <span className="text-right">{t('columns.score')}</span>
               <span />
               <span />
             </div>

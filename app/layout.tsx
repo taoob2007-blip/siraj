@@ -2,6 +2,8 @@ import type { Metadata, Viewport } from 'next'
 import type { ReactNode } from 'react'
 import { Inter, IBM_Plex_Sans_Arabic } from 'next/font/google'
 import { headers } from 'next/headers'
+import { NextIntlClientProvider } from 'next-intl'
+import { getLocale, getMessages } from 'next-intl/server'
 import './globals.css'
 import { Sidebar } from '@/components/Sidebar'
 import { MobileHeader } from '@/components/MobileHeader'
@@ -44,28 +46,34 @@ export default async function RootLayout({ children }: { children: ReactNode }) 
   const pathname    = headersList.get('x-pathname') ?? ''
   const isFormPage  = pathname.startsWith('/form')
 
+  const locale   = await getLocale()
+  const messages = await getMessages()
+  const dir      = locale === 'ar' ? 'rtl' : 'ltr'
+
   if (isFormPage) {
     return (
-      <html lang="en" className={`font-sans ${inter.variable} ${ibmPlexArabic.variable}`}>
+      <html lang={locale} dir={dir} className={`font-sans ${inter.variable} ${ibmPlexArabic.variable}`}>
         <head>
           <link rel="manifest" href="/manifest.json" />
           <meta name="apple-mobile-web-app-capable" content="yes" />
           <meta name="mobile-web-app-capable" content="yes" />
         </head>
         <body className="min-h-[100dvh] bg-[#080c14] text-gray-50 antialiased">
-          <main className="min-h-[100dvh] flex items-start justify-center px-4 py-8 safe-inset-top">
-            <div className="w-full max-w-2xl">
-              {children}
-            </div>
-          </main>
-          <ToastContainer />
+          <NextIntlClientProvider messages={messages}>
+            <main className="min-h-[100dvh] flex items-start justify-center px-4 py-8 safe-inset-top">
+              <div className="w-full max-w-2xl">
+                {children}
+              </div>
+            </main>
+            <ToastContainer />
+          </NextIntlClientProvider>
         </body>
       </html>
     )
   }
 
   return (
-    <html lang="en" className={`font-sans ${inter.variable} ${ibmPlexArabic.variable}`}>
+    <html lang={locale} dir={dir} className={`font-sans ${inter.variable} ${ibmPlexArabic.variable}`}>
       <head>
         <link rel="manifest" href="/manifest.json" />
         <meta name="apple-mobile-web-app-capable" content="yes" />
@@ -74,30 +82,32 @@ export default async function RootLayout({ children }: { children: ReactNode }) 
         <link rel="apple-touch-icon" sizes="180x180" href="/logo-bar.png" />
       </head>
       <body className="flex min-h-[100dvh] bg-[#080c14] text-gray-50 antialiased overflow-x-hidden">
+        <NextIntlClientProvider messages={messages}>
 
-        {/* Desktop sidebar — hidden on mobile (drawer handled by Sidebar internals) */}
-        <Sidebar />
+          {/* Desktop sidebar — hidden on mobile (drawer handled by Sidebar internals) */}
+          <Sidebar />
 
-        {/* Main content column */}
-        <div className="flex-1 flex flex-col min-w-0">
+          {/* Main content column */}
+          <div className="flex-1 flex flex-col min-w-0">
 
-          {/* Mobile sticky header — only visible on mobile */}
-          <MobileHeader />
+            {/* Mobile sticky header — only visible on mobile */}
+            <MobileHeader />
 
-          <SubscriptionBanner />
+            <SubscriptionBanner />
 
-          <main className="flex-1 pt-14 md:pt-0">
-            <div className="max-w-[1200px] mx-auto px-4 sm:px-5 lg:px-6 py-4 sm:py-6 lg:py-8 safe-inset-bottom">
-              {children}
-            </div>
-          </main>
+            <main className="flex-1 pt-14 md:pt-0">
+              <div className="max-w-[1200px] mx-auto px-4 sm:px-5 lg:px-6 py-4 sm:py-6 lg:py-8 safe-inset-bottom">
+                {children}
+              </div>
+            </main>
 
-          <footer className="border-t border-white/[0.05] py-4 px-4 sm:px-6 safe-inset-bottom">
-            <p className="text-xs text-gray-700 text-center">© 2024 SIRAJ. All rights reserved.</p>
-          </footer>
-        </div>
+            <footer className="border-t border-white/[0.05] py-4 px-4 sm:px-6 safe-inset-bottom">
+              <p className="text-xs text-gray-700 text-center">© 2024 SIRAJ. All rights reserved.</p>
+            </footer>
+          </div>
 
-        <ToastContainer />
+          <ToastContainer />
+        </NextIntlClientProvider>
       </body>
     </html>
   )

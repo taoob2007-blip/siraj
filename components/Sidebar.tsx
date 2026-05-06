@@ -5,35 +5,39 @@ import Link from 'next/link'
 import Image from 'next/image'
 import { usePathname } from 'next/navigation'
 import { useEffect, useRef, useState, useCallback } from 'react'
+import { useTranslations } from 'next-intl'
 import {
   LayoutDashboard, FileText, Users, BarChart2,
   GitCompare, FileSignature, MessageSquare, PieChart,
   Bell, Settings, Crown, Layers, ChevronLeft, Plus
 } from 'lucide-react'
 import { LogoutButton } from '@/components/LogoutButton'
+import { LanguageSwitcher } from '@/components/LanguageSwitcher'
 import { supabaseBrowserClient as supabase } from '@/lib/supabase/client'
 
 const NAV: {
   href: string
-  label: string
+  labelKey: string
   icon: ElementType
   proOnly?: boolean
 }[] = [
-  { href: '/', label: 'Dashboard', icon: LayoutDashboard },
-  { href: '/rfqs', label: 'RFQs', icon: FileText },
-  { href: '/suppliers', label: 'Suppliers', icon: Users },
-  { href: '/categories', label: 'Categories', icon: Layers },
-  { href: '/analytics', label: 'Analytics', icon: BarChart2, proOnly: true },
-  { href: '/comparisons', label: 'Comparisons', icon: GitCompare, proOnly: true },
-  { href: '/contracts', label: 'Contracts', icon: FileSignature },
-  { href: '/messages', label: 'Messages', icon: MessageSquare },
-  { href: '/reports', label: 'Reports', icon: PieChart },
-  { href: '/notifications', label: 'Notifications', icon: Bell },
-  { href: '/settings', label: 'Settings', icon: Settings },
+  { href: '/', labelKey: 'dashboard', icon: LayoutDashboard },
+  { href: '/rfqs', labelKey: 'rfqs', icon: FileText },
+  { href: '/suppliers', labelKey: 'suppliers', icon: Users },
+  { href: '/categories', labelKey: 'categories', icon: Layers },
+  { href: '/analytics', labelKey: 'analytics', icon: BarChart2, proOnly: true },
+  { href: '/comparisons', labelKey: 'comparisons', icon: GitCompare, proOnly: true },
+  { href: '/contracts', labelKey: 'contracts', icon: FileSignature },
+  { href: '/messages', labelKey: 'messages', icon: MessageSquare },
+  { href: '/reports', labelKey: 'reports', icon: PieChart },
+  { href: '/notifications', labelKey: 'notifications', icon: Bell },
+  { href: '/settings', labelKey: 'settings', icon: Settings },
 ]
 
 export function Sidebar() {
   const pathname = usePathname()
+  const t = useTranslations('nav')
+  const tSidebar = useTranslations('sidebar')
 
   const [collapsed, setCollapsed] = useState(false)
   const [mobileOpen, setMobileOpen] = useState(false)
@@ -187,7 +191,7 @@ export function Sidebar() {
             hover:bg-cyan-300 hover:scale-[1.02]
             active:scale-95 transition-all duration-200 shadow-lg shadow-cyan-400/20">
             <Plus className="w-4 h-4" />
-            {!collapsed && 'طلب جديد'}
+            {!collapsed && tSidebar('newRequest')}
           </button>
         </Link>
       </div>
@@ -200,7 +204,7 @@ export function Sidebar() {
           style={{ top: pill.top, height: pill.height }}
         />
 
-        {NAV.map(({ href, label, icon: Icon, proOnly }) => {
+        {NAV.map(({ href, labelKey, icon: Icon, proOnly }) => {
           const active = href === '/' ? pathname === '/' : pathname.startsWith(href)
           const locked = proOnly && !isPro
 
@@ -218,13 +222,13 @@ export function Sidebar() {
                 : 'text-gray-400 hover:text-white hover:bg-white/[0.05]'}`}
             >
               {active && (
-                <span className="absolute left-0 w-[3px] h-6 bg-cyan-400 rounded-r-full" />
+                <span className="absolute start-0 w-[3px] h-6 bg-cyan-400 rounded-e-full" />
               )}
 
               <Icon className="w-4 h-4 shrink-0" />
 
               {!collapsed && (
-                <span className="text-sm flex-1">{label}</span>
+                <span className="text-sm flex-1">{t(labelKey as any)}</span>
               )}
 
               {locked && !collapsed && (
@@ -256,8 +260,14 @@ export function Sidebar() {
         {openUser && !collapsed && (
           <div className="mt-3 bg-[#111827] border border-white/10 rounded-xl p-2 animate-in fade-in">
             <Link href="/settings" className="block px-3 py-2 text-sm text-gray-300 hover:bg-white/5 rounded">
-              الإعدادات
+              {tSidebar('settings')}
             </Link>
+
+            <div className="border-t border-white/10 my-2" />
+
+            <div className="px-1 pb-1">
+              <LanguageSwitcher collapsed={collapsed} />
+            </div>
 
             <div className="border-t border-white/10 my-2" />
 

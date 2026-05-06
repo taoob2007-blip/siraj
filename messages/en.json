@@ -1,0 +1,257 @@
+{
+  "common": {
+    "brand": "SIRAJ",
+    "save": "Save",
+    "cancel": "Cancel",
+    "create": "Create",
+    "delete": "Delete",
+    "edit": "Edit",
+    "view": "View",
+    "close": "Close",
+    "confirm": "Confirm",
+    "back": "Back",
+    "next": "Next",
+    "submit": "Submit",
+    "loading": "Loading...",
+    "error": "Something went wrong",
+    "retry": "Retry",
+    "search": "Search",
+    "filter": "Filter",
+    "noData": "No data yet",
+    "viewAll": "View all",
+    "total": "Total",
+    "status": "Status",
+    "date": "Date",
+    "actions": "Actions",
+    "learnMore": "Learn more",
+    "getStarted": "Get started",
+    "optional": "optional",
+    "required": "Required",
+    "yes": "Yes",
+    "no": "No",
+    "on": "On",
+    "off": "Off",
+    "copy": "Copy",
+    "copied": "Copied!"
+  },
+  "nav": {
+    "dashboard": "Dashboard",
+    "rfqs": "RFQs",
+    "suppliers": "Suppliers",
+    "categories": "Categories",
+    "analytics": "Analytics",
+    "comparisons": "Comparisons",
+    "contracts": "Contracts",
+    "messages": "Messages",
+    "reports": "Reports",
+    "notifications": "Notifications",
+    "settings": "Settings",
+    "billing": "Billing",
+    "pricing": "Pricing",
+    "newRfq": "New RFQ",
+    "newRequest": "New Request"
+  },
+  "sidebar": {
+    "newRequest": "New Request",
+    "settings": "Settings",
+    "logout": "Logout",
+    "user": "User",
+    "collapseMenu": "Collapse menu"
+  },
+  "dashboard": {
+    "title": "Dashboard",
+    "welcome": "Welcome back",
+    "kpi": {
+      "totalRfqs": "Total RFQs",
+      "activeRfqs": "Active RFQs",
+      "suppliers": "Suppliers",
+      "contracts": "Contracts",
+      "currentlyActive": "{count} currently active",
+      "acceptingQuotes": "accepting quotes now",
+      "inYourNetwork": "in your network",
+      "pendingSignature": "{count} pending signature",
+      "growing": "Growing",
+      "live": "Live",
+      "closedDeals": "Closed deals"
+    },
+    "aiInsights": {
+      "title": "AI Insights",
+      "poweredBy": "Powered by SIRAJ",
+      "costSaving": "Cost Saving",
+      "topSupplier": "Top Supplier",
+      "bestPriceValue": "best price/value",
+      "quotes": "Quotes",
+      "totalReceived": "total received",
+      "avg": "avg",
+      "noData": "No data yet",
+      "noDataDesc": "Create RFQs and collect quotes to unlock AI insights.",
+      "createRfq": "Create RFQ"
+    },
+    "recentActivity": {
+      "title": "Recent Activity",
+      "noActivity": "No activity yet — create your first RFQ",
+      "createRfq": "Create RFQ",
+      "rfq": "RFQ",
+      "contract": "Contract",
+      "quote": "Quote"
+    },
+    "howItWorks": {
+      "title": "How SIRAJ Works",
+      "process": "Process",
+      "steps": {
+        "createRfq": "Create RFQ",
+        "createRfqDesc": "Create your request and invite suppliers.",
+        "receiveQuotes": "Receive Quotes",
+        "receiveQuotesDesc": "Suppliers submit via a public form.",
+        "aiAnalysis": "AI Analysis",
+        "aiAnalysisDesc": "AI ranks suppliers on price, speed, value.",
+        "makeDecision": "Make Decision",
+        "makeDecisionDesc": "Choose the best with AI-backed confidence."
+      }
+    },
+    "activeRfqBanner": {
+      "youHave": "You have",
+      "activeRfq": "active RFQ",
+      "activeRfqs": "active RFQs",
+      "waitingForResponses": "Waiting for supplier responses",
+      "viewAll": "View All"
+    },
+    "emptyState": {
+      "noRfqs": "No RFQs yet",
+      "noRfqsDesc": "Create your first request for quotation and let AI do the heavy lifting.",
+      "createFirst": "Create First RFQ"
+    }
+  },
+  "rfqs": {
+    "title": "RFQs",
+    "newRfq": "New RFQ",
+    "status": {
+      "active": "Active",
+      "closed": "Closed",
+      "pending": "Pending",
+      "draft": "Draft",
+      "signed": "Signed"
+    },
+    "detail": "RFQ Details",
+    "rfqDetails": "RFQ Details"
+  },
+  "suppliers": {
+    "title": "Suppliers",
+    "uniqueSuppliers": "{count} unique suppliers across all RFQs",
+    "total": "total",
+    "noSuppliers": "No suppliers yet — invite them from an RFQ.",
+    "viewRfqs": "View RFQs",
+    "viewProfile": "View Profile",
+    "rfqsCount": "{count} RFQ participated",
+    "rfqsCountPlural": "{count} RFQs participated",
+    "columns": {
+      "supplier": "Supplier",
+      "rfqs": "RFQs",
+      "avgPrice": "Avg Price",
+      "avgDelivery": "Avg Delivery",
+      "score": "Score"
+    },
+    "stats": {
+      "rfqs": "RFQs",
+      "price": "Price",
+      "delivery": "Delivery"
+    }
+  },
+  "analytics": {
+    "title": "Analytics",
+    "subtitle": "Track your procurement performance",
+    "kpi": {
+      "totalRfqs": "Total RFQs",
+      "responseRate": "Response Rate",
+      "avgDelivery": "Avg Delivery",
+      "totalSaved": "Total Saved",
+      "totalQuotes": "Total Quotes"
+    },
+    "charts": {
+      "responsesOverTime": "Responses Over Time",
+      "suppliersByCategory": "Suppliers by Category",
+      "priceRange": "Price Range",
+      "noResponses": "No responses in the last 30 days.",
+      "noCategories": "No categorized suppliers yet.",
+      "noPrice": "No price data yet."
+    }
+  },
+  "contracts": {
+    "title": "Contracts",
+    "newContract": "New Contract",
+    "status": {
+      "pending": "Pending",
+      "signed": "Signed",
+      "cancelled": "Cancelled",
+      "all": "All"
+    },
+    "stats": {
+      "total": "Total",
+      "pending": "Pending",
+      "signed": "Signed",
+      "cancelled": "Cancelled"
+    },
+    "noContracts": "No contracts yet",
+    "noContractsDesc": "Select a winner from an RFQ to create a contract.",
+    "viewRfqs": "View RFQs",
+    "detail": "Contract"
+  },
+  "comparisons": {
+    "title": "Comparisons",
+    "subtitle": "Supplier comparison",
+    "winner": "Winner",
+    "rankTitle": "Supplier Rankings",
+    "rank": "Rank",
+    "supplier": "Supplier",
+    "price": "Price",
+    "delivery": "Delivery",
+    "score": "Score",
+    "tags": "Tags",
+    "noComparisons": "No comparisons yet"
+  },
+  "categories": {
+    "title": "Categories",
+    "detail": "Category"
+  },
+  "auth": {
+    "login": "Login",
+    "signup": "Sign Up",
+    "logout": "Logout",
+    "email": "Email",
+    "password": "Password",
+    "forgotPassword": "Forgot Password?",
+    "noAccount": "Don't have an account?",
+    "hasAccount": "Already have an account?"
+  },
+  "status": {
+    "active": "Active",
+    "inactive": "Inactive",
+    "pending": "Pending",
+    "signed": "Signed",
+    "cancelled": "Cancelled",
+    "closed": "Closed",
+    "draft": "Draft",
+    "sent": "Sent",
+    "failed": "Failed"
+  },
+  "footer": {
+    "rights": "© 2024 SIRAJ. All rights reserved."
+  },
+  "upgrade": {
+    "title": "Upgrade to Pro",
+    "desc": "Unlock AI insights, advanced analytics, and unlimited comparisons.",
+    "cta": "Upgrade Now",
+    "feature": "Pro Feature"
+  },
+  "mobile": {
+    "menu": "Toggle menu",
+    "notifications": "Notifications",
+    "newRfq": "New RFQ"
+  },
+  "time": {
+    "justNow": "Just now",
+    "minutesAgo": "{m}m ago",
+    "hoursAgo": "{h}h ago",
+    "daysAgo": "{d}d ago"
+  }
+}

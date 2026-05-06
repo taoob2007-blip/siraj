@@ -5,6 +5,7 @@ import { getUserSubscription } from '@/lib/subscription'
 import { getServerSupabaseClient } from '@/lib/supabase/server'
 import { AnalyticsCharts } from '@/components/AnalyticsCharts'
 import { Activity, MessageSquare, TrendingUp, BarChart3, FileSignature, CheckCircle2 } from 'lucide-react'
+import { getTranslations } from 'next-intl/server'
 
 async function getAnalyticsData() {
   try {
@@ -84,22 +85,25 @@ export default async function AnalyticsPage() {
   const subscription = await getUserSubscription()
   if (subscription !== 'pro') redirect('/pricing')
 
-  const data = await getAnalyticsData()
+  const [data, t] = await Promise.all([
+    getAnalyticsData(),
+    getTranslations('analytics'),
+  ])
 
   const kpis = [
-    { label: 'Total RFQs',       value: data?.totalRFQs ?? 0,        sub: `${data?.activeRFQs ?? 0} active`,         icon: Activity,       cls: 'bg-cyan-400/10 border-cyan-400/20 text-cyan-400' },
-    { label: 'Total Responses',  value: data?.totalResponses ?? 0,    sub: `from ${data?.totalInvites ?? 0} invited`, icon: MessageSquare,  cls: 'bg-cyan-400/10 border-cyan-400/20 text-cyan-400' },
-    { label: 'Response Rate',    value: `${data?.responseRate ?? 0}%`, sub: 'invitations responded',                  icon: TrendingUp,     cls: 'bg-cyan-400/10 border-cyan-400/20 text-cyan-400' },
-    { label: 'Avg Price',        value: data?.avgPrice ? `$${data.avgPrice.toLocaleString('en-US')}` : '—', sub: 'across all quotes', icon: BarChart3, cls: 'bg-cyan-400/10 border-cyan-400/20 text-cyan-400' },
-    { label: 'Contracts',        value: data?.totalContracts ?? 0,    sub: `${data?.signedContracts ?? 0} signed`,    icon: FileSignature,  cls: 'bg-cyan-400/10 border-cyan-400/20 text-cyan-400' },
-    { label: 'Conversion Rate',  value: `${data?.conversionRate ?? 0}%`, sub: 'RFQs → signed contracts',             icon: CheckCircle2,   cls: 'bg-cyan-400/10 border-cyan-400/20 text-cyan-400' },
+    { label: t('kpi.totalRfqs'),      value: data?.totalRFQs ?? 0,        sub: `${data?.activeRFQs ?? 0} active`,         icon: Activity,       cls: 'bg-cyan-400/10 border-cyan-400/20 text-cyan-400' },
+    { label: t('kpi.responseRate'),   value: data?.totalResponses ?? 0,    sub: `from ${data?.totalInvites ?? 0} invited`, icon: MessageSquare,  cls: 'bg-cyan-400/10 border-cyan-400/20 text-cyan-400' },
+    { label: t('kpi.responseRate'),   value: `${data?.responseRate ?? 0}%`, sub: 'invitations responded',                  icon: TrendingUp,     cls: 'bg-cyan-400/10 border-cyan-400/20 text-cyan-400' },
+    { label: t('kpi.avgDelivery'),    value: data?.avgPrice ? `$${data.avgPrice.toLocaleString('en-US')}` : '—', sub: 'across all quotes', icon: BarChart3, cls: 'bg-cyan-400/10 border-cyan-400/20 text-cyan-400' },
+    { label: t('kpi.totalQuotes'),    value: data?.totalContracts ?? 0,    sub: `${data?.signedContracts ?? 0} signed`,    icon: FileSignature,  cls: 'bg-cyan-400/10 border-cyan-400/20 text-cyan-400' },
+    { label: t('kpi.responseRate'),   value: `${data?.conversionRate ?? 0}%`, sub: 'RFQs → signed contracts',             icon: CheckCircle2,   cls: 'bg-cyan-400/10 border-cyan-400/20 text-cyan-400' },
   ]
 
   return (
     <div className="space-y-6">
       <div>
-        <h1 className="text-lg sm:text-xl font-bold text-white">Analytics</h1>
-        <p className="text-xs text-gray-600 mt-0.5">Platform-wide procurement insights</p>
+        <h1 className="text-lg sm:text-xl font-bold text-white">{t('title')}</h1>
+        <p className="text-xs text-gray-600 mt-0.5">{t('subtitle')}</p>
       </div>
 
       {/* KPIs */}

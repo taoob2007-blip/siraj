@@ -15,7 +15,11 @@
       "Bash(Get-ChildItem -Path \"c:\\\\Users\\\\HP\\\\Desktop\\\\Siraj\" -Recurse -Name)",
       "Bash(Select-Object -First 50)",
       "Bash(New-Item -ItemType Directory -Force -Path \"c:\\\\Users\\\\HP\\\\Desktop\\\\Siraj\\\\app\\\\api\\\\cron\\\\email-retry\")",
-      "Bash(Out-Null)"
+      "Bash(Out-Null)",
+      "Bash(node -e \"const p=require\\('./package.json'\\); console.log\\(JSON.stringify\\({deps: Object.keys\\(p.dependencies||{}\\).filter\\(k=>k.includes\\('intl'\\)||k.includes\\('i18n'\\)\\), nextVersion: p.dependencies?.next || p.devDependencies?.next}, null, 2\\)\\)\")",
+      "Bash(cat next.config.js)",
+      "Bash(cat next.config.ts)",
+      "Bash(cat next.config.mjs)"
     ]
   }
 }

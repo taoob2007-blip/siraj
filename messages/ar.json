@@ -1,0 +1,257 @@
+{
+  "common": {
+    "brand": "سراج",
+    "save": "حفظ",
+    "cancel": "إلغاء",
+    "create": "إنشاء",
+    "delete": "حذف",
+    "edit": "تعديل",
+    "view": "عرض",
+    "close": "إغلاق",
+    "confirm": "تأكيد",
+    "back": "رجوع",
+    "next": "التالي",
+    "submit": "إرسال",
+    "loading": "جارٍ التحميل...",
+    "error": "حدث خطأ ما",
+    "retry": "إعادة المحاولة",
+    "search": "بحث",
+    "filter": "تصفية",
+    "noData": "لا توجد بيانات بعد",
+    "viewAll": "عرض الكل",
+    "total": "الإجمالي",
+    "status": "الحالة",
+    "date": "التاريخ",
+    "actions": "الإجراءات",
+    "learnMore": "اعرف المزيد",
+    "getStarted": "ابدأ الآن",
+    "optional": "اختياري",
+    "required": "مطلوب",
+    "yes": "نعم",
+    "no": "لا",
+    "on": "مفعّل",
+    "off": "معطّل",
+    "copy": "نسخ",
+    "copied": "تم النسخ!"
+  },
+  "nav": {
+    "dashboard": "لوحة التحكم",
+    "rfqs": "طلبات العروض",
+    "suppliers": "الموردون",
+    "categories": "الفئات",
+    "analytics": "التحليلات",
+    "comparisons": "المقارنات",
+    "contracts": "العقود",
+    "messages": "الرسائل",
+    "reports": "التقارير",
+    "notifications": "الإشعارات",
+    "settings": "الإعدادات",
+    "billing": "الفواتير",
+    "pricing": "الأسعار",
+    "newRfq": "طلب عرض جديد",
+    "newRequest": "طلب جديد"
+  },
+  "sidebar": {
+    "newRequest": "طلب جديد",
+    "settings": "الإعدادات",
+    "logout": "تسجيل الخروج",
+    "user": "المستخدم",
+    "collapseMenu": "طي القائمة"
+  },
+  "dashboard": {
+    "title": "لوحة التحكم",
+    "welcome": "مرحباً بعودتك",
+    "kpi": {
+      "totalRfqs": "إجمالي الطلبات",
+      "activeRfqs": "الطلبات النشطة",
+      "suppliers": "الموردون",
+      "contracts": "العقود",
+      "currentlyActive": "{count} نشط حالياً",
+      "acceptingQuotes": "تقبل العروض الآن",
+      "inYourNetwork": "في شبكتك",
+      "pendingSignature": "{count} بانتظار التوقيع",
+      "growing": "في ازدياد",
+      "live": "مباشر",
+      "closedDeals": "صفقات مُبرمة"
+    },
+    "aiInsights": {
+      "title": "تحليلات الذكاء الاصطناعي",
+      "poweredBy": "مدعوم بـ سراج",
+      "costSaving": "توفير التكاليف",
+      "topSupplier": "أفضل مورد",
+      "bestPriceValue": "أفضل سعر وقيمة",
+      "quotes": "العروض",
+      "totalReceived": "إجمالي المستلم",
+      "avg": "متوسط",
+      "noData": "لا توجد بيانات بعد",
+      "noDataDesc": "أنشئ طلبات عروض واجمع الأسعار لفتح تحليلات الذكاء الاصطناعي.",
+      "createRfq": "إنشاء طلب عرض"
+    },
+    "recentActivity": {
+      "title": "النشاط الأخير",
+      "noActivity": "لا يوجد نشاط بعد — أنشئ طلب عرض أسعار الأول",
+      "createRfq": "إنشاء طلب عرض",
+      "rfq": "طلب عرض",
+      "contract": "عقد",
+      "quote": "عرض سعر"
+    },
+    "howItWorks": {
+      "title": "كيف يعمل سراج",
+      "process": "العملية",
+      "steps": {
+        "createRfq": "إنشاء طلب",
+        "createRfqDesc": "أنشئ طلبك وادعُ الموردين.",
+        "receiveQuotes": "استقبال العروض",
+        "receiveQuotesDesc": "يقدم الموردون عروضهم عبر نموذج عام.",
+        "aiAnalysis": "تحليل الذكاء الاصطناعي",
+        "aiAnalysisDesc": "يرتب الذكاء الاصطناعي الموردين بناءً على السعر والسرعة والقيمة.",
+        "makeDecision": "اتخاذ القرار",
+        "makeDecisionDesc": "اختر الأفضل بثقة مدعومة بالذكاء الاصطناعي."
+      }
+    },
+    "activeRfqBanner": {
+      "youHave": "لديك",
+      "activeRfq": "طلب عرض نشط",
+      "activeRfqs": "طلبات عروض نشطة",
+      "waitingForResponses": "بانتظار ردود الموردين",
+      "viewAll": "عرض الكل"
+    },
+    "emptyState": {
+      "noRfqs": "لا توجد طلبات عروض بعد",
+      "noRfqsDesc": "أنشئ أول طلب عرض أسعار واترك الذكاء الاصطناعي يقوم بالعمل الشاق.",
+      "createFirst": "إنشاء أول طلب عرض"
+    }
+  },
+  "rfqs": {
+    "title": "طلبات العروض",
+    "newRfq": "طلب عرض جديد",
+    "status": {
+      "active": "نشط",
+      "closed": "مغلق",
+      "pending": "قيد الانتظار",
+      "draft": "مسودة",
+      "signed": "موقّع"
+    },
+    "detail": "تفاصيل الطلب",
+    "rfqDetails": "تفاصيل طلب العرض"
+  },
+  "suppliers": {
+    "title": "الموردون",
+    "uniqueSuppliers": "{count} مورد فريد عبر جميع الطلبات",
+    "total": "الإجمالي",
+    "noSuppliers": "لا يوجد موردون بعد — ادعُهم من طلب عرض.",
+    "viewRfqs": "عرض الطلبات",
+    "viewProfile": "عرض الملف",
+    "rfqsCount": "شارك في {count} طلب",
+    "rfqsCountPlural": "شارك في {count} طلبات",
+    "columns": {
+      "supplier": "المورد",
+      "rfqs": "الطلبات",
+      "avgPrice": "متوسط السعر",
+      "avgDelivery": "متوسط التوصيل",
+      "score": "الدرجة"
+    },
+    "stats": {
+      "rfqs": "الطلبات",
+      "price": "السعر",
+      "delivery": "التوصيل"
+    }
+  },
+  "analytics": {
+    "title": "التحليلات",
+    "subtitle": "تتبع أداء المشتريات",
+    "kpi": {
+      "totalRfqs": "إجمالي الطلبات",
+      "responseRate": "معدل الاستجابة",
+      "avgDelivery": "متوسط التوصيل",
+      "totalSaved": "إجمالي الوفورات",
+      "totalQuotes": "إجمالي العروض"
+    },
+    "charts": {
+      "responsesOverTime": "الاستجابات عبر الزمن",
+      "suppliersByCategory": "الموردون حسب الفئة",
+      "priceRange": "نطاق الأسعار",
+      "noResponses": "لا توجد استجابات في آخر 30 يوماً.",
+      "noCategories": "لا يوجد موردون مصنفون بعد.",
+      "noPrice": "لا توجد بيانات أسعار بعد."
+    }
+  },
+  "contracts": {
+    "title": "العقود",
+    "newContract": "عقد جديد",
+    "status": {
+      "pending": "قيد الانتظار",
+      "signed": "موقّع",
+      "cancelled": "ملغى",
+      "all": "الكل"
+    },
+    "stats": {
+      "total": "الإجمالي",
+      "pending": "قيد الانتظار",
+      "signed": "موقّع",
+      "cancelled": "ملغى"
+    },
+    "noContracts": "لا توجد عقود بعد",
+    "noContractsDesc": "اختر الفائز من طلب عرض لإنشاء عقد.",
+    "viewRfqs": "عرض الطلبات",
+    "detail": "العقد"
+  },
+  "comparisons": {
+    "title": "المقارنات",
+    "subtitle": "مقارنة الموردين",
+    "winner": "الفائز",
+    "rankTitle": "تصنيف الموردين",
+    "rank": "الترتيب",
+    "supplier": "المورد",
+    "price": "السعر",
+    "delivery": "التوصيل",
+    "score": "الدرجة",
+    "tags": "الوسوم",
+    "noComparisons": "لا توجد مقارنات بعد"
+  },
+  "categories": {
+    "title": "الفئات",
+    "detail": "الفئة"
+  },
+  "auth": {
+    "login": "تسجيل الدخول",
+    "signup": "إنشاء حساب",
+    "logout": "تسجيل الخروج",
+    "email": "البريد الإلكتروني",
+    "password": "كلمة المرور",
+    "forgotPassword": "نسيت كلمة المرور؟",
+    "noAccount": "ليس لديك حساب؟",
+    "hasAccount": "لديك حساب بالفعل؟"
+  },
+  "status": {
+    "active": "نشط",
+    "inactive": "غير نشط",
+    "pending": "قيد الانتظار",
+    "signed": "موقّع",
+    "cancelled": "ملغى",
+    "closed": "مغلق",
+    "draft": "مسودة",
+    "sent": "مُرسل",
+    "failed": "فشل"
+  },
+  "footer": {
+    "rights": "© 2024 سراج. جميع الحقوق محفوظة."
+  },
+  "upgrade": {
+    "title": "الترقية إلى النسخة الاحترافية",
+    "desc": "افتح تحليلات الذكاء الاصطناعي والتحليلات المتقدمة والمقارنات غير المحدودة.",
+    "cta": "ترقية الآن",
+    "feature": "ميزة احترافية"
+  },
+  "mobile": {
+    "menu": "تبديل القائمة",
+    "notifications": "الإشعارات",
+    "newRfq": "طلب عرض جديد"
+  },
+  "time": {
+    "justNow": "الآن",
+    "minutesAgo": "منذ {m} د",
+    "hoursAgo": "منذ {h} س",
+    "daysAgo": "منذ {d} ي"
+  }
+}

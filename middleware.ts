@@ -26,6 +26,10 @@ export async function middleware(req: NextRequest) {
   const requestHeaders = new Headers(req.headers)
   requestHeaders.set('x-pathname', pathname)
 
+  // Locale: read from cookie, forward as header for next-intl server components.
+  const rawLocale = req.cookies.get('NEXT_LOCALE')?.value
+  requestHeaders.set('x-locale', rawLocale === 'ar' ? 'ar' : 'en')
+
   // Build the Supabase SSR client.
   // IMPORTANT: must use getAll/setAll — the old get/set/remove API breaks token
   // refresh and causes infinite redirect loops.
