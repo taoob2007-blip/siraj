@@ -1,77 +1,62 @@
-import { Resend } from 'resend'
+import { sendEmail, type SendEmailResult } from './emailService'
+import { emailLayout, rfqBox } from './templates'
 import { BASE_URL } from '@/lib/constants'
-
-const resend = new Resend(process.env.RESEND_API_KEY)
 
 export interface SendRFQEmailParams {
   supplierEmail: string
   supplierName?: string
-  rfqId: string
-  rfqTitle: string
-  token: string
-  inviteId: string
+  rfqId:         string
+  rfqTitle:      string
+  token:         string
+  inviteId:      string
 }
 
-export async function sendRFQEmail({
-  supplierEmail,
-  supplierName,
-  rfqId,
-  rfqTitle,
-  token,
-  inviteId,
-}: SendRFQEmailParams): Promise<{ success: boolean; error?: string }> {
-  const formUrl = `${BASE_URL}/form/${rfqId}?token=${token}&invite=${inviteId}`
+export async function sendRFQEmail(params: SendRFQEmailParams): Promise<SendEmailResult> {
+  const { supplierEmail, supplierName, rfqId, rfqTitle, token, inviteId } = params
+
+  const formUrl  = `${BASE_URL}/form/${rfqId}?token=${token}&invite=${inviteId}`
   const greeting = supplierName ? `Hello ${supplierName},` : 'Hello,'
 
-  const ENABLE_EMAILS = process.env.ENABLE_EMAILS === 'true'
-
-  if (!ENABLE_EMAILS) {
-    console.log('[EMAIL DISABLED]', { to: supplierEmail, rfqId })
-    return { success: true }
-  }
-
-  const html = `
-<div style="font-family:Arial,sans-serif;background:#0B0F1A;padding:40px;color:#fff;">
-  <div style="max-width:600px;margin:auto;background:#111827;border-radius:12px;padding:32px;">
-
-    <h2 style="margin-bottom:8px;color:#fff;">📩 New Request for Quotation</h2>
-    <p style="color:#9CA3AF;margin-top:0;">${greeting}</p>
-    <p style="color:#D1D5DB;">You have been invited to submit a quotation.</p>
-
-    <div style="margin:24px 0;padding:16px;background:#1F2937;border-radius:8px;">
-      <p style="margin:0;color:#9CA3AF;font-size:13px;">RFQ Title</p>
-      <p style="margin:6px 0 0;font-size:18px;font-weight:bold;color:#fff;">${rfqTitle}</p>
+  const html = emailLayout(`
+    <div style="display:flex;align-items:center;gap:12px;margin-bottom:24px;">
+      <div style="background:#1E3A5F;border-radius:50%;width:44px;height:44px;display:flex;align-items:center;justify-content:center;font-size:22px;flex-shrink:0;">📩</div>
+      <div>
+        <h2 style="margin:0;color:#fff;font-size:20px;">New Request for Quotation</h2>
+        <p style="margin:4px 0 0;color:#6B7280;font-size:13px;">Supplier Invitation</p>
+      </div>
     </div>
 
-    <div style="text-align:center;margin-top:32px;">
+    <p style="color:#D1D5DB;line-height:1.6;">${greeting}</p>
+    <p style="color:#D1D5DB;line-height:1.6;margin-top:0;">
+      You have been invited to submit a quotation for the following request:
+    </p>
+
+    ${rfqBox(rfqTitle, '#3B82F6')}
+
+    <div style="text-align:center;margin:32px 0;">
       <a href="${formUrl}"
-         style="background:#3B82F6;color:white;padding:14px 28px;border-radius:8px;text-decoration:none;font-weight:bold;font-size:15px;display:inline-block;">
-        Submit Quotation
+         style="display:inline-block;background:#3B82F6;color:#fff;text-decoration:none;padding:14px 32px;border-radius:8px;font-size:15px;font-weight:bold;">
+        Submit Your Quotation
       </a>
     </div>
 
-    <p style="margin-top:28px;font-size:12px;color:#6B7280;text-align:center;">
-      This link is unique to you. Do not share it with others.<br/>
-      Sent via <strong>SIRAJ</strong> – AI Procurement Platform
+    <p style="color:#6B7280;font-size:13px;text-align:center;line-height:1.6;">
+      Or copy this link into your browser:<br/>
+      <span style="color:#60A5FA;word-break:break-all;">${formUrl}</span>
     </p>
 
-  </div>
-</div>
-`
+    <div style="margin-top:24px;padding:14px;background:#1F2937;border-radius:8px;">
+      <p style="margin:0;color:#9CA3AF;font-size:13px;">
+        🔒 This link is unique to you. Do not share it with others.
+      </p>
+    </div>
+  `)
 
-  try {
-    const res = await resend.emails.send({
-      from: 'RFQ <rfq@usesiraj.com>',
-      to: supplierEmail,
-      subject: 'New Request for Quotation',
-      html,
-    })
-
-    console.log(`[EMAIL] Sent successfully to ${supplierEmail} | RFQ: ${rfqId} | id: ${res.data?.id}`)
-    return { success: true }
-  } catch (err) {
-    const message = err instanceof Error ? err.message : String(err)
-    console.error(`[EMAIL] Failed to send to ${supplierEmail} | RFQ: ${rfqId} | reason: ${message}`)
-    return { success: false, error: message }
-  }
+  return sendEmail({
+    to:        supplierEmail,
+    subject:   `📩 New Request for Quotation — ${rfqTitle}`,
+    html,
+    emailType: 'rfq_invitation',
+    metadata:  { rfqId, supplierEmail },
+  })
 }

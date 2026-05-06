@@ -85,7 +85,8 @@ export async function PATCH(req: NextRequest, { params }: { params: { id: string
       metadata: { ip, user_agent: userAgent },
     })
 
-    // After buyer signs: send supplier the contract signing link
+    // After buyer signs: send supplier the contract signing link.
+    // This is awaited — the supplier must receive this email to complete the workflow.
     if (body.status === 'signed') {
       const serviceClient = getServiceSupabaseClient()
       const { data: contractDetails } = await serviceClient
@@ -103,13 +104,27 @@ export async function PATCH(req: NextRequest, { params }: { params: { id: string
 
         const signingUrl = `${BASE_URL}/contracts/sign/${contractDetails.signing_token}`
 
-        void sendSupplierSigningLinkEmail({
+        const emailResult = await sendSupplierSigningLinkEmail({
           supplierEmail: contractDetails.supplier_email,
           rfqTitle:      rfqDetails?.title ?? 'Request for Quotation',
+          contractId:    params.id,
           signingUrl,
           price:         contractDetails.price,
           deliveryDays:  contractDetails.delivery_days,
         })
+
+        if (!emailResult.success) {
+          // Log but do NOT abort — the contract is signed, buyer's action succeeded.
+          // The email failure is logged in email_logs for manual retry or monitoring.
+          console.error(JSON.stringify({
+            level:      'error',
+            event:      'signing_link_email_failed',
+            contractId: params.id,
+            supplier:   contractDetails.supplier_email,
+            error:      emailResult.error,
+            ts:         new Date().toISOString(),
+          }))
+        }
       }
     }
 

@@ -237,7 +237,9 @@ export async function PATCH(req: NextRequest, { params }: RouteParams) {
           }
         }
 
-        // Fetch all invited suppliers then send winner + loser emails in background
+        // Fetch all invited suppliers then send notifications.
+        // Awaited with allSettled so partial failures don't block the response
+        // and all sends are properly retried before we return.
         const { data: invites } = await serviceClient
           .from('rfq_invites')
           .select('supplier_email')
@@ -245,29 +247,50 @@ export async function PATCH(req: NextRequest, { params }: RouteParams) {
 
         const rfqTitle = (data as { title?: string }).title ?? 'Request for Quotation'
 
-        void Promise.allSettled([
+        const notificationResults = await Promise.allSettled([
           sendWinnerEmail({
             supplierEmail: body.selected_supplier,
             rfqTitle,
+            rfqId:         params.id,
             price:         supplierResponse?.price         ?? null,
             deliveryDays:  supplierResponse?.delivery_days ?? null,
           }),
           sendBuyerConfirmationEmail({
             buyerEmail:    user.email!,
             rfqTitle,
+            rfqId:         params.id,
             supplierEmail: body.selected_supplier,
             price:         supplierResponse?.price         ?? null,
             deliveryDays:  supplierResponse?.delivery_days ?? null,
           }),
           ...((invites ?? [])
             .filter((inv) => inv.supplier_email !== body.selected_supplier)
-            .map((inv) => sendLoserEmail({ supplierEmail: inv.supplier_email, rfqTitle }))
+            .map((inv) => sendLoserEmail({ supplierEmail: inv.supplier_email, rfqTitle, rfqId: params.id }))
           ),
-        ]).then((results) => {
-          const failed = results.filter((r) => r.status === 'rejected' || (r.status === 'fulfilled' && !r.value.success))
-          if (failed.length > 0) console.warn(`[EMAIL] ${failed.length} notification(s) failed for RFQ ${params.id}`)
-          else console.log(`[EMAIL] All notifications sent for RFQ ${params.id}`)
-        })
+        ])
+
+        const failedCount = notificationResults.filter(
+          r => r.status === 'rejected' || (r.status === 'fulfilled' && !r.value.success)
+        ).length
+
+        if (failedCount > 0) {
+          console.warn(JSON.stringify({
+            level:   'warn',
+            event:   'rfq_accept_email_partial_failure',
+            rfqId:   params.id,
+            total:   notificationResults.length,
+            failed:  failedCount,
+            ts:      new Date().toISOString(),
+          }))
+        } else {
+          console.log(JSON.stringify({
+            level: 'info',
+            event: 'rfq_accept_emails_sent',
+            rfqId: params.id,
+            count: notificationResults.length,
+            ts:    new Date().toISOString(),
+          }))
+        }
       } catch (contractErr) {
         console.error('[CONTRACT] unexpected error:', contractErr)
         return NextResponse.json({ error: 'Something went wrong' }, { status: 500 })

@@ -52,7 +52,30 @@ export async function POST(_req: NextRequest, { params }: { params: { id: string
     }
 
     const contractRef = params.id.split('-')[0].toUpperCase()
-    await sendOtpEmail({ email: user.email, code, contractRef })
+
+    const emailResult = await sendOtpEmail({ email: user.email, code, contractRef })
+
+    if (!emailResult.success) {
+      // Clear the OTP we just stored so a stale code can't be used later
+      await supabase
+        .from('contracts')
+        .update({ verification_code: null, verification_code_expires_at: null })
+        .eq('id', params.id)
+        .eq('user_id', user.id)
+
+      console.error(JSON.stringify({
+        level:      'error',
+        event:      'otp_email_failed',
+        contractId: params.id,
+        error:      emailResult.error,
+        ts:         new Date().toISOString(),
+      }))
+
+      return NextResponse.json(
+        { error: 'Failed to send verification code. Please try again in a moment.' },
+        { status: 503 },
+      )
+    }
 
     // Mask email for the response (e.g. u****@example.com)
     const [local, domain] = user.email.split('@')

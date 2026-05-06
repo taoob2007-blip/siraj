@@ -123,25 +123,35 @@ export async function POST(req: NextRequest) {
         link: `${BASE_URL}/form/${rfqId}?token=${token}&invite=${inviteId}`,
       })
 
-      emailJobs.push(async () => {
-        try {
-          await sendRFQEmail({
-            supplierEmail: email,
-            supplierName:  name,
-            rfqId,
-            rfqTitle: rfqData.title,
-            token,
-            inviteId,
-          })
-        } catch (err) {
-          console.error(`[EMAIL] Unexpected error for ${email}:`, err)
-        }
-      })
+      emailJobs.push(() =>
+        sendRFQEmail({
+          supplierEmail: email,
+          supplierName:  name,
+          rfqId,
+          rfqTitle: rfqData.title,
+          token,
+          inviteId,
+        })
+      )
     }
 
-    Promise.all(emailJobs.map(job => job())).catch(err =>
-      console.error('[EMAIL] Batch send error:', err)
-    )
+    // Await all invitation emails before responding.
+    // sendRFQEmail has 3-attempt exponential-backoff retry internally —
+    // individual failures are logged but do NOT block the success response.
+    const emailResults = await Promise.allSettled(emailJobs.map(fn => fn()))
+    const failedCount = emailResults.filter(
+      r => r.status === 'rejected' || (r.status === 'fulfilled' && !r.value.success)
+    ).length
+    if (failedCount > 0) {
+      console.warn(JSON.stringify({
+        level: 'warn',
+        event: 'rfq_email_batch_partial_failure',
+        rfqId,
+        total:  emailJobs.length,
+        failed: failedCount,
+        ts:     new Date().toISOString(),
+      }))
+    }
 
     return NextResponse.json({ success: true, rfq_id: rfqId, invites } satisfies CreateRFQResponse, { status: 201 })
   } catch (error: unknown) {

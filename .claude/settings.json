@@ -11,7 +11,11 @@
       "Bash(sed -i 's/text-violet-400 animate-spin/text-cyan-400 animate-spin/g; s/text-violet-400 font-medium/text-cyan-400 font-medium/g; s/text-violet-400 shrink-0/text-cyan-400 shrink-0/g; s/text-violet-400/text-cyan-400/g; s/text-violet-300/text-cyan-400/g' components/RFQCreateForm.tsx)",
       "Bash(sed -i 's/border-violet-500\\\\/20 bg-violet-500\\\\/8/border-cyan-400\\\\/15 bg-cyan-400\\\\/[0.04]/g' components/RFQCreateForm.tsx)",
       "Bash(sed -i 's/from-blue-600\\\\/30 to-violet-600\\\\/30 border border-blue-500\\\\/20.*text-blue-300/from-cyan-400\\\\/10 to-cyan-400\\\\/5 border border-cyan-400\\\\/20 flex items-center justify-center text-xl font-bold text-cyan-400/g' 'app/suppliers/[email]/page.tsx')",
-      "Bash(sed -i 's/bg-violet-500\\\\/10 border-violet-500\\\\/20 text-violet-400/bg-cyan-400\\\\/10 border-cyan-400\\\\/20 text-cyan-400/g' 'app/suppliers/[email]/page.tsx')"
+      "Bash(sed -i 's/bg-violet-500\\\\/10 border-violet-500\\\\/20 text-violet-400/bg-cyan-400\\\\/10 border-cyan-400\\\\/20 text-cyan-400/g' 'app/suppliers/[email]/page.tsx')",
+      "Bash(Get-ChildItem -Path \"c:\\\\Users\\\\HP\\\\Desktop\\\\Siraj\" -Recurse -Name)",
+      "Bash(Select-Object -First 50)",
+      "Bash(New-Item -ItemType Directory -Force -Path \"c:\\\\Users\\\\HP\\\\Desktop\\\\Siraj\\\\app\\\\api\\\\cron\\\\email-retry\")",
+      "Bash(Out-Null)"
     ]
   }
 }
