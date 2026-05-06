@@ -253,5 +253,15 @@
     "minutesAgo": "{m}m ago",
     "hoursAgo": "{h}h ago",
     "daysAgo": "{d}d ago"
+  },
+  "hero": {
+    "headline": "Full control over your procurement",
+    "headlineAccent": "fast and smart",
+    "sub": "Compare suppliers, analyze quotes, and make precise decisions in minutes — without complexity or distraction.",
+    "cta": "+ Create Request",
+    "ctaSecondary": "View Requests →",
+    "statTotal": "Total Requests",
+    "statActive": "Active Now",
+    "statQuotes": "Quotes Received"
   }
 }
