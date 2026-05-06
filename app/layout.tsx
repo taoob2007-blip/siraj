@@ -45,12 +45,14 @@ export default async function RootLayout({ children }: { children: ReactNode }) 
   const headersList = await headers()
   const pathname    = headersList.get('x-pathname') ?? ''
   const isFormPage  = pathname.startsWith('/form')
+  const isAuthPage  = pathname === '/login' || pathname === '/signup'
 
   const locale   = await getLocale()
   const messages = await getMessages()
   const dir      = locale === 'ar' ? 'rtl' : 'ltr'
 
-  if (isFormPage) {
+  // Auth pages and form pages: bare layout — no Sidebar, no MobileHeader
+  if (isFormPage || isAuthPage) {
     return (
       <html lang={locale} dir={dir} className={`font-sans ${inter.variable} ${ibmPlexArabic.variable}`}>
         <head>
@@ -58,13 +60,9 @@ export default async function RootLayout({ children }: { children: ReactNode }) 
           <meta name="apple-mobile-web-app-capable" content="yes" />
           <meta name="mobile-web-app-capable" content="yes" />
         </head>
-        <body className="min-h-[100dvh] bg-[#080c14] text-gray-50 antialiased">
+        <body className="min-h-[100dvh] bg-[#060B14] text-gray-50 antialiased">
           <NextIntlClientProvider messages={messages}>
-            <main className="min-h-[100dvh] flex items-start justify-center px-4 py-8 safe-inset-top">
-              <div className="w-full max-w-2xl">
-                {children}
-              </div>
-            </main>
+            {children}
             <ToastContainer />
           </NextIntlClientProvider>
         </body>
