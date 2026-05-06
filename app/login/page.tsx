@@ -40,16 +40,10 @@ export default function LoginPage({ searchParams }: Props) {
           <Image
             src="/logo-bar.png"
             alt="SIRAJ"
-            width={280}
-            height={90}
+            width={260}
+            height={80}
             priority
-            className="
-              w-[220px]
-              md:w-[260px]
-              h-auto
-              object-contain
-              select-none
-            "
+            className="w-[220px] md:w-[260px] h-auto object-contain select-none"
           />
         </div>
 
