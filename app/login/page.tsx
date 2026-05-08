@@ -1,4 +1,3 @@
-import Image from 'next/image'
 import Link from 'next/link'
 import { AuthForm } from '@/components/AuthForm'
 
@@ -37,12 +36,10 @@ export default function LoginPage({ searchParams }: Props) {
 
         {/* Logo */}
         <div className="flex justify-center mb-10">
-          <Image
+          {/* eslint-disable-next-line @next/next/no-img-element */}
+          <img
             src="/logo-sign.png"
             alt="SIRAJ"
-            width={320}
-            height={120}
-            priority
             className="w-[260px] md:w-[320px] h-auto object-contain select-none"
           />
         </div>
