@@ -13,7 +13,9 @@
       "Bash(python -c \"import json; d=json.load\\(open\\('package.json'\\)\\); print\\('next:', d['dependencies'].get\\('next','?'\\)\\); print\\('react:', d['dependencies'].get\\('react','?'\\)\\)\")",
       "Bash(python -c \"import json; d=json.load\\(open\\('package.json'\\)\\); print\\(d['dependencies'].get\\('next-intl','NOT FOUND'\\)\\)\")",
       "Bash(dir \"c:\\\\Users\\\\HP\\\\Desktop\\\\Siraj\\\\public\" /b)",
-      "Bash(findstr /i logo)"
+      "Bash(findstr /i logo)",
+      "Bash(Get-ChildItem -Path \"c:\\\\Users\\\\HP\\\\Desktop\\\\Siraj\" -Recurse -Directory)",
+      "Bash(Select-Object -ExpandProperty FullName)"
     ],
     "additionalDirectories": [
       "c:\\Users\\HP\\.claude\\projects\\c--Users-HP-Desktop-Siraj\\memory"

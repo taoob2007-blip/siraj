@@ -27,12 +27,12 @@ export default function SignupPage() {
         {/* Logo */}
         <div className="flex justify-center mb-10">
           <Image
-            src="/logo-bar.png"
+            src="/logo-hero.png"
             alt="SIRAJ"
-            width={260}
-            height={80}
+            width={320}
+            height={120}
             priority
-            className="w-[220px] h-auto object-contain select-none"
+            className="w-[260px] md:w-[320px] h-auto object-contain select-none"
           />
         </div>
 
