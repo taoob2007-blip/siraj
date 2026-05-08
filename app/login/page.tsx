@@ -38,7 +38,7 @@ export default function LoginPage({ searchParams }: Props) {
         {/* Logo */}
         <div className="flex justify-center mb-10">
           <Image
-            src="/logo-hero.png"
+            src="/logo-sign.png"
             alt="SIRAJ"
             width={320}
             height={120}
